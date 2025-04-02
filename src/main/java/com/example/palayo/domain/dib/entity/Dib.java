@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Table(name = "dibs")
-public class Dib extends BaseEntity {
+public class Dib {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
