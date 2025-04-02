@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: palayo
+  config:
+    import:
+      - classpath:/prod/application-prod.yml
