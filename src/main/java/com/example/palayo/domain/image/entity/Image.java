@@ -15,10 +15,13 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String imageName;
 
+    @Column(nullable = false)
     private String imageUrl;
 
+    @Column(nullable = false)
     private Integer imageIndex;
 
     @ManyToOne(fetch = FetchType.LAZY)
