@@ -47,19 +47,19 @@ public class UserController {
         return ResponseEntity.ok(updatedPassword);
     }
 
-    @GetMapping("v1/users/{id}/mypage")
+    @GetMapping("v1/users/mypage")
     public ResponseEntity<UserResponseDto> mypage(
-            @PathVariable Long id,
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        return ResponseEntity.ok(userService.mypage(id, authUser.getUserId()));
+        return ResponseEntity.ok(userService.mypage(authUser.getUserId()));
     }
 
-    @GetMapping("v1/users/{id}/sold")
+    @GetMapping("v1/users/sold")
     public ResponseEntity<UserSoldResponseDto> sold(
-            @PathVariable Long id,
-            @AuthenticationPrincipal AuthUser authUser
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(userService.sold(id, authUser.getUserId()));
+        return ResponseEntity.ok(userService.sold(authUser.getUserId(), page, size));
     }
 }
