@@ -21,7 +21,6 @@ import com.example.palayo.auth.dto.request.signupUserRequestDto;
 public class AuthController {
 
 	private final AuthService authService;
-	private final JwtUtil jwtUtil;
 
 	@PostMapping("/v1/auth/signup")
 	public ResponseEntity<SignupUserResponseDto> signup(@Valid @RequestBody signupUserRequestDto requestDto) {
