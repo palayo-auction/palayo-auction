@@ -4,7 +4,6 @@ import com.example.palayo.auth.dto.request.loginUserRequestDto;
 import com.example.palayo.auth.dto.response.LoginUserResponseDto;
 import com.example.palayo.auth.dto.response.SignupUserResponseDto;
 import com.example.palayo.auth.service.AuthService;
-import com.example.palayo.config.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,7 @@ public class AuthController {
 
 	@PostMapping("/v1/auth/signup")
 	public ResponseEntity<SignupUserResponseDto> signup(@Valid @RequestBody signupUserRequestDto requestDto) {
-		SignupUserResponseDto responseDto = authService.authSave(
+		SignupUserResponseDto responseDto = authService.singup(
 				requestDto.getEmail(),
 				requestDto.getPassword(),
 				requestDto.getNickname()

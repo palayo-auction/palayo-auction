@@ -19,7 +19,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public SignupUserResponseDto authSave(String email, String password, String nickname) {
+    public SignupUserResponseDto singup(String email, String password, String nickname) {
         String encodedPassword = passwordEncoder.encode(password);
         User user = User.of(email, encodedPassword, nickname);
         User savedUser = userRepository.save(user);
