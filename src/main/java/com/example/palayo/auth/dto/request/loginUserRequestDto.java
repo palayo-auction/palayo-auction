@@ -11,9 +11,9 @@ import lombok.Getter;
 public class loginUserRequestDto {
     private Long id;
     @NotBlank
-    @Email(message = "이메일 형식이 아닙니다")
+    @Email(message = "이메일 형식에 어긋납니다")
     private String email;
 
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,}$", message = "비밀번호가 다르거나 아이디가 다릅니다.")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,}$", message = "비밀번호가 다릅니다")
     private String password;
 }
