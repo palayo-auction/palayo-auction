@@ -5,10 +5,10 @@ import com.example.palayo.auth.dto.response.SignupUserResponseDto;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.config.JwtUtil;
-import com.example.palayo.config.SecurityConfig;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,10 +17,10 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-    private final SecurityConfig securityConfig;
+    private final PasswordEncoder passwordEncoder;
 
     public SignupUserResponseDto authSave(String email, String password, String nickname) {
-        String encodedPassword = securityConfig.passwordEncoder().encode(password);
+        String encodedPassword = passwordEncoder.encode(password);
         User user = User.of(email, encodedPassword, nickname);
         User savedUser = userRepository.save(user);
         String bearerToken = jwtUtil.createToken(savedUser.getId(), savedUser.getEmail());
@@ -39,7 +39,7 @@ public class AuthService {
                 () -> new BaseException(ErrorCode.USERID_NOT_MATCH, null)
         );
         String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
-        boolean matches = securityConfig.passwordEncoder().matches(password, user.getPassword());
+        boolean matches = passwordEncoder.matches(password, user.getPassword());
 
         if (!matches) {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
