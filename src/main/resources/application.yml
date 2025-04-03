@@ -3,4 +3,4 @@ spring:
     name: palayo
   config:
     import:
-      - classpath:/prod/application-prod.yml
+      - classpath:/local/application-local.yml
