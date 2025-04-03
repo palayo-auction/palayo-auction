@@ -39,6 +39,9 @@ public enum ErrorCode {
 
     //포인트 이력 관련 에러 코드
 
+    //Firebase 관련 에러 코드
+    SERVICEACCOUNT_NOT_FOUND("Firebase 서비스 걔정 json파일을 찾을 수 없습니다.",HttpStatus.NOT_FOUND),
+    FIREBASE_INIT_FAIL("Firebase 초기화 실패.",HttpStatus.INTERNAL_SERVER_ERROR),
     //그 외 에러 코드
     UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 타입입니다.", HttpStatus.BAD_REQUEST),
     INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),

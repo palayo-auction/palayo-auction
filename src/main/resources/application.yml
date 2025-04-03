@@ -1,6 +1,9 @@
 spring:
   application:
     name: palayo
+
   config:
     import:
-      - classpath:/prod/application-prod.yml
+      - classpath:/local/application-local.yml
+    firebase:
+      config-path: classpath:service-account.json

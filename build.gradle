@@ -63,6 +63,10 @@ dependencies {
     // junit
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    //firebase
+    implementation("com.google.firebase:firebase-admin:9.2.0")
+
+
 }
 
 tasks.named('test') {
