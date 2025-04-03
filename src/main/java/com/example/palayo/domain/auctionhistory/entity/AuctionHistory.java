@@ -2,6 +2,8 @@ package com.example.palayo.domain.auctionhistory.entity;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.CreatedDate;
+
 import com.example.palayo.domain.auction.entity.Auction;
 
 import jakarta.persistence.Column;
@@ -36,14 +38,15 @@ public class AuctionHistory {
 	@Column(nullable = false)
 	private Integer price;
 
+	// 명시적 제약을 통해 createdAt 누락 방지 → 데이터 무결성 보장
+	@CreatedDate
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
-	public AuctionHistory(Auction auction, User buyer, Integer price) {
+	private AuctionHistory(Auction auction, User buyer, Integer price) {
 		this.auction = auction;
 		this.buyer = buyer;
 		this.price = price;
-		this.createdAt = LocalDateTime.now();
 	}
 
 	public static AuctionHistory of(Auction auction, User buyer, Integer price) {

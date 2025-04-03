@@ -4,6 +4,8 @@ import static lombok.AccessLevel.*;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.CreatedDate;
+
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 
 import jakarta.persistence.Column;
@@ -61,25 +63,30 @@ public class Auction {
 	private LocalDateTime expiredAt;
 
 	// 명시적 제약을 통해 createdAt 누락 방지 → 데이터 무결성 보장
+	@CreatedDate
 	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt;
+	private LocalDateTime createdAt; // 분단위
 
-	// 입찰 시각 기록: 생성 시점 기준으로 자동 세팅
 	// buyer는 경매 생성 시점엔 정해지지 않으며 낙찰 후 별도로 설정되므로 생성자에서 제외
-	public Auction(Item item, User seller, Integer minPrice, Integer maxPrice,
-		AuctionStatus status, LocalDateTime startedAt, LocalDateTime expiredAt) {
+	private Auction(Item item, Integer minPrice, Integer maxPrice, LocalDateTime startedAt, LocalDateTime expiredAt) {
 		this.item = item;
-		this.seller = seller;
 		this.minPrice = minPrice;
 		this.maxPrice = maxPrice;
-		this.status = status;
 		this.startedAt = startedAt;
 		this.expiredAt = expiredAt;
-		this.createdAt = LocalDateTime.now();
 	}
 
-	public static Auction of(Item item, User seller, Integer minPrice, Integer maxPrice,
-		AuctionStatus status, LocalDateTime startedAt, LocalDateTime expiredAt) {
-		return new Auction(item, seller, minPrice, maxPrice, status, startedAt, expiredAt);
+	public static Auction of(Item item, Integer minPrice, Integer maxPrice, LocalDateTime startedAt, LocalDateTime expiredAt) {
+		return new Auction(item, minPrice, maxPrice, startedAt, expiredAt);
+	}
+
+	// 로그인된 사용자 정보 기반으로 설정되므로 생성 시점 이후 서비스 계층에서만 주입해야 함
+	protected void setSeller(User seller) {
+		this.seller = seller;
+	}
+
+	// startedAt, expiredAt 기준으로 상태가 달라지므로, 비즈니스 로직 판단 후 서비스 계층에서 설정
+	protected void setStatus(AuctionStatus status) {
+		this.status = status;
 	}
 }
