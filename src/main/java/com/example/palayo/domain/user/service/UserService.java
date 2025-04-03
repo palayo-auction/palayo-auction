@@ -51,10 +51,12 @@ public class UserService {
             throw new BaseException(ErrorCode.PASSWORD_SAME_AS_OLD, null);
         }
 
-        if (passwordEncoder.matches(password, me.getPassword())) {
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            me.updatePassword(encodedPassword);
-        } else throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
+        if (!passwordEncoder.matches(password, me.getPassword())) {
+            throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
+        }
+
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        me.updatePassword(encodedPassword);
 
         return UserResponseDto.of(
                 userId,
