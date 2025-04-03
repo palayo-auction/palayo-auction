@@ -16,7 +16,7 @@ public class AuthUser {
 //    private final UserRole userRole;
 //    private final Collection<? extends GrantedAuthority> authorities;
 
-    public AuthUser(Long userId, String email, UserRole role) {
+    public AuthUser(Long userId, String email/*, UserRole role*/) {
         this.userId = userId;
         this.email = email;
 //        this.userRole = role;
