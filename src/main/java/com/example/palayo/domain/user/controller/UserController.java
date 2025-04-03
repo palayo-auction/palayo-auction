@@ -1,14 +1,13 @@
 package com.example.palayo.domain.user.controller;
 
 import com.example.palayo.common.dto.AuthUser;
-import com.example.palayo.common.response.DefaultResponse;
+import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.user.dto.request.UpdateUserRequestDto;
 import com.example.palayo.domain.user.dto.response.UserResponseDto;
-import com.example.palayo.domain.user.dto.response.UserSoldResponseDto;
+import com.example.palayo.domain.user.dto.response.UserItemResponseDto;
 import com.example.palayo.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,21 +19,21 @@ public class UserController {
     private final UserService userService;
 
     @PutMapping("/v1/users/nickname")
-    public DefaultResponse<UserResponseDto> updateNickname(
+    public Response<UserResponseDto> updateNickname(
             @RequestBody UpdateUserRequestDto requestDto,
             @AuthenticationPrincipal AuthUser authUser
-            ) {
+    ) {
 
         UserResponseDto updatedNickname = userService.updateNickname(
                 requestDto.getNickname(),
                 authUser.getUserId()
         );
 
-        return new DefaultResponse<>(updatedNickname);
+        return Response.of(updatedNickname);
     }
 
     @PutMapping("v1/users/password")
-    public DefaultResponse<UserResponseDto> updatePassword(
+    public Response<UserResponseDto> updatePassword(
             @Valid @RequestBody UpdateUserRequestDto requestDto,
             @AuthenticationPrincipal AuthUser authUser
     ) {
@@ -45,22 +44,22 @@ public class UserController {
                 authUser.getUserId()
         );
 
-        return new DefaultResponse<>(updatedPassword);
+        return Response.of(updatedPassword);
     }
 
     @GetMapping("v1/users/mypage")
-    public DefaultResponse<UserResponseDto> mypage(
+    public Response<UserResponseDto> mypage(
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        return new DefaultResponse<>(userService.mypage(authUser.getUserId()));
+        return Response.of(userService.mypage(authUser.getUserId()));
     }
 
     @GetMapping("v1/users/sold")
-    public DefaultResponse<UserSoldResponseDto> sold(
+    public Response<UserItemResponseDto> sold(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return new DefaultResponse<>(userService.sold(authUser.getUserId(), page, size));
+        return Response.fromPage(userService.sold(authUser.getUserId(), page, size));
     }
 }
