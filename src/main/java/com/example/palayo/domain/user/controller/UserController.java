@@ -1,6 +1,7 @@
 package com.example.palayo.domain.user.controller;
 
 import com.example.palayo.common.dto.AuthUser;
+import com.example.palayo.common.response.DefaultResponse;
 import com.example.palayo.domain.user.dto.request.UpdateUserRequestDto;
 import com.example.palayo.domain.user.dto.response.UserResponseDto;
 import com.example.palayo.domain.user.dto.response.UserSoldResponseDto;
@@ -19,7 +20,7 @@ public class UserController {
     private final UserService userService;
 
     @PutMapping("/v1/users/nickname")
-    public ResponseEntity<UserResponseDto> updateNickname(
+    public DefaultResponse<UserResponseDto> updateNickname(
             @RequestBody UpdateUserRequestDto requestDto,
             @AuthenticationPrincipal AuthUser authUser
             ) {
@@ -29,11 +30,11 @@ public class UserController {
                 authUser.getUserId()
         );
 
-        return ResponseEntity.ok(updatedNickname);
+        return new DefaultResponse<>(updatedNickname);
     }
 
     @PutMapping("v1/users/password")
-    public ResponseEntity<UserResponseDto> updatePassword(
+    public DefaultResponse<UserResponseDto> updatePassword(
             @Valid @RequestBody UpdateUserRequestDto requestDto,
             @AuthenticationPrincipal AuthUser authUser
     ) {
@@ -44,22 +45,22 @@ public class UserController {
                 authUser.getUserId()
         );
 
-        return ResponseEntity.ok(updatedPassword);
+        return new DefaultResponse<>(updatedPassword);
     }
 
     @GetMapping("v1/users/mypage")
-    public ResponseEntity<UserResponseDto> mypage(
+    public DefaultResponse<UserResponseDto> mypage(
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        return ResponseEntity.ok(userService.mypage(authUser.getUserId()));
+        return new DefaultResponse<>(userService.mypage(authUser.getUserId()));
     }
 
     @GetMapping("v1/users/sold")
-    public ResponseEntity<UserSoldResponseDto> sold(
+    public DefaultResponse<UserSoldResponseDto> sold(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(userService.sold(authUser.getUserId(), page, size));
+        return new DefaultResponse<>(userService.sold(authUser.getUserId(), page, size));
     }
 }
