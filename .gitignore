@@ -41,3 +41,4 @@ application.yml
 
 ### application config ###
 src/main/resources/local/**
+src/main/resources/application.yml
