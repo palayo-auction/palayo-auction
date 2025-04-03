@@ -84,10 +84,21 @@ public class UserService {
         return items.map(UserItemResponseDto::of);
     }
 
+    public void delete(Long userId, String password) {
+        User me = isMe(userId);
+        
+        if (passwordEncoder.matches(password, me.getPassword())) {
+            userRepository.delete(me);
+        } else throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
+    }
+
+
     //계속 중복되어 메서드화
     private User isMe(Long id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
         );
     }
+
+
 }
