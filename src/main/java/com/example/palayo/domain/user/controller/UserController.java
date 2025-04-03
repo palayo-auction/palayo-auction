@@ -2,6 +2,7 @@ package com.example.palayo.domain.user.controller;
 
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.response.Response;
+import com.example.palayo.domain.user.dto.request.DeleteUserRequestDto;
 import com.example.palayo.domain.user.dto.request.UpdateUserRequestDto;
 import com.example.palayo.domain.user.dto.response.UserResponseDto;
 import com.example.palayo.domain.user.dto.response.UserItemResponseDto;
@@ -61,5 +62,14 @@ public class UserController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return Response.fromPage(userService.sold(authUser.getUserId(), page, size));
+    }
+
+    @DeleteMapping("v1/users")
+    public Response<Void> delete(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestBody DeleteUserRequestDto requestDto
+    ) {
+        userService.delete(authUser.getUserId(), requestDto.getPassword());
+        return Response.empty();
     }
 }
