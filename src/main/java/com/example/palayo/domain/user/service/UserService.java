@@ -5,7 +5,7 @@ import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.repository.ItemRepository;
 import com.example.palayo.domain.user.dto.response.UserResponseDto;
-import com.example.palayo.domain.user.dto.response.UserSoldResponseDto;
+import com.example.palayo.domain.user.dto.response.UserItemResponseDto;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,44 +27,40 @@ public class UserService {
 
     @Transactional
     public UserResponseDto updateNickname(String nickname, Long id) {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
-        );
+        User me = isMe(id);
 
-        if (nickname.equals(user.getNickname())) {
+        if (nickname.equals(me.getNickname())) {
             throw new BaseException(ErrorCode.NICKNAME_SAME_AS_OLD, nickname);
         }
 
-        user.updateNickname(nickname);
+        me.updateNickname(nickname);
 
         return UserResponseDto.of(
-                user.getId(),
-                user.getEmail(),
-                user.getNickname(),
-                user.getPointAmount()
+                me.getId(),
+                me.getEmail(),
+                me.getNickname(),
+                me.getPointAmount()
         );
     }
 
     @Transactional
     public UserResponseDto updatePassword(String password, String newPassword, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
-        );
+        User me = isMe(userId);
 
-        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+        if (passwordEncoder.matches(newPassword, me.getPassword())) {
             throw new BaseException(ErrorCode.PASSWORD_SAME_AS_OLD, null);
         }
 
-        if (passwordEncoder.matches(password, user.getPassword())) {
+        if (passwordEncoder.matches(password, me.getPassword())) {
             String encodedPassword = passwordEncoder.encode(newPassword);
-            user.updatePassword(encodedPassword);
+            me.updatePassword(encodedPassword);
         } else throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
 
         return UserResponseDto.of(
                 userId,
-                user.getEmail(),
-                user.getNickname(),
-                user.getPointAmount()
+                me.getEmail(),
+                me.getNickname(),
+                me.getPointAmount()
         );
     }
 
@@ -80,16 +76,15 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserSoldResponseDto sold(Long id, int page, int size) {
+    public Page<UserItemResponseDto> sold(Long id, int page, int size) {
         User me = isMe(id);
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         Page<Item> items = itemRepository.findByUserId(me.getId(), pageable);
 
-        return UserSoldResponseDto.of(items);
+        return items.map(UserItemResponseDto::of);
     }
 
-    
-    //마이페이지 조회할때 내가 맞는지 검증하는 메서드
+    //계속 중복되어 메서드화
     private User isMe(Long id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
