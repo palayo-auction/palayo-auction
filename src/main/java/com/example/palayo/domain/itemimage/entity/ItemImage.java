@@ -1,4 +1,4 @@
-package com.example.palayo.domain.image.entity;
+package com.example.palayo.domain.itemimage.entity;
 
 import com.example.palayo.domain.item.entity.Item;
 import jakarta.persistence.*;
@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "images")
-public class Image {
+@Table(name = "item_images")
+public class ItemImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,12 +28,12 @@ public class Image {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    public static Image of(String imageName, String imageUrl, Integer imageIndex, Item item){
-        Image image = new Image();
-        image.imageName = imageName;
-        image.imageUrl = imageUrl;
-        image.imageIndex = imageIndex;
-        image.item = item;
-        return image;
+    public static ItemImage of(String imageName, String imageUrl, Integer imageIndex, Item item){
+        ItemImage itemImage = new ItemImage();
+        itemImage.imageName = imageName;
+        itemImage.imageUrl = imageUrl;
+        itemImage.imageIndex = imageIndex;
+        itemImage.item = item;
+        return itemImage;
     }
 }
