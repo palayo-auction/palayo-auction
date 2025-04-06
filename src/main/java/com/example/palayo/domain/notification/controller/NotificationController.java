@@ -6,7 +6,6 @@ import com.example.palayo.domain.notification.dto.request.FcmTokenRequest;
 import com.example.palayo.domain.notification.dto.request.NotificationRequest;
 import com.example.palayo.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +22,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    //User테이블에 저장하게 된다면 토큰 비교해서 중복이면 저장하지 않도록 변경
+    //후에 user쪽에서 처리를 하게되면 생략할 수도 있음 후 진행 방식에 따라 변경 예정
     @PostMapping("/register")
     public ResponseEntity<String> registerToken(@RequestBody FcmTokenRequest request) {
         System.out.println("토큰 등록 요청됨: " + request.getToken());
