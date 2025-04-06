@@ -1,79 +1,92 @@
+<!--
+    토큰 발급 및 알림 권한 허용을 위한 간단한 html
+    foreground 상태에서 토스트 형식으로 오른쪽에 알림 표시
+-->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Firebase Web Push Test</title>
+    <meta charset="UTF-8" />
+    <title>Firebase Web Push 테스트</title>
 </head>
 <body>
-<h1>FCM Web Push 테스트 🚀</h1>
+<h1>Firebase Web Push 테스트</h1>
 <button onclick="requestPermission()">알림 허용</button>
 
-<!-- ✅ Firebase SDK (v9 이상 "compat" 버전 사용) -->
+<div id="toast" style="
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #333;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: all 0.5s ease;
+    font-size: 14px;
+"></div>
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js"></script>
 
 <script>
-    // ✅ Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBzZZDBwYnhAt6Vik-u-Q69p-yLb3FRhxo",
         authDomain: "palayo-auction-test.firebaseapp.com",
         projectId: "palayo-auction-test",
-        storageBucket: "palayo-auction-test.firebasestorage.app",
+        storageBucket: "palayo-auction-test.appspot.com",
         messagingSenderId: "841013647267",
         appId: "1:841013647267:web:f4dc5f7db738245e846c16"
     };
 
-    // ✅ Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
-    // ✅ 서비스 워커 등록 (명시적으로 지정)
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/firebase-messaging-sw.js')
             .then((registration) => {
-                console.log("✅ 서비스 워커 등록 완료:", registration);
+                console.log("서비스 워커 등록 완료");
 
-                // ✅ FCM 토큰 가져오기 (등록한 서비스 워커 사용)
-                messaging.getToken({ vapidKey: "BHMfUs8NxE6H71mH3R2kxWcct7KiY4KFm6_efcyN5awWsLdLSfK4C-l4VNpqF0Q6Sp07mBKRxLX6PfrCEN_mrjU", serviceWorkerRegistration: registration })
-                    .then((token) => {
-                        if (token) {
-                            console.log("📢 FCM Token:", token);
+                messaging.getToken({
+                    vapidKey: "BHMfUs8NxE6H71mH3R2kxWcct7KiY4KFm6_efcyN5awWsLdLSfK4C-l4VNpqF0Q6Sp07mBKRxLX6PfrCEN_mrjU",
+                    serviceWorkerRegistration: registration
+                }).then((token) => {
+                    console.log("FCM 토큰:", token);
 
-                            // ✅ 서버로 FCM 토큰 전송
-                            fetch("http://localhost:8080/api/notification/register", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ token: token })
-                            });
-                        } else {
-                            console.log("❌ 토큰을 가져올 수 없음");
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("❌ FCM 토큰 가져오기 실패:", error);
+                    fetch("http://localhost:8080/api/notification/register", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ token })
                     });
-
+                });
             })
-            .catch(err => console.error("❌ 서비스 워커 등록 실패:", err));
+            .catch((err) => console.error("sevice worker 등록 실패:", err));
     }
 
-    // ✅ 알림 권한 요청 함수
+    messaging.onMessage((payload) => {
+        console.log("웹이 켜져있을 때 메세지 수신:", payload);
+
+        const { title, body } = payload.data;
+
+        const toast = document.getElementById("toast");
+        toast.innerText = `[${title}] ${body}`;
+        toast.style.display = "block";
+
+        setTimeout(() => {
+            toast.style.display = "none";
+        }, 4000);
+    });
+
     function requestPermission() {
-        Notification.requestPermission().then(permission => {
+        Notification.requestPermission().then((permission) => {
             if (permission === "granted") {
-                console.log("✅ 알림 권한 허용됨");
+                console.log("알림 권한 허용");
             } else {
-                console.error("❌ 알림 권한 거부됨");
+                console.warn("알림 권한 거부");
             }
         });
     }
-
-    // ✅ 포그라운드 푸시 메시지 수신
-    messaging.onMessage(payload => {
-        console.log("📩 메시지 수신:", payload);
-        alert(`알림: ${payload.notification.title} - ${payload.notification.body}`);
-    });
-
 </script>
 </body>
 </html>

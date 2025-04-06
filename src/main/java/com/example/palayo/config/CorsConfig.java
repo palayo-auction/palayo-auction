@@ -12,9 +12,9 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**") // 🔥 API 경로 설정
-                        .allowedOrigins("http://localhost:63342") // 🔥 프론트엔드 도메인 허용
-                        .allowedMethods("GET", "POST", "PUT", "DELETE") // 🔥 허용할 HTTP 메서드
+                registry.addMapping("/api/**")//전체 api허용중
+                        .allowedOrigins("http://localhost:63342")//현재 local사이트만 허용 사이트 주소가 따로 없기에 테스트시 local 주소를 입력
+                        .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowCredentials(true);
             }
         };
