@@ -19,7 +19,7 @@ public class FirebaseConfig {
     public void initialize() {
         try {
             // service-account.json 파일을 resources 폴더에서 로드
-            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("service-account.json");
+            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("palayo-auction-test-firebase-adminsdk-fbsvc-d7b4c29e3d.json");
 
             if (serviceAccount == null) {
                 throw new BaseException(ErrorCode.SERVICEACCOUNT_NOT_FOUND,null);

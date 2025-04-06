@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Firebase Web Push Test</title>
+</head>
+<body>
+<h1>FCM Web Push 테스트 🚀</h1>
+<button onclick="requestPermission()">알림 허용</button>
+
+<!-- ✅ Firebase SDK (v9 이상 "compat" 버전 사용) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js"></script>
+
+<script>
+    // ✅ Firebase 설정
+    const firebaseConfig = {
+        apiKey: "AIzaSyBzZZDBwYnhAt6Vik-u-Q69p-yLb3FRhxo",
+        authDomain: "palayo-auction-test.firebaseapp.com",
+        projectId: "palayo-auction-test",
+        storageBucket: "palayo-auction-test.firebasestorage.app",
+        messagingSenderId: "841013647267",
+        appId: "1:841013647267:web:f4dc5f7db738245e846c16"
+    };
+
+    // ✅ Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    // ✅ 서비스 워커 등록 (명시적으로 지정)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then((registration) => {
+                console.log("✅ 서비스 워커 등록 완료:", registration);
+
+                // ✅ FCM 토큰 가져오기 (등록한 서비스 워커 사용)
+                messaging.getToken({ vapidKey: "BHMfUs8NxE6H71mH3R2kxWcct7KiY4KFm6_efcyN5awWsLdLSfK4C-l4VNpqF0Q6Sp07mBKRxLX6PfrCEN_mrjU", serviceWorkerRegistration: registration })
+                    .then((token) => {
+                        if (token) {
+                            console.log("📢 FCM Token:", token);
+
+                            // ✅ 서버로 FCM 토큰 전송
+                            fetch("http://localhost:8080/api/notification/register", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ token: token })
+                            });
+                        } else {
+                            console.log("❌ 토큰을 가져올 수 없음");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("❌ FCM 토큰 가져오기 실패:", error);
+                    });
+
+            })
+            .catch(err => console.error("❌ 서비스 워커 등록 실패:", err));
+    }
+
+    // ✅ 알림 권한 요청 함수
+    function requestPermission() {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                console.log("✅ 알림 권한 허용됨");
+            } else {
+                console.error("❌ 알림 권한 거부됨");
+            }
+        });
+    }
+
+    // ✅ 포그라운드 푸시 메시지 수신
+    messaging.onMessage(payload => {
+        console.log("📩 메시지 수신:", payload);
+        alert(`알림: ${payload.notification.title} - ${payload.notification.body}`);
+    });
+
+</script>
+</body>
+</html>

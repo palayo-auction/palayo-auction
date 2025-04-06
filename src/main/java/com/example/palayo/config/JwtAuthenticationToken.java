@@ -2,6 +2,9 @@ package com.example.palayo.config;
 
 import com.example.palayo.common.dto.AuthUser;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.Collections;
 
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
