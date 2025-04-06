@@ -1,12 +1,6 @@
 package com.example.palayo.common.dto;
 
-//import com.example.toongallery.domain.user.enums.UserRole;
 import lombok.Getter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Collection;
-import java.util.List;
 
 @Getter
 public class AuthUser {
