@@ -38,5 +38,5 @@ out/
 
 ### application config ###
 src/main/resources/local/**
-src/main/resources/palayo-auction-test-firebase-adminsdk-fbsvc-d7b4c29e3d.json
+src/main/resources/service_account_key.json
 src/main/resources/application.yml
