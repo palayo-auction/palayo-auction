@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${PROD_SERVER}:${MYSQL_PORT}/${MYSQL_DB}
+    url: jdbc:mysql://localhost:3306/palayo_db
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
   jpa:
