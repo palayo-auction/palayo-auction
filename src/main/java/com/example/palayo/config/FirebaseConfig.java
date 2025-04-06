@@ -15,7 +15,7 @@ public class FirebaseConfig {
     @PostConstruct
     public void initFirebase() throws Exception {
         FileInputStream serviceAccount =
-                new FileInputStream("src/main/resources/palayo-auction-test-firebase-adminsdk-fbsvc-d7b4c29e3d.json");
+                new FileInputStream("src/main/resources/service_account_key.json");
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
