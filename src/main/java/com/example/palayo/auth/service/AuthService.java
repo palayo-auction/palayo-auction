@@ -39,9 +39,8 @@ public class AuthService {
                 () -> new BaseException(ErrorCode.USERID_NOT_MATCH, null)
         );
         String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
-        boolean matches = passwordEncoder.matches(password, user.getPassword());
 
-        if (!matches) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
 
