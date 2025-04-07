@@ -1,5 +1,7 @@
 package com.example.palayo.common.response;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 
 public interface Response<T> {
@@ -14,7 +16,7 @@ public interface Response<T> {
 		return new DefaultResponse<>(null);
 	}
 
-	static <T> Response<T> fromPage(Page<T> pageData) {
+	static <T> Response<List<T>> fromPage(Page<T> pageData) {
 		return new PageResponse<>(
 			pageData.getContent(),
 			pageData.getPageable().getPageNumber(),
