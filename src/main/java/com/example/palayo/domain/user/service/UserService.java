@@ -27,76 +27,80 @@ public class UserService {
 
     @Transactional
     public UserResponseDto updateNickname(String nickname, Long id) {
-        User me = isMe(id);
+        User user = findById(id);
 
-        if (nickname.equals(me.getNickname())) {
+        if (nickname.equals(user.getNickname())) {
             throw new BaseException(ErrorCode.NICKNAME_SAME_AS_OLD, nickname);
         }
 
-        me.updateNickname(nickname);
+        user.updateNickname(nickname);
 
         return UserResponseDto.of(
-                me.getId(),
-                me.getEmail(),
-                me.getNickname(),
-                me.getPointAmount()
+                user.getId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getPointAmount()
         );
     }
 
     @Transactional
     public UserResponseDto updatePassword(String password, String newPassword, Long userId) {
-        User me = isMe(userId);
+        User user = findById(userId);
 
-        if (passwordEncoder.matches(newPassword, me.getPassword())) {
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new BaseException(ErrorCode.PASSWORD_SAME_AS_OLD, null);
         }
 
-        if (!passwordEncoder.matches(password, me.getPassword())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
 
         String encodedPassword = passwordEncoder.encode(newPassword);
-        me.updatePassword(encodedPassword);
+        user.updatePassword(encodedPassword);
 
         return UserResponseDto.of(
                 userId,
-                me.getEmail(),
-                me.getNickname(),
-                me.getPointAmount()
+                user.getEmail(),
+                user.getNickname(),
+                user.getPointAmount()
         );
     }
 
     public UserResponseDto mypage(Long userId) {
-        User me = isMe(userId);
+        User user = findById(userId);
 
         return UserResponseDto.of(
-                me.getId(),
-                me.getEmail(),
-                me.getNickname(),
-                me.getPointAmount()
+                user.getId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getPointAmount()
         );
     }
 
     @Transactional(readOnly = true)
     public Page<UserItemResponseDto> sold(Long id, int page, int size) {
-        User me = isMe(id);
+        User user = findById(id);
+
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Item> items = itemRepository.findByUserId(me.getId(), pageable);
+        Page<Item> items = itemRepository.findByUserId(user.getId(), pageable);
 
         return items.map(UserItemResponseDto::of);
     }
 
+    @Transactional
     public void delete(Long userId, String password) {
-        User me = isMe(userId);
+        User user = findById(userId);
         
-        if (passwordEncoder.matches(password, me.getPassword())) {
-            userRepository.delete(me);
-        } else throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
+        }
+
+        user.deleteUser();
     }
 
 
     //계속 중복되어 메서드화
-    private User isMe(Long id) {
+    private User findById(Long id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
         );
