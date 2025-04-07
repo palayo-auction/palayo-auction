@@ -4,6 +4,8 @@ import static lombok.AccessLevel.*;
 
 import java.time.LocalDateTime;
 
+import com.example.palayo.domain.item.entity.Item;
+import com.example.palayo.domain.user.entity.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
