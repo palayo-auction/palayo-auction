@@ -45,10 +45,6 @@ public class AuthService {
         }
 
         return LoginUserResponseDto.of(
-                user.getId(),
-                user.getEmail(),
-                user.getNickname(),
-                user.getPointAmount(),
                 bearerToken);
     }
 }
