@@ -1,11 +1,15 @@
 package com.example.palayo.domain.user.repository;
 
-import com.example.palayo.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.palayo.domain.user.entity.User;
 
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByNickname(String nickname);
     //임시로 사용하기 위한 repository
     Optional<User> findById(Long userId);
 }

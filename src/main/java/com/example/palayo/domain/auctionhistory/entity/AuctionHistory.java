@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.example.palayo.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import org.springframework.data.annotation.CreatedDate;
 
 import com.example.palayo.domain.auction.entity.Auction;
@@ -11,11 +12,9 @@ import com.example.palayo.domain.auction.entity.Auction;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import static lombok.AccessLevel.PROTECTED;
-
 @Entity
 @Getter
-@NoArgsConstructor(access = PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "auction_histories")
 public class AuctionHistory {
 
