@@ -1,5 +1,6 @@
 package com.example.palayo.domain.dib.entity;
 
+import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
