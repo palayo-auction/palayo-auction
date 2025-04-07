@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .rememberMe(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(request -> request.getRequestURI().startsWith("/api/v1/auth")).permitAll()
+                        .requestMatchers(request -> request.getRequestURI().startsWith("/api")).permitAll()
                         .requestMatchers("/open").permitAll()
                         .anyRequest().authenticated()
                 )
