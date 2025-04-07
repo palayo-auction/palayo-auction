@@ -1,6 +1,7 @@
 package com.example.palayo.common.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -49,4 +50,16 @@ public class GlobalExceptionHandler {
         log.error("[에러발생]",ex);
         return new ResponseEntity<>(ErrorResponse.of(errorDetail), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // Entity 클래스의 unique 제약조건 필드 중복 오류처리
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+//    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+//        ErrorDetail errorDetail = new ErrorDetail(
+//                null,
+//                ex.getMessage(),
+//                ErrorCode.DUPLICATE_UNIQUE.name()
+//        );
+//        log.error("[에러발생]", ex);
+//        return new ResponseEntity<>(ErrorResponse.of(errorDetail), HttpStatus.BAD_REQUEST);
+//    }
 }
