@@ -7,11 +7,13 @@ import com.example.palayo.domain.notification.repository.NotificationRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,4 +61,49 @@ public class NotificationService {
             notificationRepository.save(notification);
         }
     }
+
+    @Transactional
+    public void sendNotification(User user, String title, String body, Map<String, String> data) {
+        Notification notification = notificationRepository.findByUser(user)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOTIFICATION_NOT_REGISTERED,null));
+
+        Map<String, String> payload = new HashMap<>(data);
+        payload.put("title", title);
+        payload.put("body", body);
+
+        Message message = Message.builder()
+                .setToken(notification.getToken())
+                .putAllData(payload)
+                .build();
+
+        try {
+            FirebaseMessaging.getInstance().send(message);
+        //    notificationHistoryRepository.save(NotificationHistory.of(user, title, body));
+        } catch (FirebaseMessagingException e) {
+            throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL,null);
+        }
+    }
+
+    @Transactional
+    public void sendAuctionNotification(Long userId, String title, String body) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
+
+        Notification notification = notificationRepository.findByUser(user)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOTIFICATION_NOT_FOUND, "Notification not found"));
+
+        String token = notification.getToken();
+
+        Map<String, String> data = Map.of("title", title, "body", body);
+        sendDataMessage(token, data);
+    }
+    //알림 사용 예시
+//    ZonedDateTime notifyAt = auctionEndTime.minusMinutes(5);
+//auctionJobScheduler.scheduleNotificationJob(
+//    userId,
+//            "경매 마감 임박!",
+//            "참여하신 경매가 5분 후 종료됩니다.",
+//    notifyAt
+//);
+
 }
