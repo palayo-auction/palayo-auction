@@ -1,5 +1,6 @@
 package com.example.palayo.common.exception;
 
+import com.google.api.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,8 @@ public enum ErrorCode {
     FCM_TOKEN_INVALID("유효하지 않은 FCM 토큰입니다.", HttpStatus.BAD_REQUEST),
     FCM_TOKEN_DUPLICATE("이미 등록된 FCM 토큰입니다.", HttpStatus.CONFLICT),
     NOTIFICATION_SEND_FAIL("알림 전송 실패",HttpStatus.BAD_REQUEST),
+    NOTIFICATION_NOT_REGISTERED("알림 등록되지 않았습니다.", HttpStatus.NOT_FOUND),
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다",HttpStatus.NOT_FOUND),
     //포인트 이력 관련 에러 코드
 
     //Firebase 관련 에러 코드
