@@ -101,6 +101,4 @@ public class UserService {
                 () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
         );
     }
-
-
 }

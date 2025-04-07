@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -20,6 +22,17 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public SignupUserResponseDto singup(String email, String password, String nickname) {
+        Optional<User> byEmail = userRepository.findByEmail(email);
+        Optional<User> byNickname = userRepository.findByNickname(nickname);
+
+        if (byEmail.isPresent()) {
+            throw new BaseException(ErrorCode.DUPLICATE_EMAIL, email);
+        }
+
+        if (byNickname.isPresent()) {
+            throw new BaseException(ErrorCode.DUPLICATE_NICNKNAME, nickname);
+        }
+
         String encodedPassword = passwordEncoder.encode(password);
         User user = User.of(email, encodedPassword, nickname);
         User savedUser = userRepository.save(user);
