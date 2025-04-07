@@ -7,6 +7,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -28,6 +31,8 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "int default 0")
     private int pointAmount;
 
+    private LocalDateTime deletedAt;
+
     private User(String email, String password, String nickname) {
         this.email = email;
         this.password = password;
@@ -44,5 +49,10 @@ public class User extends BaseEntity {
 
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    @PreUpdate
+    public void deleteUser() {
+        this.deletedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 }
