@@ -32,7 +32,7 @@ public class ItemController {
     }
 
     @PatchMapping("/v1/items/{itemId}")
-    Response<ItemResponse> updateName(
+    Response<ItemResponse> updateItem(
             @PathVariable Long itemId,
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ItemUpdateRequest request
