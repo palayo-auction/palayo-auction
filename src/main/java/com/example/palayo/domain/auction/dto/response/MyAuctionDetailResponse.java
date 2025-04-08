@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.example.palayo.domain.auction.entity.Auction;
 
+import com.example.palayo.domain.itemimage.entity.ItemImage;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -36,8 +37,8 @@ public class MyAuctionDetailResponse {
 			.itemContent(auction.getItem().getContent())
 			.itemImageUrls( // 상품 이미지 URL 리스트 (imageIndex 오름차순 정렬)
 				auction.getItem().getItemImages().stream()
-					.sorted(Comparator.comparingInt(image -> image.getImageIndex()))
-					.map(image -> image.getImageUrl())
+					.sorted(Comparator.comparingInt(ItemImage::getImageIndex))
+					.map(ItemImage::getImageUrl)
 					.toList()
 			)
 			.auctionStatus(auction.getStatus().name())

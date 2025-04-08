@@ -1,4 +1,4 @@
-package com.example.palayo.auth.dto.response;
+package com.example.palayo.domain.auth.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

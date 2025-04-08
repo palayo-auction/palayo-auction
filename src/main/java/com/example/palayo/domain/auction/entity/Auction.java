@@ -103,6 +103,10 @@ public class Auction {
 		return new Auction(item, startingPrice, buyoutPrice, bidIncrement, startedAt, expiredAt);
 	}
 
+
+	//TODO 해당 코드 가독성 면에서 좋고 잘 짜셨습니다.
+	// 하지만 상태값이 많아질때는 같은 기능을 가진 메소드를 분리하면 관리가 힘들어지는건 고려하셔야해요
+
 	// 경매 상태를 READY로 자동 설정
 	public void markAsReady() {
 		this.status = AuctionStatus.READY;
@@ -111,11 +115,6 @@ public class Auction {
 	// 경매 상태를 ACTIVE로 자동 설정
 	public void markAsActive() {
 		this.status = AuctionStatus.ACTIVE;
-	}
-
-	// 현재 최고 입찰가 갱신 (입찰 시 호출)
-	public void updateCurrentPrice(int newPrice) {
-		this.currentPrice = newPrice;
 	}
 
 	// 경매 상태를 SUCCESS로 자동 설정
@@ -134,5 +133,12 @@ public class Auction {
 		this.deletedAt = LocalDateTime.now();
 		this.status = AuctionStatus.DELETED;
 	}
+
+	// 현재 최고 입찰가 갱신 (입찰 시 호출)
+	public void updateCurrentPrice(int newPrice) {
+		this.currentPrice = newPrice;
+	}
+
+
 }
 

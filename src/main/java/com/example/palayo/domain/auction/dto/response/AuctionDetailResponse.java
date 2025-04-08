@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.example.palayo.domain.auction.entity.Auction;
 
+import com.example.palayo.domain.itemimage.entity.ItemImage;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -22,6 +23,7 @@ public class AuctionDetailResponse {
 	private int startingPrice;          // 시작가
 	private int buyoutPrice;            // 즉시 낙찰가
 	private Integer currentPrice;       // 현재 최고 입찰가
+	//TODO int, Integer 컨벤션으로 맞춰서 사용하세요
 	private LocalDateTime startedAt;    // 경매 시작 일시
 	private LocalDateTime expiredAt;    // 경매 종료 일시
 	private String remainingTime;       // 남은 시간
@@ -34,8 +36,8 @@ public class AuctionDetailResponse {
 			.itemContent(auction.getItem().getContent())
 			.itemImageUrls( // 상품 이미지 URL 리스트 (imageIndex 오름차순 정렬)
 				auction.getItem().getItemImages().stream()
-					.sorted(Comparator.comparingInt(image -> image.getImageIndex()))
-					.map(image -> image.getImageUrl())
+					.sorted(Comparator.comparingInt(ItemImage::getImageIndex))
+					.map(ItemImage::getImageUrl)
 					.toList()
 			)
 			.auctionStatus(auction.getStatus().name())

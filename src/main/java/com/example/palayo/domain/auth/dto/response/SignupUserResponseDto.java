@@ -1,6 +1,5 @@
-package com.example.palayo.auth.dto.response;
+package com.example.palayo.domain.auth.dto.response;
 
-import com.example.palayo.domain.user.entity.User;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +17,7 @@ public class SignupUserResponseDto {
 
     private String bearerToken;
 
-    public static SignupUserResponseDto of(Long id, String email, String nickname,int pointAmount, String bearerToken) {
+    public static SignupUserResponseDto of(Long id, String email, String nickname, int pointAmount, String bearerToken) {
         return new SignupUserResponseDto(id, email, nickname, pointAmount, bearerToken);
     }
 }

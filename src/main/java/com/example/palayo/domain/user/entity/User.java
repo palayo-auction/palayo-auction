@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+//TODO User은 H2에서 예약어입니다. 어떤 예약어든 피해주세요 UserInfo 혹은 MemberInfo 추천드려요
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter

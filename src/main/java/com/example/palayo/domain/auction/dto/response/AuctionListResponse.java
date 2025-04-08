@@ -2,6 +2,7 @@ package com.example.palayo.domain.auction.dto.response;
 
 import com.example.palayo.domain.auction.entity.Auction;
 
+import com.example.palayo.domain.itemimage.entity.ItemImage;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,7 +25,7 @@ public class AuctionListResponse {
 				auction.getItem().getItemImages().stream()
 					.filter(image -> image.getImageIndex() == 0)
 					.findFirst()
-					.map(image -> image.getImageUrl())
+					.map(ItemImage::getImageUrl)
 					.orElse(null)
 			)
 			.auctionStatus(auction.getStatus().name())

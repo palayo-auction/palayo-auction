@@ -66,7 +66,8 @@ public class UserService {
         );
     }
 
-    public UserResponse mypage(Long userId) {
+    @Transactional(readOnly = true)
+    public UserResponse myPage(Long userId) {
         User user = findById(userId);
 
         return UserResponse.of(
@@ -77,6 +78,7 @@ public class UserService {
         );
     }
 
+    //TODO sold가 뭘까요
      @Transactional(readOnly = true)
      public Page<UserItemResponse> sold(Long id, int page, int size) {
          User user = findById(id);

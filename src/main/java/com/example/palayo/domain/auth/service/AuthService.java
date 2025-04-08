@@ -1,7 +1,7 @@
-package com.example.palayo.auth.service;
+package com.example.palayo.domain.auth.service;
 
-import com.example.palayo.auth.dto.response.LoginUserResponseDto;
-import com.example.palayo.auth.dto.response.SignupUserResponseDto;
+import com.example.palayo.domain.auth.dto.response.LoginUserResponseDto;
+import com.example.palayo.domain.auth.dto.response.SignupUserResponseDto;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.config.JwtUtil;
@@ -10,9 +10,12 @@ import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+//TODO Transactional처리 하세요
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -21,7 +24,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public SignupUserResponseDto singup(String email, String password, String nickname) {
+    public SignupUserResponseDto signUp(String email, String password, String nickname) {
         Optional<User> byEmail = userRepository.findByEmail(email);
         Optional<User> byNickname = userRepository.findByNickname(nickname);
 

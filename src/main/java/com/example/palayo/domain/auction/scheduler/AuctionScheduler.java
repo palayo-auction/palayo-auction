@@ -21,6 +21,7 @@ public class AuctionScheduler {
 	private final AuctionService auctionService;
 
 	// 1초마다 경매 상태 및 낙찰자 갱신 (변경된 경우에만 save) - 최적화 예정
+	//TODO 나중에 scheduler 다른 데몬으로 바꾸세요 서버 터집니다
 	@Scheduled(fixedRate = 1000)
 	@Transactional
 	public void updateAuctionStatuses() {

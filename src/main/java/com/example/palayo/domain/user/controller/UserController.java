@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+//TODO RequestMapping에서 Path왜 api만 prefix로 넣는지 궁급합니다. v1,v2... 다 해당 컨트롤러에서 다루나요?
 @RestController
 @RequestMapping("api")
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class UserController {
     public Response<UserResponse> mypage(
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        return Response.of(userService.mypage(authUser.getUserId()));
+        return Response.of(userService.myPage(authUser.getUserId()));
     }
 
      @GetMapping("v1/users/sold")
