@@ -4,8 +4,8 @@ import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.repository.ItemRepository;
-import com.example.palayo.domain.user.dto.response.UserResponseDto;
-import com.example.palayo.domain.user.dto.response.UserItemResponseDto;
+import com.example.palayo.domain.user.dto.response.UserResponse;
+import com.example.palayo.domain.user.dto.response.UserItemResponse;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class UserService {
     private final ItemRepository itemRepository;
 
     @Transactional
-    public UserResponseDto updateNickname(String nickname, Long id) {
+    public UserResponse updateNickname(String nickname, Long id) {
         User user = findById(id);
 
         if (nickname.equals(user.getNickname())) {
@@ -35,7 +35,7 @@ public class UserService {
 
         user.updateNickname(nickname);
 
-        return UserResponseDto.of(
+        return UserResponse.of(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
@@ -44,7 +44,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto updatePassword(String password, String newPassword, Long userId) {
+    public UserResponse updatePassword(String password, String newPassword, Long userId) {
         User user = findById(userId);
 
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
@@ -58,7 +58,7 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.updatePassword(encodedPassword);
 
-        return UserResponseDto.of(
+        return UserResponse.of(
                 userId,
                 user.getEmail(),
                 user.getNickname(),
@@ -66,10 +66,10 @@ public class UserService {
         );
     }
 
-    public UserResponseDto mypage(Long userId) {
+    public UserResponse mypage(Long userId) {
         User user = findById(userId);
 
-        return UserResponseDto.of(
+        return UserResponse.of(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
@@ -78,13 +78,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserItemResponseDto> sold(Long id, int page, int size) {
+    public Page<UserItemResponse> sold(Long id, int page, int size) {
         User user = findById(id);
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         Page<Item> items = itemRepository.findByUserId(user.getId(), pageable);
 
-        return items.map(UserItemResponseDto::of);
+        return items.map(UserItemResponse::of);
     }
 
     @Transactional
