@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class ItemController {
     private final ItemService itemService;
 
-    @PostMapping
+    @PostMapping("/v1/items")
     Response<ItemResponse> saveItem(
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody SaveItemRequest request
@@ -49,7 +49,7 @@ public class ItemController {
         return Response.empty();
     }
 
-    @GetMapping
+    @GetMapping("/v1/items")
     Response<PageItemResponse>getMyItems(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) String category,
