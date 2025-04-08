@@ -51,7 +51,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("회원가입 성공")
+    @DisplayName("회원가입, 자동로그인 성공")
     void signupTest() {
         //given
         ReflectionTestUtils.setField(user, "password", "encodedPassword@1");    //테스트 환경에서는 비밀번호가 실제 암호화된 값으로 저장되지 않는 경우가 많음. passwordEncoder.matches 호출시 정상적인 비교를 위해 추가.
