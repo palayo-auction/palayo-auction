@@ -2,10 +2,10 @@ package com.example.palayo.domain.user.controller;
 
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.response.Response;
-import com.example.palayo.domain.user.dto.request.DeleteUserRequestDto;
-import com.example.palayo.domain.user.dto.request.UpdateUserRequestDto;
-import com.example.palayo.domain.user.dto.response.UserResponseDto;
-import com.example.palayo.domain.user.dto.response.UserItemResponseDto;
+import com.example.palayo.domain.user.dto.request.DeleteUserRequest;
+import com.example.palayo.domain.user.dto.request.UpdateUserRequest;
+import com.example.palayo.domain.user.dto.response.UserResponse;
+import com.example.palayo.domain.user.dto.response.UserItemResponse;
 import com.example.palayo.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +20,12 @@ public class UserController {
     private final UserService userService;
 
     @PutMapping("/v1/users/nickname")
-    public Response<UserResponseDto> updateNickname(
-            @RequestBody UpdateUserRequestDto requestDto,
+    public Response<UserResponse> updateNickname(
+            @RequestBody UpdateUserRequest requestDto,
             @AuthenticationPrincipal AuthUser authUser
     ) {
 
-        UserResponseDto updatedNickname = userService.updateNickname(
+        UserResponse updatedNickname = userService.updateNickname(
                 requestDto.getNickname(),
                 authUser.getUserId()
         );
@@ -34,12 +34,12 @@ public class UserController {
     }
 
     @PutMapping("v1/users/password")
-    public Response<UserResponseDto> updatePassword(
-            @Valid @RequestBody UpdateUserRequestDto requestDto,
+    public Response<UserResponse> updatePassword(
+            @Valid @RequestBody UpdateUserRequest requestDto,
             @AuthenticationPrincipal AuthUser authUser
     ) {
 
-        UserResponseDto updatedPassword = userService.updatePassword(
+        UserResponse updatedPassword = userService.updatePassword(
                 requestDto.getRawPassword(),
                 requestDto.getNewPassword(),
                 authUser.getUserId()
@@ -49,14 +49,14 @@ public class UserController {
     }
 
     @GetMapping("v1/users/mypage")
-    public Response<UserResponseDto> mypage(
+    public Response<UserResponse> mypage(
             @AuthenticationPrincipal AuthUser authUser
     ) {
         return Response.of(userService.mypage(authUser.getUserId()));
     }
 
     @GetMapping("v1/users/sold")
-    public Response<UserItemResponseDto> sold(
+    public Response<UserItemResponse> sold(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
@@ -67,7 +67,7 @@ public class UserController {
     @DeleteMapping("v1/users")
     public Response<Void> delete(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestBody DeleteUserRequestDto requestDto
+            @RequestBody DeleteUserRequest requestDto
     ) {
         userService.delete(authUser.getUserId(), requestDto.getPassword());
         return Response.empty();
