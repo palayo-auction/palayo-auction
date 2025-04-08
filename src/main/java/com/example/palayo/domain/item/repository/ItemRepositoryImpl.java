@@ -17,7 +17,6 @@ import java.util.List;
 import static com.example.palayo.domain.item.entity.QItem.item;
 
 @RequiredArgsConstructor
-@Slf4j
 public class ItemRepositoryImpl implements ItemRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 

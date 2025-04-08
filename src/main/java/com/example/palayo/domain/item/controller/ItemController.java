@@ -7,8 +7,6 @@ import com.example.palayo.domain.item.dto.request.ItemSaveRequest;
 import com.example.palayo.domain.item.dto.request.ItemUpdateRequest;
 import com.example.palayo.domain.item.dto.response.ItemPageResponse;
 import com.example.palayo.domain.item.dto.response.ItemResponse;
-import com.example.palayo.domain.item.enums.Category;
-import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.item.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/items")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
 public class ItemController {
@@ -33,43 +31,13 @@ public class ItemController {
         return Response.of(itemResponse);
     }
 
-    @PatchMapping("/{itemId}/name")
+    @PatchMapping("/v1/items/{itemId}")
     Response<ItemResponse> updateName(
             @PathVariable Long itemId,
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody ItemUpdateRequest request
             ){
-        ItemResponse itemResponse = itemService.updateName(itemId, request.getName(), authUser.getUserId());
-        return Response.of(itemResponse);
-    }
-
-    @PatchMapping("/{itemId}/content")
-    Response<ItemResponse> updateContent(
-            @PathVariable Long itemId,
-            @AuthenticationPrincipal AuthUser authUser,
-            @Valid @RequestBody ItemUpdateRequest request
-    ){
-        ItemResponse itemResponse = itemService.updateContent(itemId, request.getContent(), authUser.getUserId());
-        return Response.of(itemResponse);
-    }
-
-    @PatchMapping("/{itemId}/category")
-    Response<ItemResponse> updateCategory(
-            @PathVariable Long itemId,
-            @AuthenticationPrincipal AuthUser authUser,
-            @Valid @RequestBody ItemUpdateRequest request
-    ){
-        ItemResponse itemResponse = itemService.updateCategory(itemId, request.getCategory(), authUser.getUserId());
-        return Response.of(itemResponse);
-    }
-
-    @PatchMapping("/{itemId}/status")
-    Response<ItemResponse> updateStatus(
-            @PathVariable Long itemId,
-            @AuthenticationPrincipal AuthUser authUser,
-            @Valid @RequestBody ItemUpdateRequest request
-    ){
-        ItemResponse itemResponse = itemService.updateStatus(itemId, request.getItemStatus(), authUser.getUserId());
+        ItemResponse itemResponse = itemService.updateItem(itemId, request, authUser.getUserId());
         return Response.of(itemResponse);
     }
 
@@ -98,7 +66,7 @@ public class ItemController {
         return Response.fromPage(itemPageResponses);
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping("/v1/items/{itemId}")
     Response<ItemResponse>getItemDetail(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long itemId
