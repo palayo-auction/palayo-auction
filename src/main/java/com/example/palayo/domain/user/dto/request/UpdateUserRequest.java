@@ -1,12 +1,10 @@
 package com.example.palayo.domain.user.dto.request;
 
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
-public class UpdateUserRequestDto {
+public class UpdateUserRequest {
 
     private String nickname;
 
