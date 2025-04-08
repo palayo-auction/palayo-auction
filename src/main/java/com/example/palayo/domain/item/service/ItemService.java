@@ -2,9 +2,9 @@ package com.example.palayo.domain.item.service;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
-import com.example.palayo.domain.item.dto.request.ItemSaveRequest;
-import com.example.palayo.domain.item.dto.request.ItemUpdateRequest;
-import com.example.palayo.domain.item.dto.response.ItemPageResponse;
+import com.example.palayo.domain.item.dto.request.SaveItemRequest;
+import com.example.palayo.domain.item.dto.request.UpdateItemRequest;
+import com.example.palayo.domain.item.dto.response.PageItemResponse;
 import com.example.palayo.domain.item.dto.response.ItemResponse;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
@@ -28,7 +28,7 @@ public class ItemService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public ItemResponse saveItem(Long userId, ItemSaveRequest request){
+    public ItemResponse saveItem(Long userId, SaveItemRequest request){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
 
@@ -38,7 +38,7 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemResponse updateItem(Long itemId, ItemUpdateRequest request, Long userId){
+    public ItemResponse updateItem(Long itemId, UpdateItemRequest request, Long userId){
         Item item = getItemOrThrow(itemId);
 
         validateOwnership(userId, item);
@@ -87,14 +87,14 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ItemPageResponse> getMyItems(Long userId, int page, int size, String category, String itemStatus) {
+    public Page<PageItemResponse> getMyItems(Long userId, int page, int size, String category, String itemStatus) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         Category categoryEnum = category != null ? Category.of(category) : null;
         ItemStatus itemStatusEnum = itemStatus != null ? ItemStatus.of(itemStatus) : null;
 
         Page<Item> myItems = itemRepository.searchMyItems(userId, categoryEnum, itemStatusEnum, pageable);
-        return myItems.map(ItemPageResponse::of);
+        return myItems.map(PageItemResponse::of);
     }
 
     private void validateOwnership(Long userId, Item item) {

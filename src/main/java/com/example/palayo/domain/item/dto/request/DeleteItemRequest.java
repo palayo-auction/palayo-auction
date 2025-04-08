@@ -1,12 +1,10 @@
 package com.example.palayo.domain.item.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-public class ItemDeleteRequest {
+public class DeleteItemRequest {
     @NotBlank
     private String password;
 }
