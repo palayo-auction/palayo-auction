@@ -82,7 +82,7 @@ public class UserService {
         User user = findById(id);
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Item> items = itemRepository.findByUserId(user.getId(), pageable);
+        Page<Item> items = itemRepository.findBySellerId(user.getId(), pageable);
 
         return items.map(UserItemResponseDto::of);
     }

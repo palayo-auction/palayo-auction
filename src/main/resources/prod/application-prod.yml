@@ -1,5 +1,5 @@
-Spring:
-  config:
-    import:
-      - classpath:/prod/application-datasource.yml
-      - classpath:/prod/application-jwt.yml
+#spring:
+#  config:
+#    import:
+#      - classpath:/local/application-datasource.yml
+#      - classpath:/local/application-jwt.yml

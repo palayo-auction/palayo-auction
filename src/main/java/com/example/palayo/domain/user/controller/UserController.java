@@ -1,5 +1,7 @@
 package com.example.palayo.domain.user.controller;
 
+import java.util.List;
+
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.user.dto.request.DeleteUserRequestDto;
@@ -56,7 +58,7 @@ public class UserController {
     }
 
     @GetMapping("v1/users/sold")
-    public Response<UserItemResponseDto> sold(
+    public Response<List<UserItemResponseDto>> sold(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size

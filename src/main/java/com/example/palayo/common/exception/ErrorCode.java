@@ -55,10 +55,10 @@ public enum ErrorCode {
     //포인트 이력 관련 에러 코드
 
     //그 외 에러 코드
-    UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 타입입니다.", HttpStatus.BAD_REQUEST),
-    INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
-//    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
-    SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    // UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 타입입니다.", HttpStatus.BAD_REQUEST),
+    // INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
+	// //DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
+    // SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String message;
     private final HttpStatus httpStatus;
