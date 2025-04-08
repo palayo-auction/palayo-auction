@@ -16,7 +16,7 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 	boolean existsByItemIdAndStatusIn(Long itemId, List<AuctionStatus> statuses);
 
 	// 경매 ID로 READY 또는 ACTIVE 상태인 경매 단건 조회
-	Optional<Auction> findByAuctionIdAndStatusIn(Long id, List<AuctionStatus> statuses);
+	Optional<Auction> findByIdAndStatusIn(Long id, List<AuctionStatus> statuses);
 
 	// READY 또는 ACTIVE 상태인 경매를 페이징 조회
 	Page<Auction> findAllByStatusIn(List<AuctionStatus> statuses, Pageable pageable);

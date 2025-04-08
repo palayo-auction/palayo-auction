@@ -31,7 +31,8 @@ public class AuctionScheduler {
 		);
 
 		for (Auction auction : auctions) {
-			boolean statusUpdated = auctionService.updateAuctionStatus(auction);  // 경매 상태 자동 변경 (READY → ACTIVE → SUCCESS/FAILED)
+			boolean statusUpdated = auctionService.updateAuctionStatus(
+				auction);  // 경매 상태 자동 변경 (READY → ACTIVE → SUCCESS/FAILED)
 			boolean winnerAssigned = auctionService.assignWinningBidder(auction); // 낙찰자 지정 (즉시낙찰, 종료낙찰)
 
 			// 상태 변경 또는 낙찰자 지정이 발생한 경우에만 save 호출
