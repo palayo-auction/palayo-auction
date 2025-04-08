@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
-    Page<Item> findByUserId(Long id, Pageable pageable);
+    Page<Item> findBySellerId(Long id, Pageable pageable);
 }
