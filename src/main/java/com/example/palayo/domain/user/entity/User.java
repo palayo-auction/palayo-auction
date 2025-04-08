@@ -7,6 +7,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -16,26 +19,40 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true)
     private String nickname;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "int default 0")
     private int pointAmount;
 
-    private User(String email, String password, String nickname, int pointAmount) {
+    private LocalDateTime deletedAt;
+
+    private User(String email, String password, String nickname) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.pointAmount = pointAmount;
     }
 
-    public static User of(String email, String password, String nickname, int pointAmount) {
-        return new User(email, password, nickname, pointAmount);
+    public static User of(String email, String password, String nickname) {
+        return new User(email, password, nickname);
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
+    @PreUpdate
+    public void deleteUser() {
+        this.deletedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 }
