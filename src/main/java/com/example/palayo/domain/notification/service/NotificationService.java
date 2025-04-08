@@ -3,6 +3,7 @@ package com.example.palayo.domain.notification.service;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.notification.entity.Notification;
+import com.example.palayo.domain.notification.entity.NotificationType;
 import com.example.palayo.domain.notification.repository.NotificationRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -97,6 +98,38 @@ public class NotificationService {
         Map<String, String> data = Map.of("title", title, "body", body);
         sendDataMessage(token, data);
     }
+
+    @Transactional
+    public void sendImmediateNotification(Long userId, NotificationType type, String title, String body, Map<String, String> data) {
+        Notification notification = Notification.builder()
+                .user(userRepository.findById(userId)
+                        .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null)))
+                .type(type)
+                .title(title)
+                .body(body)
+                .data(data)
+                .build();
+
+        notificationRepository.save(notification);
+
+        String token = notificationRepository.findByUser(notification.getUser())
+                .map(Notification::getToken)
+                .orElseThrow(() -> new BaseException(ErrorCode.FCM_TOKEN_NOT_FOUND, null));
+
+        try {
+            Message message = Message.builder()
+                    .setToken(token)
+                    .putData("title", title)
+                    .putData("body", body)
+                    .putAllData(data)
+                    .build();
+
+            FirebaseMessaging.getInstance().send(message);
+        } catch (FirebaseMessagingException e) {
+            throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL, e.getMessage());
+        }
+    }
+
     //알림 사용 예시
 //    ZonedDateTime notifyAt = auctionEndTime.minusMinutes(5);
 //auctionJobScheduler.scheduleNotificationJob(
@@ -104,6 +137,19 @@ public class NotificationService {
 //            "경매 마감 임박!",
 //            "참여하신 경매가 5분 후 종료됩니다.",
 //    notifyAt
-//);
+//
 
+
+/*
+       즉시 알림 보내는법
+    applicationEventPublisher.publishEvent(new NotificationEvent(
+    this,
+    userId,
+    NotificationType.BID_OUTBID, // 알림 유형 enum
+    "입찰 실패!",
+            "다른 사용자가 더 높은 금액을 입찰했습니다.",
+    Map.of("auctionId", auctionId.toString())
+            ));
+
+ */
 }
