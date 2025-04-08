@@ -1,9 +1,12 @@
 package com.example.palayo.domain.dib.service;
 
 import com.example.palayo.common.dto.AuthUser;
-import com.example.palayo.common.response.Response;
+import com.example.palayo.common.exception.BaseException;
+import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
+import com.example.palayo.domain.dib.dto.response.DibListResponse;
+import com.example.palayo.domain.dib.dto.response.DibResponse;
 import com.example.palayo.domain.dib.entity.Dib;
 import com.example.palayo.domain.dib.repository.DibRepository;
 import com.example.palayo.domain.user.entity.User;
@@ -12,7 +15,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,42 +29,45 @@ public class DibService {
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
 
-    public void dibAuction(AuthUser authUser, Long auctionId) {
+    @Transactional
+    public DibResponse dibAuction(AuthUser authUser, Long auctionId) {
         User user = userRepository.findById(authUser.getUserId())
-                .orElseThrow(()-> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, authUser.getEmail()));
 
         Auction auction = auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
+                .orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, auctionId.toString()));
 
-        if (dibRepository.findByAuctionAndUser(auction,user).isPresent()){
-            throw new IllegalArgumentException("이미 찜한 경매입니다.");
+        Optional<Dib> existingDib = dibRepository.findByAuctionAndUser(auction, user);
+
+        if (existingDib.isPresent()) {
+            dibRepository.delete(existingDib.get());
+            return null;
+        } else {
+            Dib savedDib = dibRepository.save(Dib.of(user, auction));
+            return DibResponse.of(savedDib);
         }
-
-        dibRepository.save(Dib.of(user, auction));
     }
 
-    public void unDibAuction(AuthUser authUser, Long auctionId) {
+    @Transactional(readOnly = true)
+    public Page<DibListResponse> getMyDibs(AuthUser authUser, int page, int size) {
         User user = userRepository.findById(authUser.getUserId())
-                .orElseThrow(()-> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, authUser.getEmail()));
 
-        Auction auction = auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
-
-        Dib dib = dibRepository.findByAuctionAndUser(auction,user)
-                .orElseThrow(() -> new IllegalArgumentException("Dib not found"));
-
-        dibRepository.delete(dib);
-    }
-
-    public Response<Page<Dib>> getMyDibs(AuthUser authUser, int page, int size) {
-        User user = userRepository.findById(authUser.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        Pageable pageable = PageRequest.of(page, size);
-
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Dib> dibPage = dibRepository.findAllByUser(user, pageable);
 
-        return Response.of(dibPage);
+        return dibPage.map(DibListResponse::of);
     }
 
+    @Transactional(readOnly = true)
+    public DibResponse getMyDib(AuthUser authUser, Long dibId) {
+        Dib dib = dibRepository.findById(dibId)
+                .orElseThrow(() -> new BaseException(ErrorCode.DIB_NOT_FOUND, dibId.toString()));
+
+        if (!dib.getUser().getId().equals(authUser.getUserId())) {
+            throw new BaseException(ErrorCode.FORBIDDEN, authUser.getUserId().toString());
+        }
+
+        return DibResponse.of(dib);
+    }
 }
