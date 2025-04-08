@@ -41,7 +41,7 @@ public class ItemController {
         return Response.of(itemResponse);
     }
 
-    @DeleteMapping("/{itemId}")
+    @DeleteMapping("/v1/items/{itemId}")
     Response<Void> deleteItem(
             @PathVariable Long itemId,
             @AuthenticationPrincipal AuthUser authUser,
