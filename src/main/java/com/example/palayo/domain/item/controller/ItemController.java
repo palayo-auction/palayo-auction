@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -50,7 +52,7 @@ public class ItemController {
     }
 
     @GetMapping("/v1/items")
-    Response<PageItemResponse>getMyItems(
+    Response<List<PageItemResponse>> getMyItems(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String itemStatus,
