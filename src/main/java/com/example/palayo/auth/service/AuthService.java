@@ -51,14 +51,14 @@ public class AuthService {
 
     public LoginUserResponseDto login(String email, String password) {
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new BaseException(ErrorCode.USER_EMAIL_NOT_MATCH, null)
+                () -> new BaseException(ErrorCode.EMAIL_MISMATCH, email)
         );
-
-        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
+
+        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
 
         return LoginUserResponseDto.of(
                 bearerToken);
