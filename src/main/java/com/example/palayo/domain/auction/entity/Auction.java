@@ -7,11 +7,15 @@ import java.time.LocalDateTime;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.user.entity.User;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.example.palayo.domain.auction.enums.AuctionStatus;
+import com.example.palayo.domain.item.entity.Item;
+import com.example.palayo.domain.user.entity.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -20,75 +24,115 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = PROTECTED)
 @Table(name = "auctions")
+@NoArgsConstructor(access = PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Auction {
 
+	// 경매 ID
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	// 경매 대상 상품 (경매 실패, 유찰 시 재경매 허용 → 다대일 관계)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "item_id", nullable = false)
 	private Item item;
 
+	// 낙찰자 (처음엔 null, 낙찰 시 지정)
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "seller_id", nullable = false)
-	private User seller;
+	@JoinColumn(name = "winning_bidder_id")
+	private User winningBidder;
 
-	// 낙찰자: 경매 등록 시점엔 없고 낙찰 처리 시 설정됨
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "buyer_id")
-	private User buyer;
+	// 경매 시작가
+	@Column(nullable = false)
+	private int startingPrice;
 
-	@Column(name = "min_price", nullable = false)
-	private Integer minPrice;
+	// 즉시 낙찰가
+	@Column(nullable = false)
+	private int buyoutPrice;
 
-	@Column(name = "max_price", nullable = false)
-	private Integer maxPrice;
+	// 현재 최고 입찰가 (입찰이 없을 경우 null)
+	@Column(nullable = false)
+	private Integer currentPrice;
 
+	// 입찰 단위 (최소 입찰 증가액)
+	@Column(nullable = false)
+	private int bidIncrement;
+
+	// 경매 상태 (READY, ACTIVE, SUCCESS, FAILED)
+	// 직접 설정이 불가능하며 내부 로직에 의해 자동으로 관리됨
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private AuctionStatus status;
 
-	@Column(name = "started_at", nullable = false)
+	// 경매 시작 일시
+	@Column(nullable = false)
 	private LocalDateTime startedAt;
 
-	@Column(name = "expired_at", nullable = false)
+	// 경매 종료 일시
+	@Column(nullable = false)
 	private LocalDateTime expiredAt;
 
-	// 명시적 제약을 통해 createdAt 누락 방지 → 데이터 무결성 보장
+	// 생성 일시 (자동으로 설정됨)
 	@CreatedDate
-	@Column(name = "created_at", nullable = false)
-	private LocalDateTime createdAt; // 분단위
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
 
-	// buyer는 경매 생성 시점엔 정해지지 않으며 낙찰 후 별도로 설정되므로 생성자에서 제외
-	private Auction(Item item, Integer minPrice, Integer maxPrice, LocalDateTime startedAt, LocalDateTime expiredAt) {
+	// 삭제 일시 (소프트 딜리트)
+	private LocalDateTime deletedAt;
+
+	private Auction(Item item, int startingPrice, int buyoutPrice, int bidIncrement, LocalDateTime startedAt,
+		LocalDateTime expiredAt) {
 		this.item = item;
-		this.minPrice = minPrice;
-		this.maxPrice = maxPrice;
+		this.startingPrice = startingPrice;
+		this.buyoutPrice = buyoutPrice;
+		this.bidIncrement = bidIncrement;
 		this.startedAt = startedAt;
 		this.expiredAt = expiredAt;
 	}
 
-	public static Auction of(Item item, Integer minPrice, Integer maxPrice, LocalDateTime startedAt, LocalDateTime expiredAt) {
-		return new Auction(item, minPrice, maxPrice, startedAt, expiredAt);
+	public static Auction of(Item item, int startingPrice, int buyoutPrice, int bidIncrement, LocalDateTime startedAt,
+		LocalDateTime expiredAt) {
+		return new Auction(item, startingPrice, buyoutPrice, bidIncrement, startedAt, expiredAt);
 	}
 
-	// 로그인된 사용자 정보 기반으로 설정되므로 생성 시점 이후 서비스 계층에서만 주입해야 함
-	protected void setSeller(User seller) {
-		this.seller = seller;
+	// 경매 상태를 READY로 자동 설정
+	public void markAsReady() {
+		this.status = AuctionStatus.READY;
 	}
 
-	// startedAt, expiredAt 기준으로 상태가 달라지므로, 비즈니스 로직 판단 후 서비스 계층에서 설정
-	protected void setStatus(AuctionStatus status) {
-		this.status = status;
+	// 경매 상태를 ACTIVE로 자동 설정
+	public void markAsActive() {
+		this.status = AuctionStatus.ACTIVE;
+	}
+
+	// 현재 최고 입찰가 갱신 (입찰 시 호출)
+	public void updateCurrentPrice(int newPrice) {
+		this.currentPrice = newPrice;
+	}
+
+	// 경매 상태를 SUCCESS로 자동 설정
+	public void markAsSuccess(User winningBidder) {
+		this.status = AuctionStatus.SUCCESS;
+		this.winningBidder = winningBidder;
+	}
+
+	// 경매 상태를 FAILED로 자동 설정
+	public void markAsFailed() {
+		this.status = AuctionStatus.FAILED;
+	}
+
+	// 경매 상태를 DELETED로 자동 설정 (소프트 딜리트)
+	public void markAsDeleted() {
+		this.deletedAt = LocalDateTime.now();
+		this.status = AuctionStatus.DELETED;
 	}
 }
+

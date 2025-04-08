@@ -77,15 +77,15 @@ public class UserService {
         );
     }
 
-    @Transactional(readOnly = true)
-    public Page<UserItemResponse> sold(Long id, int page, int size) {
-        User user = findById(id);
-
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Item> items = itemRepository.findByUserId(user.getId(), pageable);
-
-        return items.map(UserItemResponse::of);
-    }
+    // @Transactional(readOnly = true)
+    // public Page<UserItemResponseDto> sold(Long id, int page, int size) {
+    //     User user = findById(id);
+    //
+    //     Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+    //     Page<Item> items = itemRepository.findBySellerId(user.getId(), pageable);
+    //
+    //     return items.map(UserItemResponseDto::of);
+    // }
 
     @Transactional
     public void delete(Long userId, String password) {
