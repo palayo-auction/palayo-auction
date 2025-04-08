@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserResponseDto {
+public class UserResponse {
     private Long id;
 
     private String email;
@@ -15,7 +15,7 @@ public class UserResponseDto {
 
     private int pointAmount;
 
-    public static UserResponseDto of(Long id, String email, String nickname, int pointAmount) {
-        return new UserResponseDto(id, email, nickname, pointAmount);
+    public static UserResponse of(Long id, String email, String nickname, int pointAmount) {
+        return new UserResponse(id, email, nickname, pointAmount);
     }
 }
