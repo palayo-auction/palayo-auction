@@ -1,6 +1,6 @@
 package com.example.palayo.auth.service;
 
-import com.example.palayo.auth.dto.response.SignupUserResponseDto;
+import com.example.palayo.auth.dto.response.SignupUserResponse;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.config.JwtUtil;
@@ -44,6 +44,7 @@ public class AuthServiceTest {
 
     private final String nickname = "test";
 
+    @Mock
     private User user;
 
     @BeforeEach
@@ -69,7 +70,7 @@ public class AuthServiceTest {
         given(jwtUtil.createToken(user.getId(), user.getEmail())).willReturn("testToken");
 
         //when
-        SignupUserResponseDto responseDto = authService.singup(email, password, nickname);
+        SignupUserResponse responseDto = authService.singup(email, password, nickname);
 
         //then
         assertEquals(email, responseDto.getEmail());
