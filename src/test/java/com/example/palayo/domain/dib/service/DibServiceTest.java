@@ -4,6 +4,7 @@ import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
+import com.example.palayo.domain.dib.dto.response.DibListResponse;
 import com.example.palayo.domain.dib.entity.Dib;
 import com.example.palayo.domain.dib.repository.DibRepository;
 import com.example.palayo.domain.item.entity.Item;
@@ -57,8 +58,7 @@ class DibServiceTest {
         user = User.of(
                 "test@email.com",
                 "password123",
-                "nickname",
-                1000
+                "nickname"
         );
         ReflectionTestUtils.setField(user, "id", 1L);
 
@@ -69,7 +69,8 @@ class DibServiceTest {
         item = Item.of(
                 "멋진 상품",
                 "멋진 상품 설명",
-                category
+                category,
+                user
         );
 
         // Auction 생성
@@ -77,6 +78,7 @@ class DibServiceTest {
                 item,
                 1000,         //시작가
                 10000,        // 즉시 낙찰가
+                100,
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(7)
         );
@@ -94,6 +96,11 @@ class DibServiceTest {
         given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
         given(auctionRepository.findById(anyLong())).willReturn(Optional.of(auction));
         given(dibRepository.findByAuctionAndUser(any(), any())).willReturn(Optional.empty());
+        given(dibRepository.save(any(Dib.class))).willAnswer(invocation -> {
+            Dib dib = invocation.getArgument(0);
+            ReflectionTestUtils.setField(dib, "id", 1L); // ID 세팅
+            return dib;
+        });
 
         // when
         assertDoesNotThrow(() -> dibService.dibAuction(authUser, 1L));
@@ -103,67 +110,37 @@ class DibServiceTest {
     }
 
     @Test
-    @DisplayName("이미 찜한 경매일 경우 예외 발생")
-    void 경매찜에_실패한다_이미찜한경우() {
+    @DisplayName("이미 찜한 경매일 경우 찜한 경매 삭제")
+    void 경매찜취소에_이미찜한경우() {
         // given
+        Dib dib = Dib.of(user, auction);
         given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
         given(auctionRepository.findById(anyLong())).willReturn(Optional.of(auction));
-        given(dibRepository.findByAuctionAndUser(any(), any())).willReturn(Optional.of(new Dib()));
+        given(dibRepository.findByAuctionAndUser(any(), any())).willReturn(Optional.of(Dib.of(user, auction)));
 
         // when, then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> dibService.dibAuction(authUser, 1L));
 
-        assertEquals("이미 찜한 경매입니다.", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("경매 찜 취소 성공")
-    void 경매찜취소에_성공한다() {
-        // given
-        Dib dib = Dib.of(user, auction);
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-        given(auctionRepository.findById(anyLong())).willReturn(Optional.of(auction));
-        given(dibRepository.findByAuctionAndUser(any(), any())).willReturn(Optional.of(dib));
-
-        // when
-        assertDoesNotThrow(() -> dibService.unDibAuction(authUser, 1L));
-
-        // then
         verify(dibRepository, times(1)).delete(dib);
-    }
-
-    @Test
-    @DisplayName("찜을 취소할 때 찜을 찾지 못하면 예외 발생")
-    void 경매찜취소에_실패한다_찜없음() {
-        // given
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-        given(auctionRepository.findById(anyLong())).willReturn(Optional.of(auction));
-        given(dibRepository.findByAuctionAndUser(any(), any())).willReturn(Optional.empty());
-
-        // when, then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> dibService.unDibAuction(authUser, 1L));
-
-        assertEquals("Dib not found", exception.getMessage());
     }
 
     @Test
     @DisplayName("내가 찜한 경매 리스트 페이징 조회 성공")
     void 내가찜한경매리스트_조회에_성공한다() {
         // given
-        // PageRequest pageable = PageRequest.of(0, 10);
         Page<Dib> dibPage = new PageImpl<>(List.of(Dib.of(user, auction)));
 
         given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
         given(dibRepository.findAllByUser(any(), any())).willReturn(dibPage);
 
         // when
-        Response<Page<Dib>> response = dibService.getMyDibs(authUser, 0, 10);
+        Page<DibListResponse> page = dibService.getMyDibs(authUser, 0, 10);
+        Response<List<DibListResponse>> response = Response.fromPage(page);  // ✅ 수정
 
         // then
         assertNotNull(response);
         assertFalse(response.getData().isEmpty());
-        assertEquals(1, response.getData().getTotalElements());
+        assertEquals(1, response.getData().size());
     }
 }
