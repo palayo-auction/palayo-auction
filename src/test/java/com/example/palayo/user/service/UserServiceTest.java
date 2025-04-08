@@ -2,6 +2,9 @@ package com.example.palayo.user.service;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
+import com.example.palayo.domain.item.entity.Item;
+import com.example.palayo.domain.item.repository.ItemRepository;
+import com.example.palayo.domain.user.dto.response.UserItemResponse;
 import com.example.palayo.domain.user.dto.response.UserResponse;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -12,9 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,10 +38,16 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private ItemRepository itemRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
     private User user;
+
+    @Mock
+    private Item item;
 
     @InjectMocks
     private UserService userService;
@@ -81,6 +95,28 @@ public class UserServiceTest {
         assertEquals(user.getId(), response.getId());
         verify(user).updatePassword(encodedPassword);
         verify(userRepository, times(1)).findById(user.getId());
+    }
+
+    @Test
+    @DisplayName("마이페이지 판매상품 조회 성공")
+    void soldTest() {
+
+        Page<Item> itemPage = new PageImpl<>(Collections.singletonList(item));
+        //given
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(itemRepository.findBySellerId(
+                user.getId(),
+                PageRequest.of(0, 10, Sort.by("createdAt").descending())
+        )).willReturn(itemPage);
+
+        //when
+        Page<UserItemResponse> result = userService.sold(user.getId(), 1, 10);
+
+        //then
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findById(user.getId());
+        verify(itemRepository).findBySellerId(user.getId(),
+                PageRequest.of(0, 10, Sort.by("createdAt").descending()));
     }
 
     @Test
