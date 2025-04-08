@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -21,7 +22,7 @@ import java.util.List;
 public class ItemController {
     private final ItemService itemService;
 
-    @PostMapping
+    @PostMapping("/v1/items")
     Response<ItemResponse> saveItem(
             @AuthenticationPrincipal AuthUser authUser,
             @Valid @RequestBody SaveItemRequest request
@@ -40,7 +41,7 @@ public class ItemController {
         return Response.of(itemResponse);
     }
 
-    @DeleteMapping("/{itemId}")
+    @DeleteMapping("/v1/items/{itemId}")
     Response<Void> deleteItem(
             @PathVariable Long itemId,
             @AuthenticationPrincipal AuthUser authUser,
@@ -50,8 +51,8 @@ public class ItemController {
         return Response.empty();
     }
 
-    @GetMapping
-    Response<List<PageItemResponse>>getMyItems(
+    @GetMapping("/v1/items")
+    Response<List<PageItemResponse>> getMyItems(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String itemStatus,
