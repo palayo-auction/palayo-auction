@@ -21,7 +21,7 @@ public class ItemResponse {
         return new ItemResponse(
                 item.getId(),
                 item.getName(),
-                item.getUser().getNickname(),
+                item.getSeller().getNickname(),
                 item.getContent(),
                 item.getCategory(),
                 item.getItemStatus()

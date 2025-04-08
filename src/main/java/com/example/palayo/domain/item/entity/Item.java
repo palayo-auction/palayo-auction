@@ -3,11 +3,15 @@ package com.example.palayo.domain.item.entity;
 import com.example.palayo.common.entity.BaseEntity;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.item.enums.ItemStatus;
+import com.example.palayo.domain.itemimage.entity.ItemImage;
 import com.example.palayo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -34,11 +38,14 @@ public class Item extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
-    private User user;
+    private User seller;
 
-    public static Item of(String name, String content, Category category, User user){
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemImage> itemImages = new ArrayList<>();
+
+    public static Item of(String name, String content, Category category, User seller){
         Item item = new Item();
-        item.user = user;
+        item.seller = seller;
         item.name = name;
         item.content = content;
         item.category = category;
