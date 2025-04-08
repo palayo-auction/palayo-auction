@@ -69,7 +69,7 @@ public class AuctionServiceHelper {
 
 	// 경매 소유자 검증 (본인이 등록한 경매인지 확인)
 	public void validateOwnership(AuthUser authUser, Auction auction) {
-		if (!auction.getItem().getSellerId().getId().equals(authUser.getId())) {
+		if (!auction.getItem().getSeller().getId().equals(authUser.getUserId())) {
 			throw new BaseException(ErrorCode.UNAUTHORIZED_ACCESS, "auctionId");
 		}
 	}

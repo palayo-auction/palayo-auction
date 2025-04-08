@@ -29,7 +29,7 @@ public class AuctionDetailResponse {
 	public static AuctionDetailResponse of(Auction auction, String remainingTime) {
 		return AuctionDetailResponse.builder()
 			.auctionId(auction.getId())
-			.sellerNickname(auction.getItem().getSellerId().getNickname())
+			.sellerNickname(auction.getItem().getSeller().getNickname())
 			.itemName(auction.getItem().getName())
 			.itemContent(auction.getItem().getContent())
 			.itemImageUrls( // 상품 이미지 URL 리스트 (imageIndex 오름차순 정렬)

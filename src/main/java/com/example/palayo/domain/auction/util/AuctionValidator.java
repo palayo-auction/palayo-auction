@@ -32,7 +32,7 @@ public class AuctionValidator {
 			.orElseThrow(() -> new BaseException(ErrorCode.INVALID_ITEM_OWNER, "itemId"));
 
 		// 요청자가 상품 소유자인지 검증
-		if (!item.getSellerId().getId().equals(authUser.getId())) {
+		if (!item.getSeller().getId().equals(authUser.getUserId())) {
 			throw new BaseException(ErrorCode.INVALID_ITEM_OWNER, "itemId");
 		}
 

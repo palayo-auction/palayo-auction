@@ -103,7 +103,7 @@ public class AuctionService {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
 		Page<Auction> auctions = auctionRepository.findAllByItemSellerIdAndStatusIn(
-			authUser.getId(),
+			authUser.getUserId(),
 			List.of(
 				AuctionStatus.READY,
 				AuctionStatus.ACTIVE,
@@ -168,7 +168,7 @@ public class AuctionService {
 	// 경매 ID + 상태로 경매 조회 (없으면 예외 던짐)
 	// 검증이나 비즈니스 로직이 아닌 단순 조회용 메서드라 AuctionService 내부에 둠
 	private Auction findAuctionByIdAndStatus(Long auctionId, List<AuctionStatus> statuses) {
-		return auctionRepository.findByAuctionIdAndStatusIn(auctionId, statuses)
+		return auctionRepository.findByIdAndStatusIn(auctionId, statuses)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 	}
 }

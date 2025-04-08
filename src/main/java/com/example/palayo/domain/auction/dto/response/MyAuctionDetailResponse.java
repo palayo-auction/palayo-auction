@@ -30,7 +30,7 @@ public class MyAuctionDetailResponse {
 	public static MyAuctionDetailResponse of(Auction auction, String remainingTime, String winningBidderNickname) {
 		return MyAuctionDetailResponse.builder()
 			.auctionId(auction.getId())
-			.sellerNickname(auction.getItem().getSellerId().getNickname())
+			.sellerNickname(auction.getItem().getSeller().getNickname())
 			.winningBidderNickname(winningBidderNickname)
 			.itemName(auction.getItem().getName())
 			.itemContent(auction.getItem().getContent())
