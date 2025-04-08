@@ -2,24 +2,19 @@ package com.example.palayo.domain.auctionhistory.entity;
 
 import java.time.LocalDateTime;
 
+import com.example.palayo.domain.user.entity.User;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import org.springframework.data.annotation.CreatedDate;
 
 import com.example.palayo.domain.auction.entity.Auction;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "auction_histories")
 public class AuctionHistory {
 
