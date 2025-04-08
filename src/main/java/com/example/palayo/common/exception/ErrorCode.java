@@ -38,7 +38,7 @@ public enum ErrorCode {
 
     //찜 관련 에러 코드
     DIB_NOT_FOUND("찜한 경매가 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-    FORBIDDEN("찜한 경매를 조회할 권한이 없습니다.",HttpStatus.UNAUTHORIZED),
+    DIB_FORBIDDEN("찜한 경매를 조회할 권한이 없습니다.",HttpStatus.UNAUTHORIZED),
     //아이템 관련 에러 코드
     CATEGORY_NOT_FOUND("해당 카테고리는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
     STATUS_NOT_FOUND("해당 상태는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
