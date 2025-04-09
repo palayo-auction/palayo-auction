@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
@@ -61,6 +64,30 @@ public class S3Uploader {
         }
 
         return uploadedUrls;
+    }
+
+    public void delete(List<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return; // 삭제할 게 없으면 바로 리턴
+        }
+
+        try {
+            List<ObjectIdentifier> objects = new ArrayList<>();
+            for (String key : keys) {
+                objects.add(ObjectIdentifier.builder().key(key).build());
+            }
+
+            DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                    .bucket(bucket)
+                    .delete(Delete.builder()
+                            .objects(objects)
+                            .build())
+                    .build();
+
+            s3Client.deleteObjects(deleteRequest);
+        } catch (Exception e) {
+            throw new BaseException(ErrorCode.SERVER_NOT_WORK, null);
+        }
     }
 
 }
