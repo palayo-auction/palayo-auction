@@ -3,6 +3,9 @@ package com.example.palayo.domain.payment.service;
 import com.example.palayo.domain.payment.dto.request.PaymentConfirmRequest;
 import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
+import com.example.palayo.domain.pointhistory.entity.PointHistories;
+import com.example.palayo.domain.pointhistory.repository.PointHistoryRepository;
+import com.example.palayo.domain.user.enums.PointType;
 import com.example.palayo.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +32,7 @@ public class PaymentService {
     private final RestTemplate restTemplate;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     @Transactional
     public String confirmAndSavePayment(PaymentConfirmRequest request) {
@@ -81,7 +85,15 @@ public class PaymentService {
                     user -> {
                         user.updatePointAmount(payment.getAmount());
                         userRepository.save(user);
+                        PointHistories histories = PointHistories.builder()
+                                .user(user)
+                                .amount(user.getPointAmount())
+                                .pointType(PointType.RECHARGE)
+                                .build();
+                        pointHistoryRepository.save(histories);
                     });
+
+
 
             return "결제 완료 \n결제 수단: " + payment.getMethod() + "\n금액: " + payment.getAmount() + "원";
 
