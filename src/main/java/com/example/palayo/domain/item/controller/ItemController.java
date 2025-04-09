@@ -1,5 +1,7 @@
 package com.example.palayo.domain.item.controller;
 
+import java.util.List;
+
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.item.dto.request.DeleteItemRequest;
@@ -50,7 +52,7 @@ public class ItemController {
     }
 
     @GetMapping
-    Response<PageItemResponse>getMyItems(
+    Response<List<PageItemResponse>> getMyItems(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String itemStatus,
