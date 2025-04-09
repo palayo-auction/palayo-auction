@@ -40,16 +40,16 @@ public class GlobalExceptionHandler {
     }
 
     // // 기타 예외 처리
-    // @ExceptionHandler(Exception.class)
-    // public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
-    //     ErrorDetail errorDetail = new ErrorDetail(
-    //             null,
-    //             ex.getMessage(),
-    //             ErrorCode.SERVER_NOT_WORK.name()
-    //     );
-    //     log.error("[에러발생]",ex);
-    //     return new ResponseEntity<>(ErrorResponse.of(errorDetail), HttpStatus.INTERNAL_SERVER_ERROR);
-    // }
+     @ExceptionHandler(Exception.class)
+     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
+         ErrorDetail errorDetail = new ErrorDetail(
+                 null,
+                 ex.getMessage(),
+                 ErrorCode.SERVER_NOT_WORK.name()
+         );
+         log.error("[에러발생]",ex);
+         return new ResponseEntity<>(ErrorResponse.of(errorDetail), HttpStatus.INTERNAL_SERVER_ERROR);
+     }
 
     // Entity 클래스의 unique 제약조건 필드 중복 오류처리
 //    @ExceptionHandler(DataIntegrityViolationException.class)
