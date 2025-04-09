@@ -21,7 +21,7 @@ public class PaymentController {
     }
 
     @GetMapping("/success")
-    public ResponseEntity<String> paymentSuccess(
+    public Response<String> paymentSuccess(
             @RequestParam String paymentKey,
             @RequestParam String orderId,
             @RequestParam int amount
@@ -30,18 +30,18 @@ public class PaymentController {
 
         try {
             String result = paymentService.confirmAndSavePayment(confirmRequest);
-            return ResponseEntity.ok("✅ 결제 성공 및 저장 완료!\n" + result);
+            return Response.of("결제 성공 및 저장 완료\n" + result);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("❌ 저장 중 오류: " + e.getMessage());
+            return Response.of("저장 중 오류: " + e.getMessage());
         }
     }
 
     @GetMapping("/fail")
-    public ResponseEntity<String> paymentFail(
+    public Response<String> paymentFail(
             @RequestParam String code,
             @RequestParam String message,
             @RequestParam String orderId
     ) {
-        return ResponseEntity.status(400).body("결제 실패 ❌: " + message + " (code: " + code + ")");
+        return Response.of("결제 실패 : " + message + " (code: " + code + ")");
     }
 }

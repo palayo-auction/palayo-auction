@@ -63,7 +63,7 @@ public class PaymentService {
             String customerName = metadata.path("customerName").asText(null);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("결제 실패 ❌: " + json.path("message").asText("Unknown error"));
+                throw new RuntimeException("결제 실패 : " + json.path("message").asText("Unknown error"));
             }
 
             Payment payment = Payment.builder()
@@ -81,7 +81,7 @@ public class PaymentService {
                     .build();
 
             paymentRepository.save(payment);
-            return "결제 완료 ✅\n결제 수단: " + payment.getMethod() + "\n금액: " + payment.getAmount() + "원";
+            return "결제 완료 \n결제 수단: " + payment.getMethod() + "\n금액: " + payment.getAmount() + "원";
 
         } catch (Exception e) {
             throw new RuntimeException("결제 처리 중 오류 발생: " + e.getMessage());
