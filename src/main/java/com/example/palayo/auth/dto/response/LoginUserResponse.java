@@ -6,11 +6,11 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class LoginUserResponseDto {
+public class LoginUserResponse {
 
     private String token;
 
-    public static LoginUserResponseDto of(String token) {
-        return new LoginUserResponseDto(token);
+    public static LoginUserResponse of(String token) {
+        return new LoginUserResponse(token);
     }
 }
