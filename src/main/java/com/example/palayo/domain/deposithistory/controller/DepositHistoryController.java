@@ -1,64 +1,53 @@
 package com.example.palayo.domain.deposithistory.controller;
 
 import com.example.palayo.common.dto.AuthUser;
+import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.deposithistory.dto.DepositHistoryRequest;
 import com.example.palayo.domain.deposithistory.dto.DepositHistoryResponse;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api")
 public class DepositHistoryController {
 
     private final DepositHistoryService depositHistoryService;
 
     // 단건 조회
-    @GetMapping("/deposithistory/{id}")
-    public DepositHistoryResponse getDepositHistory(
-            @PathVariable Long id,
+    @GetMapping("/v1/deposithistory")
+    public Response<DepositHistoryResponse> getDepositHistory(
+            @RequestParam Long id,
             @AuthenticationPrincipal AuthUser authUser) {
-        return depositHistoryService.getDepositHistory(id, authUser);
+        DepositHistoryResponse depositHistoryResponse = depositHistoryService.getDepositHistory(id, authUser);
+        return Response.of(depositHistoryResponse);
     }
 
     // 다건 조회 (페이징 처리)
-    @GetMapping("/deposithistory")
-    public Page<DepositHistoryResponse> getDepositHistoryList(
+    @GetMapping("/v1/deposithistorys")
+    public Response<List<DepositHistoryResponse>> getDepositHistoryList(
             @RequestParam Long auctionId,
             @RequestParam(required = false) String status,
-            Pageable pageable,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal AuthUser authUser) {
-        return depositHistoryService.getDepositHistoryList(auctionId, status, pageable, authUser);
+        Page<DepositHistoryResponse> depositHistoryPage = depositHistoryService.getDepositHistoryList(auctionId, status, page, size, authUser);
+        return Response.fromPage(depositHistoryPage);
     }
 
     // 보증금 이력 생성
-    @PostMapping("/deposithistory")
+    @PostMapping("/v1/deposithistory")
     @ResponseStatus(HttpStatus.CREATED)
-    public DepositHistoryResponse createDepositHistory(
+    public Response<DepositHistoryResponse> createDepositHistory(
             @RequestBody DepositHistoryRequest depositHistoryRequest,
             @AuthenticationPrincipal AuthUser authUser) {
-        return depositHistoryService.createDepositHistory(depositHistoryRequest, authUser);
-    }
-
-    // 보증금 이력 수정
-    @PutMapping("/deposithistory/{id}")
-    public DepositHistoryResponse updateDepositHistory(
-            @PathVariable Long id,
-            @RequestBody DepositHistoryRequest depositHistoryRequest,
-            @AuthenticationPrincipal AuthUser authUser) {
-        return depositHistoryService.updateDepositHistory(id, depositHistoryRequest, authUser);
-    }
-
-    // 보증금 이력 삭제
-    @DeleteMapping("/deposithistory/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteDepositHistory(
-            @PathVariable Long id,
-            @AuthenticationPrincipal AuthUser authUser) {
-        depositHistoryService.deleteDepositHistory(id, authUser);
+        DepositHistoryResponse depositHistoryResponse = depositHistoryService.createDepositHistory(depositHistoryRequest, authUser);
+        return Response.of(depositHistoryResponse);
     }
 }

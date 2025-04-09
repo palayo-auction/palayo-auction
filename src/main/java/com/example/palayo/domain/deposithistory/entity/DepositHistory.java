@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @Table(name = "deposit_histories")
+@EntityListeners(AuditingEntityListener.class)
 public class DepositHistory {
 
     @Id
@@ -45,14 +47,6 @@ public class DepositHistory {
         this.deposit = deposit;
         this.status = status;
     }
-
-    public void setDeposit(Long deposit) {
-        this.deposit = deposit;
-    }
-
-    public void setStatus(DepositStatus depositStatus) {
-        this.status = depositStatus;
-    }
-    }
+}
 
 
