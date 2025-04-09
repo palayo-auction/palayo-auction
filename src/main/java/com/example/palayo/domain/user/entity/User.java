@@ -52,7 +52,7 @@ public class User extends BaseEntity {
     }
 
     public void updatePointAmount(int pointAmount) {
-        this.pointAmount = pointAmount;
+        this.pointAmount += pointAmount;
     }
 
     @PreUpdate
