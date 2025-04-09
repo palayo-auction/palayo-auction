@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.user.entity.User;
+
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -58,9 +59,9 @@ public class Auction {
 	@Column(nullable = false)
 	private int buyoutPrice;
 
-	// 현재 최고 입찰가 (입찰이 없을 경우 null)
+	// 현재 최고 입찰가 (최초 경매 생성 시 시작가로 초기화됨, 이후 입찰 시 갱신)
 	@Column(nullable = false)
-	private Integer currentPrice;
+	private int currentPrice;
 
 	// 입찰 단위 (최소 입찰 증가액)
 	@Column(nullable = false)
@@ -134,5 +135,9 @@ public class Auction {
 		this.deletedAt = LocalDateTime.now();
 		this.status = AuctionStatus.DELETED;
 	}
-}
 
+	// 낙찰자만 설정 (상태 변경은 하지 않음)
+	public void setWinningBidder(User winningBidder) {
+		this.winningBidder = winningBidder;
+	}
+}

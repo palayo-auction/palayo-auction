@@ -26,7 +26,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
         List<Item> results = queryFactory
                 .selectFrom(item)
                 .where(
-                        item.user.id.eq(userId),
+                        item.seller.id.eq(userId),
                         eqCategory(category),
                         eqItemStatus(itemStatus)
                 )
@@ -39,7 +39,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .select(item.count())
                 .from(item)
                 .where(
-                        item.user.id.eq(userId),
+                        item.seller.id.eq(userId),
                         eqCategory(category),
                         eqItemStatus(itemStatus)
                 );
