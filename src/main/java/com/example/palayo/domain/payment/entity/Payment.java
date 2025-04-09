@@ -37,7 +37,7 @@ public class Payment {
 
     private String approvedAt;
 
-    private String userId;
+    private Long userId;
 
     private String nickname;
 }

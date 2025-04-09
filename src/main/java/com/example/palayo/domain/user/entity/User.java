@@ -51,6 +51,10 @@ public class User extends BaseEntity {
         this.password = password;
     }
 
+    public void updatePointAmount(int pointAmount) {
+        this.pointAmount = pointAmount;
+    }
+
     @PreUpdate
     public void deleteUser() {
         this.deletedAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
