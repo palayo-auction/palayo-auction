@@ -1,8 +1,8 @@
 package com.example.palayo.auth.controller;
 
-import com.example.palayo.auth.dto.request.loginUserRequestDto;
-import com.example.palayo.auth.dto.response.LoginUserResponseDto;
-import com.example.palayo.auth.dto.response.SignupUserResponseDto;
+import com.example.palayo.auth.dto.request.loginUserRequest;
+import com.example.palayo.auth.dto.response.LoginUserResponse;
+import com.example.palayo.auth.dto.response.SignupUserResponse;
 import com.example.palayo.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.palayo.auth.dto.request.signupUserRequestDto;
+import com.example.palayo.auth.dto.request.signupUserRequest;
 
 @RestController
 @RequestMapping("api")
@@ -22,8 +22,8 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/v1/auth/signup")
-	public ResponseEntity<SignupUserResponseDto> signup(@Valid @RequestBody signupUserRequestDto requestDto) {
-		SignupUserResponseDto responseDto = authService.singup(
+	public ResponseEntity<SignupUserResponse> signup(@Valid @RequestBody signupUserRequest requestDto) {
+		SignupUserResponse responseDto = authService.singup(
 				requestDto.getEmail(),
 				requestDto.getPassword(),
 				requestDto.getNickname()
@@ -32,8 +32,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/v1/auth/login")
-	public ResponseEntity<LoginUserResponseDto> login(@Valid @RequestBody loginUserRequestDto requestDto) {
-		LoginUserResponseDto responseDto = authService.login(
+	public ResponseEntity<LoginUserResponse> login(@Valid @RequestBody loginUserRequest requestDto) {
+		LoginUserResponse responseDto = authService.login(
 				requestDto.getEmail(),
 				requestDto.getPassword()
 		);
