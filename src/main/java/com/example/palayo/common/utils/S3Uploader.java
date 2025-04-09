@@ -20,6 +20,7 @@ import java.util.UUID;
 public class S3Uploader {
 
     private final S3Client s3Client;
+    private final ImageExtensionValidator extensionValidator;
 
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
@@ -28,6 +29,10 @@ public class S3Uploader {
     private String cloudFrontDomain;
 
     public List<String> uploadFiles(List<MultipartFile> files, String dir) {
+        for (MultipartFile file : files) {
+            extensionValidator.validateImageFile(file);
+        }
+
         List<String> uploadedUrls = new ArrayList<>();
 
         for (MultipartFile file : files) {
