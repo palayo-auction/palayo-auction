@@ -3,7 +3,9 @@ package com.example.palayo.domain.notification.service;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.notification.entity.Notification;
-import com.example.palayo.domain.notification.entity.NotificationType;
+import com.example.palayo.domain.notification.entity.NotificationHistory;
+import com.example.palayo.domain.notification.enums.NotificationType;
+import com.example.palayo.domain.notification.repository.NotificationHistoryRepository;
 import com.example.palayo.domain.notification.repository.NotificationRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -11,12 +13,14 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,132 +28,91 @@ public class NotificationService {
 
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
+    private final NotificationHistoryRepository historyRepository;
 
-    @Transactional
-    public String sendDataMessage(String token, Map<String, String> data) {
-        try {
-            Message message = Message.builder()
-                    .setToken(token)
-                    .putAllData(data)
-                    .build();
-
-            String response = FirebaseMessaging.getInstance().send(message);
-            System.out.println("FCM 데이터 메시지 전송 완료: " + response);
-            return response;
-        } catch (Exception e) {
-            throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL,null);
-        }
-    }
-
-    //token을 등록하기 위해 사용예정
     @Transactional
     public void registerToken(Long userId, String token) {
-        //임시 repository를 생성해 작성 후에 변경
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 
-        Optional<Notification> existing = notificationRepository.findByUser(user);
-
-        if (existing.isPresent()) {
-            Notification notification = existing.get();
-            notification.setToken(token); // update
-            notificationRepository.save(notification);
-        } else {
-            Notification notification = Notification.builder()
-                    .user(user)
-                    .token(token)
-                    .build();
-            notificationRepository.save(notification);
-        }
+        notificationRepository.findByUser(user).ifPresentOrElse(
+                n -> n.setToken(token),
+                () -> notificationRepository.save(Notification.builder()
+                        .user(user)
+                        .token(token)
+                        .build())
+        );
     }
 
     @Transactional
-    public void sendNotification(User user, String title, String body, Map<String, String> data) {
-        Notification notification = notificationRepository.findByUser(user)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOTIFICATION_NOT_REGISTERED,null));
+    public void sendNotification(User user, NotificationType type, String title, String body, Map<String, String> data) {
+        String token = notificationRepository.findByUser(user)
+                .map(Notification::getToken)
+                .orElseThrow(() -> new BaseException(ErrorCode.FCM_TOKEN_NOT_FOUND, null));
 
         Map<String, String> payload = new HashMap<>(data);
         payload.put("title", title);
         payload.put("body", body);
 
         Message message = Message.builder()
-                .setToken(notification.getToken())
+                .setToken(token)
                 .putAllData(payload)
                 .build();
 
         try {
             FirebaseMessaging.getInstance().send(message);
-        //    notificationHistoryRepository.save(NotificationHistory.of(user, title, body));
+            historyRepository.save(NotificationHistory.builder()
+                    .user(user)
+                    .type(type)
+                    .title(title)
+                    .body(body)
+                    .data(data)
+                    .isSent(true)
+                    .build());
         } catch (FirebaseMessagingException e) {
-            throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL,null);
+            throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL, null);
         }
     }
 
     @Transactional
-    public void sendAuctionNotification(Long userId, String title, String body) {
+    public void reserveNotification(Long userId, NotificationType type, String title, String body, Map<String, String> data, LocalDateTime scheduledAt) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
-
-        Notification notification = notificationRepository.findByUser(user)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOTIFICATION_NOT_FOUND, "Notification not found"));
-
-        String token = notification.getToken();
-
-        Map<String, String> data = Map.of("title", title, "body", body);
-        sendDataMessage(token, data);
-    }
-
-    @Transactional
-    public void sendImmediateNotification(Long userId, NotificationType type, String title, String body, Map<String, String> data) {
-        Notification notification = Notification.builder()
-                .user(userRepository.findById(userId)
-                        .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null)))
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
+        historyRepository.save(NotificationHistory.builder()
+                .user(user)
                 .type(type)
                 .title(title)
                 .body(body)
                 .data(data)
-                .build();
-
-        notificationRepository.save(notification);
-
-        String token = notificationRepository.findByUser(notification.getUser())
-                .map(Notification::getToken)
-                .orElseThrow(() -> new BaseException(ErrorCode.FCM_TOKEN_NOT_FOUND, null));
-
-        try {
-            Message message = Message.builder()
-                    .setToken(token)
-                    .putData("title", title)
-                    .putData("body", body)
-                    .putAllData(data)
-                    .build();
-
-            FirebaseMessaging.getInstance().send(message);
-        } catch (FirebaseMessagingException e) {
-            throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL, e.getMessage());
-        }
+                .scheduledAt(scheduledAt)
+                .isSent(false)
+                .build());
     }
 
-    //알림 사용 예시
-//    ZonedDateTime notifyAt = auctionEndTime.minusMinutes(5);
-//auctionJobScheduler.scheduleNotificationJob(
-//    userId,
-//            "경매 마감 임박!",
-//            "참여하신 경매가 5분 후 종료됩니다.",
-//    notifyAt
-//
-
-
-/*
-       즉시 알림 보내는법
-    applicationEventPublisher.publishEvent(new NotificationEvent(
-    this,
-    userId,
-    NotificationType.BID_OUTBID, // 알림 유형 enum
-    "입찰 실패!",
-            "다른 사용자가 더 높은 금액을 입찰했습니다.",
-    Map.of("auctionId", auctionId.toString())
-            ));
-
- */
+    @Transactional
+    @Scheduled(fixedRate = 60000)
+    public void processScheduledNotifications() {
+        List<NotificationHistory> scheduled = historyRepository
+                .findAllByIsSentFalseAndScheduledAtBefore(LocalDateTime.now());
+        for (NotificationHistory history : scheduled) {
+            try {
+                String token = notificationRepository.findByUser(history.getUser())
+                        .map(Notification::getToken)
+                        .orElseThrow(() -> new BaseException(ErrorCode.FCM_TOKEN_NOT_FOUND, null));
+                Map<String, String> payload = new HashMap<>(history.getData());
+                payload.put("title", history.getTitle());
+                payload.put("body", history.getBody());
+                Message message = Message.builder()
+                        .setToken(token)
+                        .putAllData(payload)
+                        .build();
+                FirebaseMessaging.getInstance().send(message);
+                history.markAsSent();
+            } catch (Exception e) {
+                //error를 날려버리면 중간에 실패하자마자 다음알림을 생성하지 않고 알림 전송이 끝나버림
+                //throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL,null);
+            }
+        }
+        historyRepository.saveAll(scheduled);
+    }
 }

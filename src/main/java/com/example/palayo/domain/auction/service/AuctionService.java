@@ -1,15 +1,5 @@
 package com.example.palayo.domain.auction.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
@@ -21,12 +11,20 @@ import com.example.palayo.domain.auction.dto.response.MyAuctionDetailResponse;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
-import com.example.palayo.domain.auction.util.TimeFormatter;
 import com.example.palayo.domain.auction.util.AuctionValidator;
+import com.example.palayo.domain.auction.util.TimeFormatter;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.repository.ItemRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +55,7 @@ public class AuctionService {
 
 		// 경매 저장 후 응답 반환
 		Auction savedAuction = auctionRepository.save(auction);
+
 		return AuctionResponse.of(savedAuction);
 	}
 
