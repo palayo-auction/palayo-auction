@@ -2,6 +2,7 @@ package com.example.palayo.domain.itemimage.controller;
 
 import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.itemimage.dto.request.CreateItemImageRequest;
+import com.example.palayo.domain.itemimage.dto.request.UpdateItemImageRequest;
 import com.example.palayo.domain.itemimage.dto.response.ItemImageResponse;
 import com.example.palayo.domain.itemimage.service.ItemImageService;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +16,20 @@ import java.util.List;
 public class ItemImageController {
     private final ItemImageService itemImageService;
 
-    @PostMapping("/v1/items/{itemId}")
+    @PostMapping("/v1/items/{itemId}/images")
     public Response<List<ItemImageResponse>> uploadImageInfo(
             @PathVariable Long itemId,
             @RequestBody List<CreateItemImageRequest> request) {
         List<ItemImageResponse> itemImageResponses = itemImageService.saveImages(itemId, request);
         return Response.of(itemImageResponses);
     }
+
+    @PatchMapping("/v1/items/{itemId}/images")
+    public Response<List<ItemImageResponse>> updateImageInfo(
+            @PathVariable Long itemId,
+            @RequestBody List<UpdateItemImageRequest> request) {
+        List<ItemImageResponse> itemImageResponses = itemImageService.updateImageInfo(itemId, request);
+        return Response.of(itemImageResponses);
+    }
+
 }
