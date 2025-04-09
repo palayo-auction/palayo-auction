@@ -1,7 +1,7 @@
 package com.example.palayo.auth.service;
 
-import com.example.palayo.auth.dto.response.LoginUserResponseDto;
-import com.example.palayo.auth.dto.response.SignupUserResponseDto;
+import com.example.palayo.auth.dto.response.LoginUserResponse;
+import com.example.palayo.auth.dto.response.SignupUserResponse;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.config.JwtUtil;
@@ -21,7 +21,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public SignupUserResponseDto singup(String email, String password, String nickname) {
+    public SignupUserResponse singup(String email, String password, String nickname) {
         Optional<User> byEmail = userRepository.findByEmail(email);
         Optional<User> byNickname = userRepository.findByNickname(nickname);
 
@@ -37,10 +37,10 @@ public class AuthService {
         User user = User.of(email, encodedPassword, nickname);
         User savedUser = userRepository.save(user);
 
-        LoginUserResponseDto login = login(email, password);
+        LoginUserResponse login = login(email, password);
         String bearerToken = login.getToken();
 
-        return SignupUserResponseDto.of(
+        return SignupUserResponse.of(
                 savedUser.getId(),
                 savedUser.getEmail(),
                 savedUser.getNickname(),
@@ -49,7 +49,7 @@ public class AuthService {
         );
     }
 
-    public LoginUserResponseDto login(String email, String password) {
+    public LoginUserResponse login(String email, String password) {
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new BaseException(ErrorCode.EMAIL_MISMATCH, email)
         );
@@ -60,7 +60,7 @@ public class AuthService {
 
         String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
 
-        return LoginUserResponseDto.of(
+        return LoginUserResponse.of(
                 bearerToken);
     }
 }
