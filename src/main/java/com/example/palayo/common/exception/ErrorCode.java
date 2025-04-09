@@ -36,7 +36,6 @@ public enum ErrorCode {
 
     //보증금 이력 관련 에러 코드
     DEPOSIT_HISTORY_NOT_FOUND("보증금 이력을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    AUCTION_NOT_FOUND("경매를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_DEPOSIT_AMOUNT("잘못된 보증금 금액입니다.", HttpStatus.BAD_REQUEST),
     INVALID_STATUS("잘못된 보증금 상태입니다.", HttpStatus.BAD_REQUEST),
     DEPOSIT_HISTORY_ALREADY_EXISTS("이미 존재하는 보증금 이력입니다.", HttpStatus.BAD_REQUEST),
