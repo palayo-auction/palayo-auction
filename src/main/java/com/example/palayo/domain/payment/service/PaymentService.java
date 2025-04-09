@@ -3,6 +3,7 @@ package com.example.palayo.domain.payment.service;
 import com.example.palayo.domain.payment.dto.request.PaymentConfirmRequest;
 import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
+import com.example.palayo.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -26,15 +28,9 @@ public class PaymentService {
     private String SECRET_KEY;
     private final RestTemplate restTemplate;
     private final PaymentRepository paymentRepository;
+    private final UserRepository userRepository;
 
-    public Payment save(Payment payment) {
-        return paymentRepository.save(payment);
-    }
-
-    public Payment getByOrderId(String orderId) {
-        return paymentRepository.findByOrderId(orderId);
-    }
-
+    @Transactional
     public String confirmAndSavePayment(PaymentConfirmRequest request) {
         try {
             String url = "https://api.tosspayments.com/v1/payments/confirm";
@@ -45,12 +41,12 @@ public class PaymentService {
             headers.set("Authorization", "Basic " + encodedAuth);
 
             String body = String.format("""
-                {
-                  "paymentKey": "%s",
-                  "orderId": "%s",
-                  "amount": %d
-                }
-                """, request.getPaymentKey(), request.getOrderId(), request.getAmount());
+                    {
+                      "paymentKey": "%s",
+                      "orderId": "%s",
+                      "amount": %d
+                    }
+                    """, request.getPaymentKey(), request.getOrderId(), request.getAmount());
 
             HttpEntity<String> entity = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -58,7 +54,7 @@ public class PaymentService {
             JsonNode json = mapper.readTree(response.getBody());
 
             JsonNode metadata = json.path("metadata");  //받고 싶은 정보 html 파일에서 metadata에 적어두고 받아오기
-            String userId = metadata.path("userId").asText(null);
+            Long userId = metadata.path("userId").asLong();
             String nickname = metadata.path("nickname").asText(null);
             String customerName = metadata.path("customerName").asText(null);
 
@@ -81,6 +77,12 @@ public class PaymentService {
                     .build();
 
             paymentRepository.save(payment);
+            userRepository.findById(userId).ifPresent(
+                    user -> {
+                        user.updatePointAmount(payment.getAmount());
+                        userRepository.save(user);
+                    });
+
             return "결제 완료 \n결제 수단: " + payment.getMethod() + "\n금액: " + payment.getAmount() + "원";
 
         } catch (Exception e) {
