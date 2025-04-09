@@ -57,6 +57,11 @@ public class PaymentService {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode json = mapper.readTree(response.getBody());
 
+            JsonNode metadata = json.path("metadata");  //받고 싶은 정보 html 파일에서 metadata에 적어두고 받아오기
+            String userId = metadata.path("userId").asText(null);
+            String nickname = metadata.path("nickname").asText(null);
+            String customerName = metadata.path("customerName").asText(null);
+
             if (!response.getStatusCode().is2xxSuccessful()) {
                 throw new RuntimeException("결제 실패 ❌: " + json.path("message").asText("Unknown error"));
             }
@@ -68,9 +73,11 @@ public class PaymentService {
                     .method(json.path("method").asText(null))
                     .status(json.path("status").asText(null))
                     .orderName(json.path("orderName").asText(null))
-                    .customerName(json.path("customerName").asText(null))
+                    .customerName(customerName)
                     .requestedAt(json.path("requestedAt").asText(null))
                     .approvedAt(json.path("approvedAt").asText(null))
+                    .userId(userId)
+                    .nickname(nickname)
                     .build();
 
             paymentRepository.save(payment);
