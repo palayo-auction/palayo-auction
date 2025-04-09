@@ -38,4 +38,6 @@ public interface DepositHistoryRepository extends JpaRepository<DepositHistory, 
 
     // Auction과 User로 보증금 이력이 존재하는지 확인하는 메서드
     boolean existsByAuctionAndUser(Auction auction, User user);
+
+    Page<DepositHistory> findByAuctionAndUser(Auction auction, User user, Pageable pageable);
 }
