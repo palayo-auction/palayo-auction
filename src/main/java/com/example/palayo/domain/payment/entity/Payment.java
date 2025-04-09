@@ -36,4 +36,8 @@ public class Payment {
     private String requestedAt;
 
     private String approvedAt;
+
+    private String userId;
+
+    private String nickname;
 }
