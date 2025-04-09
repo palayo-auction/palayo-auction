@@ -9,15 +9,15 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserItemResponseDto {
+public class UserItemResponse {
     private Long id;
     private String name;
     private String content;
     private Category category;
     private ItemStatus itemStatus;
 
-    public static UserItemResponseDto of(Item item) {
-        return new UserItemResponseDto(
+    public static UserItemResponse of(Item item) {
+        return new UserItemResponse(
                 item.getId(),
                 item.getName(),
                 item.getContent(),
