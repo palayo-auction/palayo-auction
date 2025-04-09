@@ -20,6 +20,13 @@ public class AuctionHistoryServiceHelper {
 	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final DepositHistoryService depositHistoryService;
 
+	// 본인이 등록한 경매에 입찰하는지 검증
+	public void validateNotOwner(Auction auction, User bidder) {
+		if (auction.getItem().getSeller().getId().equals(bidder.getId())) {
+			throw new BaseException(ErrorCode.CANNOT_BID_OWN_AUCTION, "auctionId");
+		}
+	}
+
 	// 입찰 금액 유효성 검증 (현재가 + 입찰단위 이상이어야 함)
 	public void validateBidPrice(Auction auction, int bidPrice) {
 		int minValidPrice = auction.getCurrentPrice() + auction.getBidIncrement();

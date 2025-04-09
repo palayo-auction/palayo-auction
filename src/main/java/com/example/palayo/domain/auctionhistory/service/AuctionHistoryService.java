@@ -50,6 +50,9 @@ public class AuctionHistoryService {
 		// 사용자 조회
 		User bidder = findUserById(authUser.getUserId());
 
+		// 본인이 등록한 경매에 입찰하는지 검증
+		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
+
 		// 입찰 금액 유효성 검증
 		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
 
