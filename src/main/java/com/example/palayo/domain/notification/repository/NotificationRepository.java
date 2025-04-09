@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     Optional<Notification> findByUser(User user);
-    void deleteByUser(User user);
 }
+
+
