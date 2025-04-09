@@ -19,7 +19,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -65,7 +64,7 @@ public class DibService {
                 .orElseThrow(() -> new BaseException(ErrorCode.DIB_NOT_FOUND, dibId.toString()));
 
         if (!dib.getUser().getId().equals(authUser.getUserId())) {
-            throw new BaseException(ErrorCode.FORBIDDEN, authUser.getUserId().toString());
+            throw new BaseException(ErrorCode.DIB_FORBIDDEN, authUser.getUserId().toString());
         }
 
         return DibResponse.of(dib);
