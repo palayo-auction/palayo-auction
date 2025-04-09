@@ -5,6 +5,7 @@ import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.notification.entity.Notification;
 import com.example.palayo.domain.notification.entity.NotificationHistory;
 import com.example.palayo.domain.notification.enums.NotificationType;
+import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.repository.NotificationHistoryRepository;
 import com.example.palayo.domain.notification.repository.NotificationRepository;
 import com.example.palayo.domain.user.entity.User;
@@ -13,6 +14,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,8 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationHistoryRepository historyRepository;
+    private final RedisTemplate<String, RedisNotification> redisNotificationTemplate;
+
 
     @Transactional
     public void registerToken(Long userId, String token) {
@@ -114,5 +118,11 @@ public class NotificationService {
             }
         }
         historyRepository.saveAll(scheduled);
+    }
+
+    @Transactional
+    public void saveNotification(RedisNotification notification) {
+        String key = "notification:" + notification.getUserId() + ":" + notification.getScheduledAt();
+        redisNotificationTemplate.opsForValue().set(key, notification);
     }
 }

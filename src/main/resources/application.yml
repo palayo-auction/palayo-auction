@@ -1,4 +1,7 @@
 spring:
+  redis:
+    host: localhost
+    port: 6380
   application:
     name: palayo
   datasource:
