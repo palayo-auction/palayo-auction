@@ -46,7 +46,8 @@ public enum ErrorCode {
     INVALID_ITEM_STATUS_FOR_UPDATE("경매 이전의 상품만 수정할 수 있습니다.", HttpStatus.BAD_REQUEST),
     ITEM_EDIT_FORBIDDEN("상품 상태를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
     //이미지 관련 에러 코드
-
+    IMAGE_NOT_FOUND("해당 이미지는 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    DUPLICATE_IMAGE("이미 등록된 있습니다.", HttpStatus.BAD_REQUEST),
     //알림 관련 에러 코드
 
     //포인트 이력 관련 에러 코드
