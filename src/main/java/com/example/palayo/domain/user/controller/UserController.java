@@ -63,7 +63,7 @@ public class UserController {
              @RequestParam(defaultValue = "1") int page,
              @RequestParam(defaultValue = "10") int size
      ) {
-         return Response.fromPage(userService.sold(authUser.getUserId(), page, size));
+         return Response.fromPage(userService.myItem(authUser.getUserId(), page, size));
      }
 
     @DeleteMapping("v1/users")
