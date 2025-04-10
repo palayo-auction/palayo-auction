@@ -1,5 +1,6 @@
 package com.example.palayo.domain.auctionhistory.service;
 
+import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import org.springframework.stereotype.Component;
 
 import com.example.palayo.common.exception.BaseException;
