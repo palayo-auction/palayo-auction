@@ -39,4 +39,6 @@ public class Payment {
     private Long userId;
 
     private String nickname;
+
+    private String failReason;
 }
