@@ -19,7 +19,6 @@ import com.example.palayo.domain.auction.dto.request.CreateAuctionRequest;
 import com.example.palayo.domain.auction.dto.response.AuctionDetailResponse;
 import com.example.palayo.domain.auction.dto.response.AuctionListResponse;
 import com.example.palayo.domain.auction.dto.response.AuctionResponse;
-import com.example.palayo.domain.auction.dto.response.MyAuctionDetailResponse;
 import com.example.palayo.domain.auction.service.AuctionService;
 
 import jakarta.validation.Valid;
@@ -71,11 +70,11 @@ public class AuctionController {
 
 	// 내가 등록한 경매 단건 조회
 	@GetMapping("/v1/auctions/my/{auctionId}")
-	public Response<MyAuctionDetailResponse> getMyAuction(
+	public Response<AuctionDetailResponse> getMyAuction(
 		@AuthenticationPrincipal AuthUser authUser,
 		@PathVariable Long auctionId
 	) {
-		MyAuctionDetailResponse auction = auctionService.getMyAuction(authUser, auctionId);
+		AuctionDetailResponse auction = auctionService.getMyAuction(authUser, auctionId);
 		return Response.of(auction);
 	}
 
