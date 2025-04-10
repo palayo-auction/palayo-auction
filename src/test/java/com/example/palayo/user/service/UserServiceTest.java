@@ -99,7 +99,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("마이페이지 판매상품 조회 성공")
-    void soldTest() {
+    void myItemTest() {
 
         Page<Item> itemPage = new PageImpl<>(Collections.singletonList(item));
         //given
@@ -110,7 +110,7 @@ public class UserServiceTest {
         )).willReturn(itemPage);
 
         //when
-        Page<UserItemResponse> result = userService.sold(user.getId(), 1, 10);
+        Page<UserItemResponse> result = userService.myItem(user.getId(), 1, 10);
 
         //then
         assertEquals(1, result.getTotalElements());
