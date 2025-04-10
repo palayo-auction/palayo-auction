@@ -40,7 +40,6 @@ class DibServiceTest {
 
     @Mock
     private AuctionRepository auctionRepository;
-
     @Mock
     private UserRepository userRepository;
 
