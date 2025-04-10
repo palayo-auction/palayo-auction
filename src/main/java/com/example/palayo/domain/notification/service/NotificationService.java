@@ -122,7 +122,14 @@ public class NotificationService {
 
     @Transactional
     public void saveNotification(RedisNotification notification) {
-        String key = "notification:" + notification.getUserId() + ":" + notification.getScheduledAt();
+        String auctionId = notification.getData().get("auctionId");
+        String type = notification.getType();
+        String key = "notification:" + notification.getUserId() + ":" + auctionId + ":" + type;
+
+        if (Boolean.TRUE.equals(redisNotificationTemplate.hasKey(key))) {
+            redisNotificationTemplate.delete(key);
+        }
+
         redisNotificationTemplate.opsForValue().set(key, notification);
     }
 }

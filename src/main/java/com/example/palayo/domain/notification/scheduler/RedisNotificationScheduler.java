@@ -55,7 +55,7 @@ public class RedisNotificationScheduler {
 
 
                 } catch (Exception e) {
-                    throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL,null);
+                    //throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL,null);
                 }
             }
         }
