@@ -24,6 +24,8 @@ public enum ErrorCode {
     USERID_NOT_MATCH("유저 id가 일치하지 않습니다." , HttpStatus.BAD_REQUEST),
     NICKNAME_SAME_AS_OLD("새 닉네임이 기존의 닉네임과 같을 수 없습니다.", HttpStatus.BAD_REQUEST),
     DUPLICATE_NICNKNAME("중복된 닉네임이 있습니다.", HttpStatus.BAD_REQUEST),
+    //결제 관련 에러 코드
+    EXTERNAL_API_ERROR("토스 페이먼츠 API 호출 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
     //경매 관련 에러 코드
 	INVALID_ITEM_OWNER("아이템은 사용자가 등록한 상품이어야 합니다.", HttpStatus.BAD_REQUEST),
 	ITEM_ALREADY_ON_AUCTION("아이템은 이미 경매에 등록된 상품입니다.", HttpStatus.BAD_REQUEST),
@@ -40,7 +42,6 @@ public enum ErrorCode {
 	INVALID_AUCTION_STATUS("허용되지 않은 경매 상태입니다.", HttpStatus.BAD_REQUEST),
 	ALREADY_DELETED_AUCTION("이미 삭제된 경매입니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_DELETE_ACTIVE_AUCTION("진행 중인 경매는 삭제할 수 없습니다.", HttpStatus.BAD_REQUEST),
-
 	//경매 이력 관련 에러 코드
 	BID_PRICE_TOO_LOW("입찰 금액은 현재 가격 + 입찰 단위 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_BID_OWN_AUCTION("자신이 등록한 경매에는 입찰할 수 없습니다.", HttpStatus.BAD_REQUEST),
