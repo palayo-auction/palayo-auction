@@ -37,19 +37,23 @@ public enum ErrorCode {
 	//경매 이력 관련 에러 코드
 	BID_PRICE_TOO_LOW("입찰 금액은 현재 가격 + 입찰 단위 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_BID_OWN_AUCTION("자신이 등록한 경매에는 입찰할 수 없습니다.", HttpStatus.BAD_REQUEST),
+    INSUFFICIENT_POINT("보유 포인트가 부족합니다.", HttpStatus.BAD_REQUEST),
     //보증금 이력 관련 에러 코드
-
-	//찜 관련 에러 코드
-	DIB_NOT_FOUND("찜한 경매가 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-	DIB_FORBIDDEN("찜한 경매를 조회할 권한이 없습니다.",HttpStatus.UNAUTHORIZED),
-	//아이템 관련 에러 코드
-	CATEGORY_NOT_FOUND("해당 카테고리는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-	STATUS_NOT_FOUND("해당 상태는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-	ITEM_NOT_FOUND("해당 하는 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
-	DUPLICATE_ITEM_NAME("이름이 중복된 상품이 있습니다.", HttpStatus.BAD_REQUEST),
-	INVALID_ITEM_STATUS_FOR_UPDATE("경매 이전의 상품만 수정할 수 있습니다.", HttpStatus.BAD_REQUEST),
-	ITEM_EDIT_FORBIDDEN("상품 상태를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
-	//이미지 관련 에러 코드
+    DEPOSIT_HISTORY_NOT_FOUND("보증금 이력을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INVALID_DEPOSIT_AMOUNT("잘못된 보증금 금액입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_STATUS("잘못된 보증금 상태입니다.", HttpStatus.BAD_REQUEST),
+    DEPOSIT_HISTORY_ALREADY_EXISTS("이미 존재하는 보증금 이력입니다.", HttpStatus.BAD_REQUEST),
+    //찜 관련 에러 코드
+    DIB_NOT_FOUND("찜한 경매가 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+    DIB_FORBIDDEN("찜한 경매를 조회할 권한이 없습니다.",HttpStatus.UNAUTHORIZED),
+    //아이템 관련 에러 코드
+    CATEGORY_NOT_FOUND("해당 카테고리는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+    STATUS_NOT_FOUND("해당 상태는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+    ITEM_NOT_FOUND("해당 하는 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
+    DUPLICATE_ITEM_NAME("이름이 중복된 상품이 있습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_ITEM_STATUS_FOR_UPDATE("경매 이전의 상품만 수정할 수 있습니다.", HttpStatus.BAD_REQUEST),
+    ITEM_EDIT_FORBIDDEN("상품 상태를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    //이미지 관련 에러 코드
 
 	//알림 관련 에러 코드
 
