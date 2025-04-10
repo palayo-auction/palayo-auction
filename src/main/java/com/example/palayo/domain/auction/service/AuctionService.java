@@ -7,7 +7,6 @@ import com.example.palayo.domain.auction.dto.request.CreateAuctionRequest;
 import com.example.palayo.domain.auction.dto.response.AuctionDetailResponse;
 import com.example.palayo.domain.auction.dto.response.AuctionListResponse;
 import com.example.palayo.domain.auction.dto.response.AuctionResponse;
-import com.example.palayo.domain.auction.dto.response.MyAuctionDetailResponse;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
@@ -38,6 +37,7 @@ public class AuctionService {
 	// 경매 생성 (상품 ID 검증 후 경매 등록)
 	@Transactional
 	public AuctionResponse saveAuction(AuthUser authUser, CreateAuctionRequest request) {
+
 		// 상품 존재/소유자/중복 경매 검증
 		Item item = auctionValidator.validateAuctionCreation(request, authUser);
 
@@ -71,7 +71,7 @@ public class AuctionService {
 		return auctionServiceHelper.assignWinningBidder(auction);
 	}
 
-	// 경매 다건 조회 (READY, ACTIVE) - 페이징 적용
+	// 경매 다건 조회 (READY, ACTIVE)
 	@Transactional(readOnly = true)
 	public Page<AuctionListResponse> getAuctions(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -93,7 +93,7 @@ public class AuctionService {
 		Auction auction = findAuctionByIdAndStatus(auctionId, List.of(AuctionStatus.READY, AuctionStatus.ACTIVE));
 
 		LocalDateTime now = LocalDateTime.now();
-		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction));
+		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null);
 	}
 
 	// 내가 등록한 경매 목록 조회 (본인이 등록한 경매 전체 조회, 삭제된 경매 포함)
@@ -121,7 +121,7 @@ public class AuctionService {
 
 	// 내가 등록한 경매 단건 조회 (본인이 등록한 경매 상세 조회 + 낙찰자 닉네임 추가 반환)
 	@Transactional(readOnly = true)
-	public MyAuctionDetailResponse getMyAuction(AuthUser authUser, Long auctionId) {
+	public AuctionDetailResponse getMyAuction(AuthUser authUser, Long auctionId) {
 		Auction auction = findAuctionByIdAndStatus(
 			auctionId,
 			List.of(
@@ -144,7 +144,7 @@ public class AuctionService {
 		}
 
 		LocalDateTime now = LocalDateTime.now();
-		return MyAuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction),
+		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction),
 			winningBidderNickname);
 	}
 
