@@ -84,7 +84,7 @@ public class DepositHistoryService {
         DepositHistory depositHistory = new DepositHistory(
                 auction,
                 user,
-                depositAmount, //
+                depositAmount,
                 DepositStatus.PENDING // 기본 상태는 대기중
         );
 
