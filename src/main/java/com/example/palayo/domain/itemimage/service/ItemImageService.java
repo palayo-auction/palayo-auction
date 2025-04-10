@@ -85,9 +85,12 @@ public class ItemImageService {
                 .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
 
         List<ItemImage> images = itemImageRepository.findByItemOrderByImageIndex(item);
+        
+        List<ItemImageResponse> responses = new ArrayList<>();
+        for (ItemImage image : images) {
+            responses.add(ItemImageResponse.of(image));
+        }
 
-        return images.stream()
-                .map(ItemImageResponse::of)
-                .toList();
+        return responses;
     }
 }

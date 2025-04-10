@@ -1,11 +1,12 @@
 package com.example.palayo.domain.itemimage.dto.response;
 
 import com.example.palayo.domain.itemimage.entity.ItemImage;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemImageResponse {
     private final Long imageId;
     private final String imageName;

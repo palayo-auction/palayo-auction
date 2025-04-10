@@ -86,7 +86,7 @@ public class S3Uploader {
 
             s3Client.deleteObjects(deleteRequest);
         } catch (Exception e) {
-            throw new BaseException(ErrorCode.SERVER_NOT_WORK, null);
+            throw new BaseException(ErrorCode.EXTERNAL_SERVER_ERROR, null);
         }
     }
 
@@ -104,7 +104,7 @@ public class S3Uploader {
         if (url.startsWith(cloudFrontDomain + "/")) {
             return url.replace(cloudFrontDomain + "/", "");
         }
-        throw new IllegalArgumentException("CloudFront 도메인과 일치하지 않는 URL: " + url);
+        throw new BaseException(ErrorCode.INVALID_DOMAIN, url);
     }
 
 }

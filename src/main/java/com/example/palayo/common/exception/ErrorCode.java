@@ -62,6 +62,8 @@ public enum ErrorCode {
 
     //그 외 에러 코드
     TOO_MANY_FILES("최대 10개까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_DOMAIN("유효한 도메인이 아닙니다.", HttpStatus.BAD_REQUEST),
+    EXTERNAL_SERVER_ERROR("외부 API 서버에서 알 수 없는 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
     FILE_TOO_LARGE("파일 용량이 초과하였습니다.", HttpStatus.BAD_REQUEST),
     TOTAL_SIZE_EXCEEDED("전체 파일 용량이 100MB를 초과했습니다.", HttpStatus.BAD_REQUEST),
     UPLOAD_FAILED("파일 업로드에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
