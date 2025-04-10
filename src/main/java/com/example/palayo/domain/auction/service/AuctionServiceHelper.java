@@ -9,6 +9,7 @@ import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
+import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.auction.util.AuctionTimeUtils;
 
@@ -52,6 +53,14 @@ public class AuctionServiceHelper {
 	public boolean assignWinningBidder(Auction auction) {
 		if (!hasBids(auction)) { // 입찰 기록이 없으면 낙찰자 없음
 			return false;
+		}
+
+		if (auction.getWinningBidder() == null) { // 최고 입찰 기록 조회 (가격 높은 순, 입찰 시간 빠른 순)
+
+			AuctionHistory topBid = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId())
+				.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
+
+			auction.setWinningBidder(topBid.getBidder()); // 최고 입찰자를 경매의 낙찰자로 설정
 		}
 
 		if (isBuyoutPriceReached(auction)) { // 즉시 낙찰가 도달 시 낙찰 확정 처리
