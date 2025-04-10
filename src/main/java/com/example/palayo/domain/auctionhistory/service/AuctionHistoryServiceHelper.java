@@ -7,6 +7,7 @@ import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
+import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import com.example.palayo.domain.user.entity.User;
 
 import lombok.RequiredArgsConstructor;

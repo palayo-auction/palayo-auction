@@ -14,7 +14,7 @@ public class DepositHistoryResponse {
     private Long id;
     private Long auctionId;
     private Long userId;
-    private Long deposit;
+    private int deposit;
     private DepositStatus status;
     private LocalDateTime createdAt;
 

@@ -5,7 +5,6 @@ import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
-import com.example.palayo.domain.deposithistory.dto.DepositHistoryRequest;
 import com.example.palayo.domain.deposithistory.dto.DepositHistoryResponse;
 import com.example.palayo.domain.deposithistory.entity.DepositHistory;
 import com.example.palayo.domain.deposithistory.enums.DepositStatus;
