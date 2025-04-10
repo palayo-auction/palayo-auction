@@ -1,4 +1,4 @@
-package com.example.palayo.auth.dto.request;
+package com.example.palayo.domain.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class signupUserRequest {
+public class SignupUserRequest {
 
     @Email(message = "이메일 형식에 어긋납니다.")
     @NotBlank
