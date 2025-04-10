@@ -36,6 +36,8 @@ public class PaymentController {
             @RequestParam String message,
             @RequestParam String orderId
     ) {
-        return Response.of("결제 실패 : " + message + " 결제 번호 : " + orderId + " (code: " + code + ")");
+        String reason = "결제 실패 : " + message + " (code: " + code + ")";
+        paymentService.saveFailedPayment(orderId, null, 0, reason);
+        return Response.of(reason);
     }
 }

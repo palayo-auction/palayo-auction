@@ -44,5 +44,26 @@ public class PaymentService {
 
             return "결제 완료 \n금액: " + payment.getAmount() + "원";
     }
+
+    @Transactional
+    public void saveFailedPayment(String orderId, String paymentKey, int amount, String failReason) {
+        Payment failedPayment = Payment.builder()
+                .orderId(orderId)
+                .paymentKey(paymentKey)
+                .amount(amount)
+                .method(null)
+                .status("FAILED")
+                .orderName(null)
+                .customerName(null)
+                .requestedAt(null)
+                .approvedAt(null)
+                .userId(null)
+                .nickname(null)
+                .failReason(failReason)
+                .build();
+
+        paymentRepository.save(failedPayment);
+    }
+
 }
 
