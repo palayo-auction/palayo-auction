@@ -8,9 +8,12 @@ import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.deposithistory.dto.DepositHistoryRequest;
 import com.example.palayo.domain.deposithistory.dto.DepositHistoryResponse;
 import com.example.palayo.domain.deposithistory.entity.DepositHistory;
+import com.example.palayo.domain.deposithistory.enums.DepositStatus;
 import com.example.palayo.domain.deposithistory.repository.DepositHistoryRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,8 @@ public class DepositHistoryService {
     private final DepositHistoryRepository depositHistoryRepository;
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     // 단건 조회 (DTO 변환)
     @Transactional(readOnly = true)
@@ -74,6 +79,40 @@ public class DepositHistoryService {
         DepositHistory savedDepositHistory = depositHistoryRepository.save(depositHistory);
 
         return DepositHistoryResponse.fromEntity(savedDepositHistory);
+
+    }
+    // 사용자가 해당 경매에 보증금을 이미 납부했는지 확인
+    @Transactional(readOnly = true)
+    public boolean existsByAuctionAndUser(Long auctionId, Long userId) {
+        return depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId);
+    }
+
+    // 유저 ID, 경매 ID, 보증금 금액을 받아 보증금 이력을 생성
+    @Transactional
+    public void createDepositHistory(Long userId, Long auctionId, int depositAmount) {
+        Auction auction = entityManager.find(Auction.class, auctionId);
+        if (auction == null) {
+            throw new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId");
+        }
+
+        User user = entityManager.find(User.class, userId);
+        if (user == null) {
+            throw new BaseException(ErrorCode.USER_NOT_FOUND, "userId");
+        }
+
+        boolean alreadyExists = depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId);
+        if (alreadyExists) {
+            throw new BaseException(ErrorCode.DEPOSIT_HISTORY_ALREADY_EXISTS, "auctionId, userId");
+        }
+
+        DepositHistory depositHistory = new DepositHistory(
+                auction,
+                user,
+                (long)depositAmount, // int -> Long 변환
+                DepositStatus.PENDING // 기본 상태는 대기중
+        );
+
+        depositHistoryRepository.save(depositHistory);
     }
 }
 

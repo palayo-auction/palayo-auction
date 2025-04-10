@@ -14,4 +14,6 @@ public interface DepositHistoryRepository extends JpaRepository<DepositHistory, 
 
     // Auction과 User로 페이징된 보증금 이력 조회
     Page<DepositHistory> findByAuctionAndUser(Auction auction, User user, Pageable pageable);
+
+    boolean existsByAuctionIdAndUserId(Long auctionId, Long userId);
 }
