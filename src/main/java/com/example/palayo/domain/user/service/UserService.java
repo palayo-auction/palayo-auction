@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -31,6 +33,14 @@ public class UserService {
 
         if (nickname.equals(user.getNickname())) {
             throw new BaseException(ErrorCode.NICKNAME_SAME_AS_OLD, nickname);
+        }
+
+        User findByNicknameUser = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, nickname)
+        );
+
+        if (!user.getId().equals(findByNicknameUser.getId())) {
+            throw new BaseException(ErrorCode.DUPLICATE_NICNKNAME, nickname);
         }
 
         user.updateNickname(nickname);
