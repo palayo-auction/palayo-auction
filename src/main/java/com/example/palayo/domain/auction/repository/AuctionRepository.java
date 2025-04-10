@@ -12,18 +12,21 @@ import com.example.palayo.domain.auction.enums.AuctionStatus;
 
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
-	// 상품 ID로 READY 또는 ACTIVE 상태인 경매가 존재하는지 확인
+	// 상품 ID로 특정 상태(READY, ACTIVE)인 경매 존재 여부 조회
 	boolean existsByItemIdAndStatusIn(Long itemId, List<AuctionStatus> statuses);
 
-	// 경매 ID로 READY 또는 ACTIVE 상태인 경매 단건 조회
+	// 경매 ID로 특정 상태(READY, ACTIVE)인 경매 단건 조회
 	Optional<Auction> findByIdAndStatusIn(Long id, List<AuctionStatus> statuses);
 
-	// READY 또는 ACTIVE 상태인 경매를 페이징 조회
+	// 특정 상태(READY, ACTIVE)인 경매 다건 조회 (페이징)
 	Page<Auction> findAllByStatusIn(List<AuctionStatus> statuses, Pageable pageable);
 
-	// READY 또는 ACTIVE 상태인 경매 전체 조회 (스케줄러에서 상태 업데이트용)
-	List<Auction> findAllByStatusIn(List<AuctionStatus> statuses);
-
-	// 판매자 ID로 READY, ACTIVE, SUCCESS, FAILED, DELETED 상태인 경매를 페이징 조회
+	// 판매자 ID로 특정 상태(READY, ACTIVE, SUCCESS, FAILED, DELETED)인 경매 다건 조회 (페이징)
 	Page<Auction> findAllByItemSellerIdAndStatusIn(Long sellerId, List<AuctionStatus> statuses, Pageable pageable);
+
+	// 주어진 경매 ID 목록 + 특정 상태 조건으로 경매 다건 조회 (페이징)
+	Page<Auction> findAllByIdInAndStatusIn(List<Long> auctionIds, List<AuctionStatus> statuses, Pageable pageable);
+
+	// 특정 상태(READY, ACTIVE)인 경매 전체 조회 (스케줄러용)
+	List<Auction> findAllByStatusIn(List<AuctionStatus> statuses);
 }
