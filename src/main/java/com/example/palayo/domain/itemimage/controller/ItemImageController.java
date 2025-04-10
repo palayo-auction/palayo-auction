@@ -1,12 +1,15 @@
 package com.example.palayo.domain.itemimage.controller;
 
 import com.example.palayo.common.response.Response;
+import com.example.palayo.domain.itemimage.dto.request.UpdateImageUrlRequest;
 import com.example.palayo.domain.itemimage.dto.request.CreateItemImageRequest;
 import com.example.palayo.domain.itemimage.dto.request.UpdateItemImageRequest;
 import com.example.palayo.domain.itemimage.dto.response.ItemImageResponse;
 import com.example.palayo.domain.itemimage.service.ItemImageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,6 +33,23 @@ public class ItemImageController {
             @RequestBody List<UpdateItemImageRequest> request) {
         List<ItemImageResponse> itemImageResponses = itemImageService.updateImageInfo(itemId, request);
         return Response.of(itemImageResponses);
+    }
+
+    @GetMapping("/v1/items/{itemId}/images")
+    public Response<List<ItemImageResponse>> getImages(
+            @PathVariable Long itemId
+    ){
+       List<ItemImageResponse> responseList = itemImageService.getImagesByItemId(itemId);
+       return Response.of(responseList);
+    }
+
+    @PatchMapping("/v1/items/{itemId}/urls")
+    public Response<List<ItemImageResponse>> updateImageFiles(
+            @PathVariable Long itemId,
+            @RequestBody List<UpdateImageUrlRequest> request
+    ) {
+        List<ItemImageResponse> updated = itemImageService.updateImageUrl(itemId, request);
+        return Response.of(updated);
     }
 
 }

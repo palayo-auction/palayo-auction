@@ -43,5 +43,8 @@ public class ItemImage {
         this.imageIndex = index;
     }
 
+    public void updateItemImageUrl(String url) {
+        this.imageUrl = url;
+    }
 
 }

@@ -66,16 +66,16 @@ public class S3Uploader {
         return uploadedUrls;
     }
 
-    public void delete(List<String> keys) {
-        if (keys == null || keys.isEmpty()) {
+    public void delete(List<String> urls) {
+        if (urls == null || urls.isEmpty()) {
             return; // 삭제할 게 없으면 바로 리턴
         }
 
         try {
-            List<ObjectIdentifier> objects = new ArrayList<>();
-            for (String key : keys) {
-                objects.add(ObjectIdentifier.builder().key(key).build());
-            }
+            List<ObjectIdentifier> objects = urls.stream()
+                    .map(this::extractKeyFromUrl)
+                    .map(key -> ObjectIdentifier.builder().key(key).build())
+                    .toList();
 
             DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
                     .bucket(bucket)
@@ -88,6 +88,23 @@ public class S3Uploader {
         } catch (Exception e) {
             throw new BaseException(ErrorCode.SERVER_NOT_WORK, null);
         }
+    }
+
+    public List<String> updateFiles(List<String> originalUrls, List<MultipartFile> newFiles) {
+
+        String firstKey = extractKeyFromUrl(originalUrls.get(0));
+        String dir = firstKey.substring(0, firstKey.lastIndexOf("/"));
+
+        delete(originalUrls);
+
+        return uploadFiles(newFiles, dir);
+    }
+
+    public String extractKeyFromUrl(String url) {
+        if (url.startsWith(cloudFrontDomain + "/")) {
+            return url.replace(cloudFrontDomain + "/", "");
+        }
+        throw new IllegalArgumentException("CloudFront 도메인과 일치하지 않는 URL: " + url);
     }
 
 }
