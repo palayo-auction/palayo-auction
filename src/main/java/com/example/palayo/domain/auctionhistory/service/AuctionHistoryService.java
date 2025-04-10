@@ -3,6 +3,7 @@ package com.example.palayo.domain.auctionhistory.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
