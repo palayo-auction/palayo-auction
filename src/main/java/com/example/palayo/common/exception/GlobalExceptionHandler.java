@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,6 +53,18 @@ public class GlobalExceptionHandler {
          log.error("[에러발생]",ex);
          return new ResponseEntity<>(ErrorResponse.of(errorDetail), HttpStatus.INTERNAL_SERVER_ERROR);
      }
+
+    // TossPayments 등 외부 API 호출 실패 처리
+    @ExceptionHandler({HttpClientErrorException.class, HttpServerErrorException.class})
+    public ResponseEntity<ErrorResponse> handleHttpClientException(RestClientException ex) {
+        ErrorDetail errorDetail = new ErrorDetail(
+                null,
+                "외부 결제 서버 오류: " + ex.getMessage(),
+                ErrorCode.EXTERNAL_API_ERROR.name()
+        );
+        log.error("[외부 API 호출 에러]", ex);
+        return new ResponseEntity<>(ErrorResponse.of(errorDetail), HttpStatus.BAD_GATEWAY);
+    }
 
     // Entity 클래스의 unique 제약조건 필드 중복 오류처리
 //    @ExceptionHandler(DataIntegrityViolationException.class)

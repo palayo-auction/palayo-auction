@@ -17,8 +17,7 @@ public enum ErrorCode {
     NICKNAME_SAME_AS_OLD("새 닉네임이 기존의 닉네임과 같을 수 없습니다.", HttpStatus.BAD_REQUEST),
     DUPLICATE_NICNKNAME("중복된 닉네임이 있습니다.", HttpStatus.BAD_REQUEST),
     //결제 관련 에러 코드
-    PAYMENT_TIMEOUT("결제 시간이 오래걸려 취소됐습니다.", HttpStatus.REQUEST_TIMEOUT),
-    INVALID_PAYMENT_AMOUNT("결제 대금은 천원 이상이여야 합니다.", HttpStatus.BAD_REQUEST),
+    EXTERNAL_API_ERROR("토스 페이먼츠 API 호출 중 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
     //경매 관련 에러 코드
 	INVALID_ITEM_OWNER("아이템은 사용자가 등록한 상품이어야 합니다.", HttpStatus.BAD_REQUEST),
 	ITEM_ALREADY_ON_AUCTION("아이템은 이미 경매에 등록된 상품입니다.", HttpStatus.BAD_REQUEST),

@@ -19,7 +19,7 @@ public class PaymentService {
 
     @Transactional
     public String confirmAndSave(String paymentKey, String orderId, int amount) {
-        try {
+
             PaymentConfirmResponse response = tossPaymentClient.confirmPayment(paymentKey, orderId, amount);
 
             Long userId = response.getMetadata().getUserId();
@@ -43,10 +43,6 @@ public class PaymentService {
             pointService.chargePoints(userId, payment.getAmount());
 
             return "결제 완료 \n금액: " + payment.getAmount() + "원";
-
-        } catch (Exception e) {
-            throw new RuntimeException("결제 처리 중 오류 발생: " + e.getMessage());
-        }
     }
 }
 
