@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class RestTemplateConfig {
-
+    //한글 안깨지게 하려고 생성한 클래스.
     @Bean
     public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();
