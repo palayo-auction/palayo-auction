@@ -1,9 +1,9 @@
-package com.example.palayo.auth.controller;
+package com.example.palayo.domain.auth.controller;
 
-import com.example.palayo.auth.dto.request.loginUserRequest;
-import com.example.palayo.auth.dto.response.LoginUserResponse;
-import com.example.palayo.auth.dto.response.SignupUserResponse;
-import com.example.palayo.auth.service.AuthService;
+import com.example.palayo.domain.auth.dto.request.LoginUserRequest;
+import com.example.palayo.domain.auth.dto.response.LoginUserResponse;
+import com.example.palayo.domain.auth.dto.response.SignupUserResponse;
+import com.example.palayo.domain.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.palayo.auth.dto.request.signupUserRequest;
+import com.example.palayo.domain.auth.dto.request.SignupUserRequest;
 
 @RestController
 @RequestMapping("api")
@@ -22,8 +22,8 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/v1/auth/signup")
-	public ResponseEntity<SignupUserResponse> signup(@Valid @RequestBody signupUserRequest requestDto) {
-		SignupUserResponse responseDto = authService.singup(
+	public ResponseEntity<SignupUserResponse> singUp(@Valid @RequestBody SignupUserRequest requestDto) {
+		SignupUserResponse responseDto = authService.singUp(
 				requestDto.getEmail(),
 				requestDto.getPassword(),
 				requestDto.getNickname()
@@ -32,7 +32,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/v1/auth/login")
-	public ResponseEntity<LoginUserResponse> login(@Valid @RequestBody loginUserRequest requestDto) {
+	public ResponseEntity<LoginUserResponse> login(@Valid @RequestBody LoginUserRequest requestDto) {
 		LoginUserResponse responseDto = authService.login(
 				requestDto.getEmail(),
 				requestDto.getPassword()

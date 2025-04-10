@@ -17,8 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -76,6 +74,7 @@ public class UserService {
         );
     }
 
+    @Transactional(readOnly = true)
     public UserResponse mypage(Long userId) {
         User user = findById(userId);
 
@@ -88,7 +87,7 @@ public class UserService {
     }
 
      @Transactional(readOnly = true)
-     public Page<UserItemResponse> sold(Long id, int page, int size) {
+     public Page<UserItemResponse> myItem(Long id, int page, int size) {
          User user = findById(id);
 
          Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
