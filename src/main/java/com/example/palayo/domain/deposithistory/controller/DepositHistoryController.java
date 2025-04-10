@@ -21,16 +21,16 @@ public class DepositHistoryController {
     private final DepositHistoryService depositHistoryService;
 
     // 단건 조회
-    @GetMapping("/v1/deposithistory")
+    @GetMapping("/v1/deposithistories/{id}")
     public Response<DepositHistoryResponse> getDepositHistory(
-            @RequestParam Long id,
+            @PathVariable Long id,
             @AuthenticationPrincipal AuthUser authUser) {
         DepositHistoryResponse depositHistoryResponse = depositHistoryService.getDepositHistory(id, authUser);
         return Response.of(depositHistoryResponse);
     }
 
     // 다건 조회 (페이징 처리)
-    @GetMapping("/v1/deposithistorys")
+    @GetMapping("/v1/deposithistories")
     public Response<List<DepositHistoryResponse>> getDepositHistoryList(
             @RequestParam Long auctionId,
             @RequestParam(required = false) String status,
@@ -42,7 +42,7 @@ public class DepositHistoryController {
     }
 
     // 보증금 이력 생성
-    @PostMapping("/v1/deposithistory")
+    @PostMapping("/v1/deposithistories")
     @ResponseStatus(HttpStatus.CREATED)
     public Response<DepositHistoryResponse> createDepositHistory(
             @RequestBody DepositHistoryRequest depositHistoryRequest,
