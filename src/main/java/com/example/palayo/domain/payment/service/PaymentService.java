@@ -4,7 +4,7 @@ import com.example.palayo.domain.payment.TossPaymentClient;
 import com.example.palayo.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
-import com.example.palayo.domain.pointhistory.service.PointService;
+import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,7 @@ public class PaymentService {
 
     private final TossPaymentClient tossPaymentClient;
     private final PaymentRepository paymentRepository;
-    private final PointService pointService;
+    private final PointHistoriesService pointHistoriesService;
 
     @Transactional
     public String confirmAndSave(String paymentKey, String orderId, int amount) {
@@ -40,7 +40,7 @@ public class PaymentService {
                     .build();
 
             paymentRepository.save(payment);
-            pointService.chargePoints(userId, payment.getAmount());
+            pointHistoriesService.chargePoints(userId, payment.getAmount());
 
             return "결제 완료 \n금액: " + payment.getAmount() + "원";
     }
