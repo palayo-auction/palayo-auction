@@ -3,14 +3,16 @@ package com.example.palayo.domain.notification.controller;
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
+import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.notification.dto.request.FcmTokenRequest;
 import com.example.palayo.domain.notification.dto.request.NotificationRequest;
+import com.example.palayo.domain.notification.dto.response.NotificationResponse;
+import com.example.palayo.domain.notification.dto.response.TokenResponse;
 import com.example.palayo.domain.notification.enums.NotificationType;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,17 +31,25 @@ public class NotificationController {
     private final UserRepository userRepository;
 
     @PostMapping("v1/notification/register")
-    public ResponseEntity<Void> registerFcmToken(
+    public Response<TokenResponse> registerFcmToken(
             @RequestBody FcmTokenRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
         Long userId = authUser.getUserId();
         notificationService.registerToken(userId, request.getToken());
-        return ResponseEntity.ok().build();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
+
+        TokenResponse response = TokenResponse.builder()
+                .token(request.getToken())
+                .nickname(user.getNickname())
+                .build();
+        return Response.of(response);
     }
 
     @PostMapping("v1/notification/send")
-    public ResponseEntity<String> sendNotification(
+    public Response<NotificationResponse> sendNotification(
             @RequestBody NotificationRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
@@ -57,12 +67,19 @@ public class NotificationController {
                 NotificationType.TEST,
                 request.getTitle(),
                 request.getBody(),
-                data);
-        return ResponseEntity.ok("알림 전송 성공");
+                data
+        );
+        NotificationResponse response = NotificationResponse.builder()
+                .message("알림 전송 성공")
+                .type("send")
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+
+        return Response.of(response);
     }
 
-    @PostMapping("v1/notification/test")
-    public ResponseEntity<String> testNotification(@AuthenticationPrincipal AuthUser authUser) {
+    @PostMapping("v2/notification/test")
+    public Response<NotificationResponse> testNotification(@AuthenticationPrincipal AuthUser authUser) {
         Long userId = authUser.getUserId();
 
         Map<String, String> data = new HashMap<>();
@@ -73,12 +90,18 @@ public class NotificationController {
         notificationService.reserveNotification(
                 userId,
                 NotificationType.MY_AUCTION_SOON_START,
-                "⏰ 테스트 알림",
-                "1분 후 이 메시지가 전송",
+                "테스트 알림",
+                "테스트용 알림입니다.",
                 data,
                 scheduledAt
         );
 
-        return ResponseEntity.ok("알림 예약 완료");
+        NotificationResponse response = NotificationResponse.builder()
+                .message("알림 예약 성공")
+                .type("reserve")
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+
+        return Response.of(response);
     }
 }

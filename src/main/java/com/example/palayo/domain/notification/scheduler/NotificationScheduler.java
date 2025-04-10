@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificationScheduler {
@@ -51,10 +50,10 @@ public class NotificationScheduler {
                 history.markAsSent();
 
             } catch (Exception e) {
-                throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL, null);
+//                오류를 날리면 다른 알림마저 안날라갈 가능성 높음
+//                throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL, null);
             }
         }
-
         historyRepository.saveAll(pending);
     }
 }
