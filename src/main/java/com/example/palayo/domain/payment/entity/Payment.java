@@ -4,15 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Payment {
     @Id
@@ -33,9 +32,9 @@ public class Payment {
 
     private String customerName;
 
-    private String requestedAt;
+    private LocalDateTime requestedAt;
 
-    private String approvedAt;
+    private LocalDateTime approvedAt;
 
     private Long userId;
 

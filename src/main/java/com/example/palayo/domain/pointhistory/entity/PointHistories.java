@@ -3,10 +3,7 @@ package com.example.palayo.domain.pointhistory.entity;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.enums.PointType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -15,8 +12,8 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EntityListeners(AuditingEntityListener.class)
 public class PointHistories {
     @Id
