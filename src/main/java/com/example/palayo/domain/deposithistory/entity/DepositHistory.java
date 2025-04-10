@@ -31,7 +31,7 @@ public class DepositHistory {
     private User user;
 
     @Column(nullable = false)
-    private Long deposit;
+    private int deposit;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -41,7 +41,7 @@ public class DepositHistory {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public DepositHistory(Auction auction, User user, Long deposit, DepositStatus status) {
+    public DepositHistory(Auction auction, User user, int deposit, DepositStatus status) {
         this.auction = auction;
         this.user = user;
         this.deposit = deposit;

@@ -44,10 +44,18 @@ public class DepositHistoryController {
     // 보증금 이력 생성
     @PostMapping("/v1/deposithistories")
     @ResponseStatus(HttpStatus.CREATED)
-    public Response<DepositHistoryResponse> createDepositHistory(
+    public Response<Void> createDepositHistory(
             @RequestBody DepositHistoryRequest depositHistoryRequest,
             @AuthenticationPrincipal AuthUser authUser) {
-        DepositHistoryResponse depositHistoryResponse = depositHistoryService.createDepositHistory(depositHistoryRequest, authUser);
-        return Response.of(depositHistoryResponse);
+
+        // DepositHistoryRequest에서 필요한 데이터 추출
+        Long userId = authUser.getUserId();  // 현재 인증된 유저의 ID
+        Long auctionId = depositHistoryRequest.getAuctionId();
+        Long depositAmount = depositHistoryRequest.getDepositAmount();
+
+        // 보증금 이력 생성
+        depositHistoryService.createDepositHistory(userId, auctionId, Math.toIntExact(depositAmount));
+
+        return Response.of(null); // 생성이 완료된 후, 반환 값 없음
     }
 }
