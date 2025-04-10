@@ -57,30 +57,6 @@ public class DepositHistoryService {
         return depositHistoryPage.map(DepositHistoryResponse::fromEntity);
     }
 
-    // 보증금 이력 생성
-    @Transactional
-    public DepositHistoryResponse createDepositHistory(DepositHistoryRequest depositHistoryRequestDTO, AuthUser authUser) {
-        // Auction 조회 (레포지토리 사용)
-        Auction auction = auctionRepository.findById(depositHistoryRequestDTO.getAuctionId())
-                .orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
-
-        // AuthUser에서 userId를 추출하여 User 조회
-        User user = userRepository.findById(authUser.getUserId())
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, authUser.getUserId().toString()));
-
-        // DepositHistory 생성
-        DepositHistory depositHistory = new DepositHistory(auction, user, depositHistoryRequestDTO.getDeposit(), depositHistoryRequestDTO.getStatus());
-
-        // DepositHistory가 이미 존재하는지 확인 (예: 사용자와 경매 조합이 동일한 이력이 있을 경우)
-        if (depositHistoryRepository.existsByAuctionAndUser(auction, user)) {
-            throw new BaseException(ErrorCode.DEPOSIT_HISTORY_ALREADY_EXISTS, "The deposit history for this auction already exists.");
-        }
-
-        DepositHistory savedDepositHistory = depositHistoryRepository.save(depositHistory);
-
-        return DepositHistoryResponse.fromEntity(savedDepositHistory);
-
-    }
     // 사용자가 해당 경매에 보증금을 이미 납부했는지 확인
     @Transactional(readOnly = true)
     public boolean existsByAuctionAndUser(Long auctionId, Long userId) {
@@ -108,7 +84,7 @@ public class DepositHistoryService {
         DepositHistory depositHistory = new DepositHistory(
                 auction,
                 user,
-                (long)depositAmount, // int -> Long 변환
+                depositAmount, // int -> Long 변환
                 DepositStatus.PENDING // 기본 상태는 대기중
         );
 

@@ -10,7 +10,8 @@ public class DepositHistoryRequest {
 
     private Long auctionId;
     private Long userId;
-    private Long deposit;
+    private int depositAmount;
+    private int deposit;
     private DepositStatus status;
 
 }
