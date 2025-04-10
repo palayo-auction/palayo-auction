@@ -9,11 +9,19 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     //유저 관련 에러 코드
     DUPLICATE_EMAIL("중복된 이메일이 있습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_USER_ROLE("유효하지 않은 역할입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_FORM("유효하지 않은 형식입니다.", HttpStatus.BAD_REQUEST),
+    USER_NOT_EXIST("존재하지 않는 회원입니다.", HttpStatus.BAD_REQUEST),
     EMAIL_MISMATCH("존재하지 않는 이메일입니다.", HttpStatus.BAD_REQUEST),
+    SIGNIN_FAILED("로그인에 실패했습니다.", HttpStatus.BAD_REQUEST),
     PASSWORD_MISMATCH("잘못된 비밀번호입니다.", HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND("사용자 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     PASSWORD_SAME_AS_OLD("새 비밀번호는 기존 비밀번호와 같을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_SAME("새 비밀번호와 새 비밀번호 확인이 다릅니다.", HttpStatus.BAD_REQUEST),
     INACTIVE_USER("이미 탈퇴된 회원입니다.", HttpStatus.BAD_REQUEST),
+    REFRESH_TOKEN_NOT_FOUND("해당 refresh token을 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_REFRESH_TOKEN("유효하지 않은 refresh token 입니다.", HttpStatus.BAD_REQUEST),
+    USERID_NOT_MATCH("유저 id가 일치하지 않습니다." , HttpStatus.BAD_REQUEST),
     NICKNAME_SAME_AS_OLD("새 닉네임이 기존의 닉네임과 같을 수 없습니다.", HttpStatus.BAD_REQUEST),
     DUPLICATE_NICNKNAME("중복된 닉네임이 있습니다.", HttpStatus.BAD_REQUEST),
     //경매 관련 에러 코드
@@ -33,31 +41,32 @@ public enum ErrorCode {
 	ALREADY_DELETED_AUCTION("이미 삭제된 경매입니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_DELETE_ACTIVE_AUCTION("진행 중인 경매는 삭제할 수 없습니다.", HttpStatus.BAD_REQUEST),
 	//경매 이력 관련 에러 코드
-
+	BID_PRICE_TOO_LOW("입찰 금액은 현재 가격 + 입찰 단위 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
+	CANNOT_BID_OWN_AUCTION("자신이 등록한 경매에는 입찰할 수 없습니다.", HttpStatus.BAD_REQUEST),
     //보증금 이력 관련 에러 코드
 
-    //찜 관련 에러 코드
-    DIB_NOT_FOUND("찜한 경매가 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-    DIB_FORBIDDEN("찜한 경매를 조회할 권한이 없습니다.",HttpStatus.UNAUTHORIZED),
-    //아이템 관련 에러 코드
-    CATEGORY_NOT_FOUND("해당 카테고리는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-    STATUS_NOT_FOUND("해당 상태는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-    ITEM_NOT_FOUND("해당 하는 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
-    DUPLICATE_ITEM_NAME("이름이 중복된 상품이 있습니다.", HttpStatus.BAD_REQUEST),
-    INVALID_ITEM_STATUS_FOR_UPDATE("경매 이전의 상품만 수정할 수 있습니다.", HttpStatus.BAD_REQUEST),
-    ITEM_EDIT_FORBIDDEN("상품 상태를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
-    //이미지 관련 에러 코드
+	//찜 관련 에러 코드
+	DIB_NOT_FOUND("찜한 경매가 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+	DIB_FORBIDDEN("찜한 경매를 조회할 권한이 없습니다.",HttpStatus.UNAUTHORIZED),
+	//아이템 관련 에러 코드
+	CATEGORY_NOT_FOUND("해당 카테고리는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+	STATUS_NOT_FOUND("해당 상태는 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+	ITEM_NOT_FOUND("해당 하는 상품이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
+	DUPLICATE_ITEM_NAME("이름이 중복된 상품이 있습니다.", HttpStatus.BAD_REQUEST),
+	INVALID_ITEM_STATUS_FOR_UPDATE("경매 이전의 상품만 수정할 수 있습니다.", HttpStatus.BAD_REQUEST),
+	ITEM_EDIT_FORBIDDEN("상품 상태를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
+	//이미지 관련 에러 코드
 
-    //알림 관련 에러 코드
+	//알림 관련 에러 코드
 
-    //포인트 이력 관련 에러 코드
+	//포인트 이력 관련 에러 코드
 
-    //그 외 에러 코드
-    UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 타입입니다.", HttpStatus.BAD_REQUEST),
-    INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
-//    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
-    SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+	//그 외 에러 코드
+	UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 타입입니다.", HttpStatus.BAD_REQUEST),
+	INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
+	//    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
+	SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
-    private final String message;
-    private final HttpStatus httpStatus;
+	private final String message;
+	private final HttpStatus httpStatus;
 }

@@ -4,11 +4,11 @@ import static lombok.AccessLevel.*;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.user.entity.User;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,20 +47,20 @@ public class AuctionHistory {
 
 	// 입찰 금액
 	@Column(nullable = false)
-	private int price;
+	private int bidPrice;
 
 	// 입찰 생성 일시 (자동 설정)
 	@CreatedDate
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
-	private AuctionHistory(Auction auction, User bidder, int price) {
+	private AuctionHistory(Auction auction, User bidder, int bidPrice) {
 		this.auction = auction;
 		this.bidder = bidder;
-		this.price = price;
+		this.bidPrice = bidPrice;
 	}
 
-	public static AuctionHistory of(Auction auction, User bidder, int price) {
-		return new AuctionHistory(auction, bidder, price);
+	public static AuctionHistory of(Auction auction, User bidder, int bidPrice) {
+		return new AuctionHistory(auction, bidder, bidPrice);
 	}
 }
