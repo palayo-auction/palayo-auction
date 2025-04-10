@@ -51,7 +51,7 @@ public class DepositHistoryController {
         // DepositHistoryRequest에서 필요한 데이터 추출
         Long userId = authUser.getUserId();  // 현재 인증된 유저의 ID
         Long auctionId = depositHistoryRequest.getAuctionId();
-        Long depositAmount = depositHistoryRequest.getDepositAmount();
+        int depositAmount = depositHistoryRequest.getDepositAmount();
 
         // 보증금 이력 생성
         depositHistoryService.createDepositHistory(userId, auctionId, Math.toIntExact(depositAmount));
