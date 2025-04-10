@@ -54,17 +54,25 @@ public enum ErrorCode {
     INVALID_ITEM_STATUS_FOR_UPDATE("경매 이전의 상품만 수정할 수 있습니다.", HttpStatus.BAD_REQUEST),
     ITEM_EDIT_FORBIDDEN("상품 상태를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
     //이미지 관련 에러 코드
+    IMAGE_NOT_FOUND("해당 이미지는 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    DUPLICATE_IMAGE("이미 등록된 있습니다.", HttpStatus.BAD_REQUEST),
+    //알림 관련 에러 코드
 
-	//알림 관련 에러 코드
+    //포인트 이력 관련 에러 코드
 
-	//포인트 이력 관련 에러 코드
+    //그 외 에러 코드
+    TOO_MANY_FILES("최대 10개까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_DOMAIN("유효한 도메인이 아닙니다.", HttpStatus.BAD_REQUEST),
+    EXTERNAL_SERVER_ERROR("외부 API 서버에서 알 수 없는 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
+    FILE_TOO_LARGE("파일 용량이 초과하였습니다.", HttpStatus.BAD_REQUEST),
+    TOTAL_SIZE_EXCEEDED("전체 파일 용량이 100MB를 초과했습니다.", HttpStatus.BAD_REQUEST),
+    UPLOAD_FAILED("파일 업로드에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    UNSUPPORTED_FILE_EXTENSION("지원하지 않는 파일 확장자입니다.", HttpStatus.BAD_REQUEST),
+    UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
+    INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
+//    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
+    SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
-	//그 외 에러 코드
-	UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 타입입니다.", HttpStatus.BAD_REQUEST),
-	INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
-	//    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
-	SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-
-	private final String message;
-	private final HttpStatus httpStatus;
+    private final String message;
+    private final HttpStatus httpStatus;
 }
