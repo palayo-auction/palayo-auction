@@ -30,6 +30,7 @@ public class PaymentConfirmResponse {
     private Metadata metadata;
 
     @Getter
+    @Builder    //테스토용 빌더
     public static class Metadata {
         private Long userId;
         private String nickname;
