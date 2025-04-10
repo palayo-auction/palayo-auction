@@ -24,6 +24,7 @@ import com.example.palayo.domain.auctionhistory.dto.response.BidHistoryResponse;
 import com.example.palayo.domain.auctionhistory.dto.response.BidResponse;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
+import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 
