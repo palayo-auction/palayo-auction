@@ -1,15 +1,20 @@
-package com.example.palayo.domain.user.entity.log;
+package com.example.palayo.domain.pointhistory.entity;
 
 import com.example.palayo.domain.user.entity.User;
-import com.example.palayo.domain.user.enums.PaymentType;
+import com.example.palayo.domain.user.enums.PointType;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class PointHistories {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +26,8 @@ public class PointHistories {
 
     private int amount;
 
-    private PaymentType paymentType;
+    @Enumerated(EnumType.STRING)
+    private PointType pointType;
 
     @CreatedDate
     private LocalDateTime createdAt;
