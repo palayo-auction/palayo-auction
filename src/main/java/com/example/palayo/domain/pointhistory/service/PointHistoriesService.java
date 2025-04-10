@@ -38,6 +38,7 @@ public class PointHistoriesService {
         });
     }
 
+    @Transactional(readOnly = true)
     public Page<PointHistoriesResponse> findByUserId(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         Page<PointHistories> pointHistories = pointHistoriesRepository.findByUserId(userId, pageable);
