@@ -1,4 +1,4 @@
-package com.example.palayo.domain.dib.service;
+package com.example.palayo.dib.service;
 
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.response.Response;
@@ -8,6 +8,7 @@ import com.example.palayo.domain.dib.dto.response.DibListResponse;
 import com.example.palayo.domain.dib.dto.response.DibResponse;
 import com.example.palayo.domain.dib.entity.Dib;
 import com.example.palayo.domain.dib.repository.DibRepository;
+import com.example.palayo.domain.dib.service.DibService;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.user.entity.User;
@@ -48,9 +49,16 @@ class DibServiceTest {
     @InjectMocks
     private DibService dibService;
 
+    @Mock
     private User user;
+
+    @Mock
     private Auction auction;
+
+    @Mock
     private AuthUser authUser;
+
+    @Mock
     private Item item;
 
     @BeforeEach
