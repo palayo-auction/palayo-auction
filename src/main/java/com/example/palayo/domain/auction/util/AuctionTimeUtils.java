@@ -25,4 +25,12 @@ public class AuctionTimeUtils {
 	public static boolean isAfterEnd(LocalDateTime now, Auction auction) {
 		return now.isAfter(auction.getExpiredAt());
 	}
+
+	public static boolean isAboutToExpireInFiveMinutes(Auction auction) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime expireAt = auction.getExpiredAt();
+
+		return now.isAfter(expireAt.minusMinutes(5).minusSeconds(30)) &&
+				now.isBefore(expireAt.minusMinutes(5).plusSeconds(30));
+	}
 }

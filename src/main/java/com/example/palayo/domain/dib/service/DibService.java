@@ -48,7 +48,7 @@ public class DibService {
             return null;
         } else {
             Dib savedDib = dibRepository.save(Dib.of(user, auction));
-            reserveDibAuctionNotifications(user, auction);
+            reserveDibAuctionNotifications(auction);
             return DibResponse.of(savedDib);
         }
     }
@@ -76,8 +76,18 @@ public class DibService {
         return DibResponse.of(dib);
     }
 
-    private void reserveDibAuctionNotifications(User user, Auction auction) {
-        notificationService.saveNotification(redisNotificationFactory.dibAuctionStart(user, auction));
-        notificationService.saveNotification(redisNotificationFactory.dibAuctionEnd(user, auction));
+    private void reserveDibAuctionNotifications(Auction auction) {
+        List<User> users = dibRepository.findAllByAuction(auction)
+                .stream()
+                .map((Dib dib) -> dib.getUser())
+                .toList();
+
+        notificationService.saveNotifications(
+                redisNotificationFactory.dibAuctionStart(users, auction)
+        );
+
+        notificationService.saveNotifications(
+                redisNotificationFactory.dibAuctionEnd(users, auction)
+        );
     }
 }

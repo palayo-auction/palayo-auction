@@ -2,7 +2,12 @@ package com.example.palayo.domain.auctionhistory.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
+import com.example.palayo.domain.item.entity.Item;
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.redis.RedisNotification;
+import com.example.palayo.domain.notification.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,8 +41,10 @@ public class AuctionHistoryService {
 	private final AuctionRepository auctionRepository;
 	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final UserRepository userRepository;
-	private final DepositHistoryService depositHistoryService;
+//	private final DepositHistoryService depositHistoryService;
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
+	private final RedisNotificationFactory redisNotificationFactory;
+	private final NotificationService notificationService;
 
 	// 입찰 생성
 	@Transactional
@@ -71,6 +78,18 @@ public class AuctionHistoryService {
 		// 즉시 낙찰가 도달 시 경매 성공 처리
 		if (auctionHistoryServiceHelper.isBuyoutPriceReached(auction, request.getBidPrice())) {
 			auction.markAsSuccess(bidder);
+		}
+
+		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
+				.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
+
+		if (previousTopBidOpt.isPresent()) {
+			User previousTopBidder = previousTopBidOpt.get().getBidder();
+
+			if (!previousTopBidder.getId().equals(bidder.getId())) {
+				RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
+				notificationService.saveNotification(notification);
+			}
 		}
 
 		// 입찰 결과 반환
@@ -152,4 +171,5 @@ public class AuctionHistoryService {
 		return userRepository.findById(userId)
 			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 	}
+
 }

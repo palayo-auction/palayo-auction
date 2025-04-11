@@ -132,4 +132,10 @@ public class NotificationService {
 
         redisNotificationTemplate.opsForValue().set(key, notification);
     }
+
+    @Transactional
+    public void saveNotifications(List<RedisNotification> notifications) {
+        notifications.forEach(this::saveNotification);
+    }
+
 }

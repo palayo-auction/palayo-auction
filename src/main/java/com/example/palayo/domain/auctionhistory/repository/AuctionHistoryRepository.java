@@ -1,11 +1,17 @@
 package com.example.palayo.domain.auctionhistory.repository;
 
+import com.example.palayo.domain.auction.entity.Auction;
+import com.example.palayo.domain.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AuctionHistoryRepository extends JpaRepository<AuctionHistory, Long> {
 
@@ -32,4 +38,10 @@ public interface AuctionHistoryRepository extends JpaRepository<AuctionHistory, 
 	//경매에 참가한 사용자에게 알림을 보내기 위해 중복제거 후 입찰자id 확인
 	@Query("SELECT DISTINCT ah.bidder.id FROM AuctionHistory ah WHERE ah.auction.id = :auctionId")
 	List<Long> findDistinctBidderIdsByAuctionId(Long auctionId);
+
+	Optional<AuctionHistory> findTopByAuctionOrderByBidPriceDesc(Auction auction);
+
+	@Query("SELECT DISTINCT ah.bidder FROM AuctionHistory ah WHERE ah.auction.id = :auctionId")
+	List<User> findAllBiddersByAuctionId(@Param("auctionId") Long auctionId);
+
 }
