@@ -1,6 +1,7 @@
 package com.example.palayo.domain.deposithistory.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.deposithistory.entity.DepositHistory;
@@ -23,4 +24,6 @@ public interface DepositHistoryRepository extends JpaRepository<DepositHistory, 
 
 	// 경매 ID로 모든 보증금 이력 조회 (보증금 환불 처리용)
 	List<DepositHistory> findAllByAuctionId(Long auctionId);
+
+	Optional<DepositHistory> findByAuctionAndUser(Auction auction, User user);
 }
