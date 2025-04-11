@@ -36,4 +36,15 @@ public class ItemImage {
         itemImage.item = item;
         return itemImage;
     }
+
+    public void updateItemImage(String url, String name, Integer index) {
+        this.imageUrl = url;
+        this.imageName = name;
+        this.imageIndex = index;
+    }
+
+    public void updateItemImageUrl(String url) {
+        this.imageUrl = url;
+    }
+
 }
