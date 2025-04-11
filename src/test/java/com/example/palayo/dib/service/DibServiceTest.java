@@ -48,6 +48,7 @@ class DibServiceTest {
 
     @InjectMocks
     private DibService dibService;
+
     @Mock
     private User user;
 
