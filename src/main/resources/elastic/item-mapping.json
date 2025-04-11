@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "id": {
+      "type": "long"
+    },
+    "name": {
+      "type": "text",
+      "analyzer": "nori_analyzer"
+    },
+    "content": {
+      "type": "text",
+      "analyzer": "nori_analyzer"
+    },
+    "category": {
+      "type": "keyword"
+    },
+    "sellerId": {
+      "type": "long"
+    }
+  }
+}
