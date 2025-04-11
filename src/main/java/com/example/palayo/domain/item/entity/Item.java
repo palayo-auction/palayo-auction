@@ -41,6 +41,7 @@ public class Item extends BaseEntity {
     private User seller;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("imageIndex ASC")
     private List<ItemImage> itemImages = new ArrayList<>();
 
     public static Item of(String name, String content, Category category, User seller){
