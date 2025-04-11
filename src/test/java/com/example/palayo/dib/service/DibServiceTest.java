@@ -49,9 +49,16 @@ class DibServiceTest {
     @InjectMocks
     private DibService dibService;
 
+    @Mock
     private User user;
+
+    @Mock
     private Auction auction;
+
+    @Mock
     private AuthUser authUser;
+
+    @Mock
     private Item item;
 
     @BeforeEach
