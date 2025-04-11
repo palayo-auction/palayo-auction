@@ -40,7 +40,7 @@ public class NotificationService {
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 
         notificationRepository.findByUser(user).ifPresentOrElse(
-                n -> n.setToken(token),
+                n -> n.updateToken(token),
                 () -> notificationRepository.save(Notification.builder()
                         .user(user)
                         .token(token)

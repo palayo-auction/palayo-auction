@@ -11,7 +11,6 @@ import java.util.Map;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
