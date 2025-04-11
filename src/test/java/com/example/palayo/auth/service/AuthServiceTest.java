@@ -1,9 +1,10 @@
 package com.example.palayo.auth.service;
 
-import com.example.palayo.auth.dto.response.SignupUserResponse;
+import com.example.palayo.domain.auth.dto.response.SignupUserResponse;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.config.JwtUtil;
+import com.example.palayo.domain.auth.service.AuthService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +71,7 @@ public class AuthServiceTest {
         given(jwtUtil.createToken(user.getId(), user.getEmail())).willReturn("testToken");
 
         //when
-        SignupUserResponse responseDto = authService.singup(email, password, nickname);
+        SignupUserResponse responseDto = authService.singUp(email, password, nickname);
 
         //then
         assertEquals(email, responseDto.getEmail());
@@ -87,7 +88,7 @@ public class AuthServiceTest {
         given(userRepository.findByNickname(nickname)).willReturn(Optional.empty());
 
         //when
-        BaseException exception = assertThrows(BaseException.class, () -> authService.singup(email, password, nickname));
+        BaseException exception = assertThrows(BaseException.class, () -> authService.singUp(email, password, nickname));
 
         //then
         assertEquals(ErrorCode.DUPLICATE_EMAIL, exception.getErrorCode());
@@ -104,7 +105,7 @@ public class AuthServiceTest {
         given(userRepository.findByNickname(nickname)).willReturn(Optional.of(user));
 
         //when
-        BaseException exception = assertThrows(BaseException.class, () -> authService.singup(email, password, nickname));
+        BaseException exception = assertThrows(BaseException.class, () -> authService.singUp(email, password, nickname));
 
         //then
         assertEquals(ErrorCode.DUPLICATE_NICNKNAME, exception.getErrorCode());

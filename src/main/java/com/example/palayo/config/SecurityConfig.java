@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .rememberMe(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(request -> request.getRequestURI().startsWith("/api")).permitAll()
+                        .requestMatchers("/payment/**").permitAll()
                         .requestMatchers("/open").permitAll()
                         .anyRequest().permitAll()
                 )

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
 import com.example.palayo.domain.notification.redis.RedisNotification;
@@ -41,7 +42,7 @@ public class AuctionHistoryService {
 	private final AuctionRepository auctionRepository;
 	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final UserRepository userRepository;
-//	private final DepositHistoryService depositHistoryService;
+	private final DepositHistoryService depositHistoryService;
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
 	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
@@ -171,5 +172,4 @@ public class AuctionHistoryService {
 		return userRepository.findById(userId)
 			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 	}
-
 }
