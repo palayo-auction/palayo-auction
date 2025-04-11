@@ -14,19 +14,16 @@ import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api")
 public class NotificationController {
+
     private final NotificationService notificationService;
     private final UserRepository userRepository;
 
@@ -38,13 +35,13 @@ public class NotificationController {
         Long userId = authUser.getUserId();
         notificationService.registerToken(userId, request.getToken());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
+        User user = getUser(userId);
 
         TokenResponse response = TokenResponse.builder()
                 .token(request.getToken())
                 .nickname(user.getNickname())
                 .build();
+
         return Response.of(response);
     }
 
@@ -53,14 +50,12 @@ public class NotificationController {
             @RequestBody NotificationRequest request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        Long userId = authUser.getUserId();
+        User user = getUser(authUser.getUserId());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
-
-        Map<String, String> data = new HashMap<>();
-        data.put("title", request.getTitle());
-        data.put("body", request.getBody());
+        Map<String, String> data = Map.of(
+                "title", request.getTitle(),
+                "body", request.getBody()
+        );
 
         notificationService.sendNotification(
                 user,
@@ -69,22 +64,15 @@ public class NotificationController {
                 request.getBody(),
                 data
         );
-        NotificationResponse response = NotificationResponse.builder()
-                .message("알림 전송 성공")
-                .type("send")
-                .timestamp(LocalDateTime.now().toString())
-                .build();
 
-        return Response.of(response);
+        return Response.of(buildNotificationResponse("알림 전송 성공", "send"));
     }
 
     @PostMapping("v2/notification/test")
     public Response<NotificationResponse> testNotification(@AuthenticationPrincipal AuthUser authUser) {
         Long userId = authUser.getUserId();
 
-        Map<String, String> data = new HashMap<>();
-        data.put("customKey", "test-value");
-
+        Map<String, String> data = Map.of("customKey", "test-value");
         LocalDateTime scheduledAt = LocalDateTime.now().plusMinutes(1);
 
         notificationService.reserveNotification(
@@ -96,12 +84,19 @@ public class NotificationController {
                 scheduledAt
         );
 
-        NotificationResponse response = NotificationResponse.builder()
-                .message("알림 예약 성공")
-                .type("reserve")
+        return Response.of(buildNotificationResponse("알림 예약 성공", "reserve"));
+    }
+
+    private User getUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
+    }
+
+    private NotificationResponse buildNotificationResponse(String message, String type) {
+        return NotificationResponse.builder()
+                .message(message)
+                .type(type)
                 .timestamp(LocalDateTime.now().toString())
                 .build();
-
-        return Response.of(response);
     }
 }
