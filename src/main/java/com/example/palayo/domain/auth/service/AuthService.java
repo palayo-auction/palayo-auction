@@ -1,7 +1,7 @@
-package com.example.palayo.auth.service;
+package com.example.palayo.domain.auth.service;
 
-import com.example.palayo.auth.dto.response.LoginUserResponse;
-import com.example.palayo.auth.dto.response.SignupUserResponse;
+import com.example.palayo.domain.auth.dto.response.LoginUserResponse;
+import com.example.palayo.domain.auth.dto.response.SignupUserResponse;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.config.JwtUtil;
@@ -10,6 +10,7 @@ import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -21,7 +22,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public SignupUserResponse singup(String email, String password, String nickname) {
+    @Transactional
+    public SignupUserResponse singUp(String email, String password, String nickname) {
         Optional<User> byEmail = userRepository.findByEmail(email);
         Optional<User> byNickname = userRepository.findByNickname(nickname);
 
@@ -49,6 +51,7 @@ public class AuthService {
         );
     }
 
+    @Transactional
     public LoginUserResponse login(String email, String password) {
         User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new BaseException(ErrorCode.EMAIL_MISMATCH, email)
