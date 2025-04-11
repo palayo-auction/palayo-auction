@@ -1,5 +1,7 @@
 package com.example.palayo.common.util;
 
+import com.example.palayo.common.exception.BaseException;
+import com.example.palayo.common.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +20,7 @@ public class JsonConverter implements AttributeConverter<Map<String, String>, St
         try {
             return objectMapper.writeValueAsString(attribute);
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("JSON 변환 실패", e);
+            throw new BaseException(ErrorCode.JSON_CONVERT_FAIL,null);
         }
     }
 
@@ -27,7 +29,7 @@ public class JsonConverter implements AttributeConverter<Map<String, String>, St
         try {
             return objectMapper.readValue(dbData, new TypeReference<>() {});
         } catch (IOException e) {
-            throw new IllegalArgumentException("JSON 파싱 실패", e);
+            throw new BaseException(ErrorCode.JSON_PARSING_FAIL,null);
         }
     }
 }

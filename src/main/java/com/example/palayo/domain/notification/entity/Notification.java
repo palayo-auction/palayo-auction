@@ -6,7 +6,6 @@ import lombok.*;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -21,4 +20,8 @@ public class Notification {
 
     @Column(nullable = false)
     private String token;
+
+    public void updateToken(String token) {
+        this.token = token;
+    }
 }

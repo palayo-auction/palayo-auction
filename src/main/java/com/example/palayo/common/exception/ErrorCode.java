@@ -64,6 +64,9 @@ public enum ErrorCode {
     NOTIFICATION_SEND_FAIL("알림 전송 실패",HttpStatus.BAD_REQUEST),
     NOTIFICATION_NOT_REGISTERED("알림 등록되지 않았습니다.", HttpStatus.NOT_FOUND),
     NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다",HttpStatus.NOT_FOUND),
+    //JsonConverter 관련 에러 코드
+    JSON_CONVERT_FAIL("JSON 변환 실패",HttpStatus.BAD_REQUEST),
+    JSON_PARSING_FAIL("JSON 파싱 실패",HttpStatus.BAD_REQUEST),
     //포인트 이력 관련 에러 코드
 
     //Firebase 관련 에러 코드
