@@ -22,6 +22,9 @@ public interface AuctionHistoryRepository extends JpaRepository<AuctionHistory, 
 	// 경매 ID로 가장 높은 입찰 기록 조회 (가격 높은 순, 입찰 시간 빠른 순)
 	Optional<AuctionHistory> findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(Long auctionId);
 
+	// 경매 ID로 입찰 기록 조회
+	List<AuctionHistory> findByAuctionId(Long auctionId);
+
 	// 경매 ID로 입찰 기록 페이징 조회
 	Page<AuctionHistory> findByAuctionId(Long auctionId, Pageable pageable);
 
