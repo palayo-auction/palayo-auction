@@ -9,6 +9,8 @@ import com.example.palayo.domain.dib.dto.response.DibListResponse;
 import com.example.palayo.domain.dib.dto.response.DibResponse;
 import com.example.palayo.domain.dib.entity.Dib;
 import com.example.palayo.domain.dib.repository.DibRepository;
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,8 @@ public class DibService {
     private final DibRepository dibRepository;
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final RedisNotificationFactory redisNotificationFactory;
 
     @Transactional
     public DibResponse dibAuction(AuthUser authUser, Long auctionId) {
@@ -43,6 +47,7 @@ public class DibService {
             return null;
         } else {
             Dib savedDib = dibRepository.save(Dib.of(user, auction));
+            reserveDibAuctionNotifications(auction);
             return DibResponse.of(savedDib);
         }
     }
@@ -68,5 +73,20 @@ public class DibService {
         }
 
         return DibResponse.of(dib);
+    }
+
+    private void reserveDibAuctionNotifications(Auction auction) {
+        List<User> users = dibRepository.findAllByAuction(auction)
+                .stream()
+                .map((Dib dib) -> dib.getUser())
+                .toList();
+
+        notificationService.saveNotifications(
+                redisNotificationFactory.dibAuctionStart(users, auction)
+        );
+
+        notificationService.saveNotifications(
+                redisNotificationFactory.dibAuctionEnd(users, auction)
+        );
     }
 }

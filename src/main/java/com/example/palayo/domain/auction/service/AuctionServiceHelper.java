@@ -1,7 +1,12 @@
 package com.example.palayo.domain.auction.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import com.example.palayo.domain.user.entity.User;
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.redis.RedisNotification;
+import com.example.palayo.domain.notification.service.NotificationService;
 import org.springframework.stereotype.Component;
 
 import com.example.palayo.common.dto.AuthUser;
@@ -21,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 public class AuctionServiceHelper {
 
 	private final AuctionHistoryRepository auctionHistoryRepository;
+	private final RedisNotificationFactory redisNotificationFactory;
+	private final NotificationService notificationService;
 
 	// 경매 상태 업데이트 (현재 시간과 경매 진행 상황에 따라 상태 변경)
 	public boolean updateStatus(Auction auction) {
@@ -52,15 +59,17 @@ public class AuctionServiceHelper {
 	// 낙찰자 선정 (종료되었거나 즉시 낙찰가 도달 시 낙찰자 확정)
 	public boolean assignWinningBidder(Auction auction) {
 		if (!hasBids(auction)) { // 입찰 기록이 없으면 낙찰자 없음
+			sendBidFailNotifications(auction);
 			return false;
 		}
 
 		if (auction.getWinningBidder() == null) { // 최고 입찰 기록 조회 (가격 높은 순, 입찰 시간 빠른 순)
 
 			AuctionHistory topBid = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId())
-				.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
+					.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
 
 			auction.setWinningBidder(topBid.getBidder()); // 최고 입찰자를 경매의 낙찰자로 설정
+			sendBidSuccessNotification(auction);
 		}
 
 		if (isBuyoutPriceReached(auction)) { // 즉시 낙찰가 도달 시 낙찰 확정 처리
@@ -73,6 +82,7 @@ public class AuctionServiceHelper {
 			return true;
 		}
 
+		sendBidFailNotifications(auction);
 		return false;
 	}
 
@@ -123,6 +133,18 @@ public class AuctionServiceHelper {
 			auction.markAsSuccess(auction.getWinningBidder());
 		} else { // 낙찰자 없음 → FAILED 처리
 			auction.markAsFailed();
+		}
+	}
+	private void sendBidSuccessNotification(Auction auction) {
+		RedisNotification winNotice = redisNotificationFactory.bidWin(auction.getWinningBidder(), auction);
+		notificationService.saveNotification(winNotice);
+	}
+
+	private void sendBidFailNotifications(Auction auction) {
+		List<User> participants = auctionHistoryRepository.findAllBiddersByAuctionId(auction.getId());
+		for (User user : participants) {
+			RedisNotification failNotice = redisNotificationFactory.bidFail(user, auction);
+			notificationService.saveNotification(failNotice);
 		}
 	}
 }

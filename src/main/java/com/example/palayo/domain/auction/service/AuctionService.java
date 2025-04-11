@@ -1,15 +1,5 @@
 package com.example.palayo.domain.auction.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
@@ -20,12 +10,26 @@ import com.example.palayo.domain.auction.dto.response.AuctionResponse;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
-import com.example.palayo.domain.auction.util.TimeFormatter;
 import com.example.palayo.domain.auction.util.AuctionValidator;
+import com.example.palayo.domain.auction.util.TimeFormatter;
+import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
+import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.repository.ItemRepository;
-
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.redis.RedisNotification;
+import com.example.palayo.domain.notification.service.NotificationService;
+import com.example.palayo.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,9 @@ public class AuctionService {
 	private final ItemRepository itemRepository;
 	private final AuctionServiceHelper auctionServiceHelper;
 	private final AuctionValidator auctionValidator;
+	private final NotificationService notificationService;
+	private final RedisNotificationFactory redisNotificationFactory;
+	private final AuctionHistoryRepository auctionHistoryRepository;
 
 	// 경매 생성 (상품 ID 검증 후 경매 등록)
 	@Transactional
@@ -57,6 +64,9 @@ public class AuctionService {
 
 		// 경매 저장 후 응답 반환
 		Auction savedAuction = auctionRepository.save(auction);
+
+		reserveMyAuctionNotification(savedAuction);
+
 		return AuctionResponse.of(savedAuction);
 	}
 
@@ -171,5 +181,18 @@ public class AuctionService {
 		return auctionRepository.findByIdAndStatusIn(auctionId, statuses)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 	}
+
+	private void reserveMyAuctionNotification(Auction auction) {
+		User seller = auction.getItem().getSeller();
+
+		RedisNotification startNotification = redisNotificationFactory.myAuctionStart(seller, auction);
+		notificationService.saveNotification(startNotification);
+
+		RedisNotification endNotification = redisNotificationFactory.myAuctionEnd(seller, auction);
+		notificationService.saveNotification(endNotification);
+
+	}
+
+
 }
 

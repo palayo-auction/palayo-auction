@@ -63,6 +63,16 @@ dependencies {
     // junit
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    //firebase
+    implementation("com.google.firebase:firebase-admin:9.2.0")
+
+    //redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    //quartz
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+
 }
 
 tasks.named('test') {
