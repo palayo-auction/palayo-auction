@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(request -> request.getRequestURI().startsWith("/api")).permitAll()
                         .requestMatchers("/payment/**").permitAll()
                         .requestMatchers("/open").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .build();
     }
