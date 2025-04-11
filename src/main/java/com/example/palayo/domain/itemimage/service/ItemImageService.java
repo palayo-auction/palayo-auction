@@ -93,4 +93,20 @@ public class ItemImageService {
 
         return responses;
     }
+
+    @Transactional
+    public void deleteItemImage(Long itemId, Long imageId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
+
+        ItemImage image = itemImageRepository.findById(imageId)
+                .orElseThrow(() -> new BaseException(ErrorCode.IMAGE_NOT_FOUND, null));
+
+        if (!image.getItem().equals(item)) {
+            throw new BaseException(ErrorCode.IMAGE_NOT_FOUND, null);
+        }
+
+        itemImageRepository.delete(image);
+    }
+
 }

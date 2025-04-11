@@ -7,9 +7,7 @@ import com.example.palayo.domain.itemimage.dto.request.UpdateItemImageRequest;
 import com.example.palayo.domain.itemimage.dto.response.ItemImageResponse;
 import com.example.palayo.domain.itemimage.service.ItemImageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -50,6 +48,15 @@ public class ItemImageController {
     ) {
         List<ItemImageResponse> updated = itemImageService.updateImageUrl(itemId, request);
         return Response.of(updated);
+    }
+
+    @DeleteMapping("/v1/items/{itemId}/images/{imageId}")
+    public Response<Void> deleteItemImage(
+            @PathVariable Long itemId,
+            @PathVariable Long imageId
+    ) {
+        itemImageService.deleteItemImage(itemId, imageId);
+        return Response.empty();
     }
 
 }
