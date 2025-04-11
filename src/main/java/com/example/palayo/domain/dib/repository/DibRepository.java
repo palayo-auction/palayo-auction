@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface DibRepository extends JpaRepository<Dib, Long> {
@@ -14,4 +16,5 @@ public interface DibRepository extends JpaRepository<Dib, Long> {
 
     Page<Dib> findAllByUser(User user, Pageable pageable);
 
+    List<Dib> findAllByAuction(Auction auction);
 }

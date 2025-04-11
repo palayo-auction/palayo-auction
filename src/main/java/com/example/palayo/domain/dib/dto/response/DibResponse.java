@@ -3,6 +3,7 @@ package com.example.palayo.domain.dib.dto.response;
 import com.example.palayo.domain.dib.entity.Dib;
 import lombok.Getter;
 
+
 @Getter
 public class DibResponse {
 

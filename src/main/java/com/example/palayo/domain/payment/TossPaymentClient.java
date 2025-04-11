@@ -1,5 +1,7 @@
 package com.example.palayo.domain.payment;
 
+import com.example.palayo.common.exception.BaseException;
+import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.payment.dto.response.PaymentConfirmResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +42,7 @@ public class TossPaymentClient {
                 restTemplate.exchange(url, HttpMethod.POST, entity, PaymentConfirmResponse.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("결제 실패");
+            throw new BaseException(ErrorCode.EXTERNAL_API_ERROR, null);
         }
 
         return response.getBody();
