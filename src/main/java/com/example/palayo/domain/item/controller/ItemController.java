@@ -51,6 +51,12 @@ public class ItemController {
         return Response.empty();
     }
 
+    @PostMapping("/v1/items/{itemId}/check")
+    public Response<Void> validateItemHasImages(@PathVariable Long itemId) {
+        itemService.validateItemHasImages(itemId);
+        return Response.empty();
+    }
+
     @GetMapping("/v1/items")
     Response<List<PageItemResponse>> getMyItems(
             @AuthenticationPrincipal AuthUser authUser,

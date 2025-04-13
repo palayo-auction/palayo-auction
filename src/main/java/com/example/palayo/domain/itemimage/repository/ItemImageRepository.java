@@ -12,4 +12,6 @@ public interface ItemImageRepository extends JpaRepository<ItemImage,Long> {
     boolean existsByItemAndImageUrl(Item item, String imageUrl);
 
     List<ItemImage> findByItemOrderByImageIndex(Item item);
+
+    List<ItemImage> findByItem(Item item);
 }

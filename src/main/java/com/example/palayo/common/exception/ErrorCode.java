@@ -53,7 +53,9 @@ public enum ErrorCode {
     DUPLICATE_ITEM_NAME("이름이 중복된 상품이 있습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ITEM_STATUS_FOR_UPDATE("경매 이전의 상품만 수정할 수 있습니다.", HttpStatus.BAD_REQUEST),
     ITEM_EDIT_FORBIDDEN("상품 상태를 수정할 권한이 없습니다.", HttpStatus.FORBIDDEN),
-    //이미지 관련 에러 코드
+    IMAGE_REQUIRED("이미지가 등록되지 않았습니다.", HttpStatus.NOT_FOUND),
+    ALREADY_REGISTERED_ITEM("삭제된 아이템은 수정, 삭제가 불가능합니다.",HttpStatus.NOT_FOUND),
+    //이미지 관련 에러 코드,
     IMAGE_NOT_FOUND("해당 이미지는 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     DUPLICATE_IMAGE("이미 등록된 있습니다.", HttpStatus.BAD_REQUEST),
     //알림 관련 에러 코드

@@ -2,6 +2,7 @@ package com.example.palayo.domain.item.service;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
+import com.example.palayo.common.utils.S3Uploader;
 import com.example.palayo.domain.item.dto.request.SaveItemRequest;
 import com.example.palayo.domain.item.dto.request.UpdateItemRequest;
 import com.example.palayo.domain.item.dto.response.PageItemResponse;
@@ -10,6 +11,9 @@ import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.item.repository.ItemRepository;
+import com.example.palayo.domain.itemimage.entity.ItemImage;
+import com.example.palayo.domain.itemimage.repository.ItemImageRepository;
+import com.example.palayo.domain.itemimage.service.ItemImageService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +24,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemImageRepository itemImageRepository;
+    private final S3Uploader s3Uploader;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -73,7 +81,15 @@ public class ItemService {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
 
-        itemRepository.delete(item);
+        //itemRepository.delete(item);
+        List<ItemImage> images = itemImageRepository.findByItem(item);
+        List<String> imageUrls = images.stream()
+                .map(ItemImage::getImageUrl)
+                .toList();
+        s3Uploader.delete(imageUrls);
+        itemImageRepository.deleteAll(images);
+        // ✅ 아이템은 soft delete
+        item.markAsDeleted(); // deleted = true or deletedAt = now
     }
 
     @Transactional(readOnly = true)
@@ -97,6 +113,17 @@ public class ItemService {
         return myItems.map(PageItemResponse::of);
     }
 
+    @Transactional
+    public void validateItemHasImages(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
+
+        List<ItemImage> images = itemImageRepository.findByItem(item);
+        if (images.isEmpty()) {
+            throw new BaseException(ErrorCode.IMAGE_REQUIRED, null);
+        }
+    }
+
     private void validateOwnership(Long userId, Item item) {
         if(!item.getSeller().getId().equals(userId)){
             throw new BaseException(ErrorCode.ITEM_EDIT_FORBIDDEN, null);
@@ -111,6 +138,7 @@ public class ItemService {
 
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
+                .filter(item -> item.getDeletedAt() == null)
                 .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
     }
 }
