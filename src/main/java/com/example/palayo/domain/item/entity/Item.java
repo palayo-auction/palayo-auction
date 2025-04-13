@@ -1,6 +1,7 @@
 package com.example.palayo.domain.item.entity;
 
 import com.example.palayo.common.entity.BaseEntity;
+import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.itemimage.entity.ItemImage;
@@ -10,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +46,8 @@ public class Item extends BaseEntity {
     @OrderBy("imageIndex ASC")
     private List<ItemImage> itemImages = new ArrayList<>();
 
+    private LocalDateTime deletedAt;
+
     public static Item of(String name, String content, Category category, User seller){
         Item item = new Item();
         item.seller = seller;
@@ -52,6 +56,10 @@ public class Item extends BaseEntity {
         item.category = category;
         item.itemStatus = ItemStatus.UNDER_REVIEW;
         return item;
+    }
+
+    public void markAsDeleted() {
+        this.deletedAt = LocalDateTime.now();
     }
 
     public void updateName(String name) {

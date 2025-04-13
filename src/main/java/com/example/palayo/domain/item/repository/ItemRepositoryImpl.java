@@ -26,6 +26,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .selectFrom(item)
                 .where(
                         item.seller.id.eq(userId),
+                        item.deletedAt.isNull(),
                         eqCategory(category),
                         eqItemStatus(itemStatus)
                 )
@@ -39,6 +40,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .from(item)
                 .where(
                         item.seller.id.eq(userId),
+                        item.deletedAt.isNull(),
                         eqCategory(category),
                         eqItemStatus(itemStatus)
                 );

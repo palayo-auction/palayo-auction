@@ -49,14 +49,4 @@ public class ItemImageController {
         List<ItemImageResponse> updated = itemImageService.updateImageUrl(itemId, request);
         return Response.of(updated);
     }
-
-    @DeleteMapping("/v1/items/{itemId}/images/{imageId}")
-    public Response<Void> deleteItemImage(
-            @PathVariable Long itemId,
-            @PathVariable Long imageId
-    ) {
-        itemImageService.deleteItemImage(itemId, imageId);
-        return Response.empty();
-    }
-
 }
