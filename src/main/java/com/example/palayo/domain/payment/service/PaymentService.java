@@ -5,6 +5,8 @@ import com.example.palayo.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
+import com.example.palayo.domain.user.enums.PointType;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +42,7 @@ public class PaymentService {
                     .build();
 
             paymentRepository.save(payment);
-            pointHistoriesService.chargePoints(userId, payment.getAmount());
+            pointHistoriesService.updatePoints(userId, payment.getAmount(), PointType.RECHARGE);
 
             return "결제 완료 \n금액: " + payment.getAmount() + "원";
     }
