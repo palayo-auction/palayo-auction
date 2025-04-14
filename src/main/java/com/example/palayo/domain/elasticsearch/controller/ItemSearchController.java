@@ -5,7 +5,6 @@ import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.elasticsearch.dto.response.ItemSearchResponse;
 import com.example.palayo.domain.elasticsearch.service.ItemSearchService;
 import com.example.palayo.domain.item.enums.Category;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +25,8 @@ public class ItemSearchController {
 
     @GetMapping("/v1/items/search")
     public Response<List<ItemSearchResponse>> searchItems(
-            @RequestParam String keyword,
-            @RequestParam(required = false) Category category,
+            @RequestParam (required = false) String keyword,
+            @RequestParam (required = false) Category category,
             @AuthenticationPrincipal AuthUser authUser,
             Pageable pageable
             )  {
