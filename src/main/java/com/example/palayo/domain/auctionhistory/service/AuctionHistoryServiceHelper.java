@@ -9,6 +9,7 @@ import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryReposit
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import com.example.palayo.domain.user.entity.User;
+import com.example.palayo.domain.user.enums.PointType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -69,7 +70,7 @@ public class AuctionHistoryServiceHelper {
 			depositHistoryService.createDepositHistory(bidder.getId(), auction.getId(), depositAmount);
 
 			// 포인트 감소 및 포인트 기록 추가
-			pointHistoriesService.decreasePoints(bidder.getId(), depositAmount);
+			pointHistoriesService.updatePoints(bidder.getId(), -depositAmount, PointType.DECREASE);
 		}
 	}
 
@@ -101,7 +102,7 @@ public class AuctionHistoryServiceHelper {
 		int depositAmount = (int)Math.ceil(auction.getStartingPrice() * 0.1);
 		int additionalCharge = finalBidPrice - depositAmount;
 		if (additionalCharge > 0) {
-			pointHistoriesService.decreasePoints(winner.getId(), additionalCharge);
+			pointHistoriesService.updatePoints(winner.getId(), -additionalCharge, PointType.DECREASE);
 		}
 	}
 
@@ -112,12 +113,12 @@ public class AuctionHistoryServiceHelper {
 			.map(AuctionHistory::getBidder)
 			.filter(bidder -> !bidder.getId().equals(auction.getWinningBidder().getId()))
 			.distinct()
-			.collect(Collectors.toList());
+			.toList();
 
 		for (User failedBidder : failedBidders) {
 			depositHistoryService.refundDeposit(auction.getId(), failedBidder.getId());
 			int depositAmount = (int)Math.ceil(auction.getStartingPrice() * 0.1);
-			pointHistoriesService.refundPoints(failedBidder.getId(), depositAmount);
+			pointHistoriesService.updatePoints(failedBidder.getId(), depositAmount, PointType.REFUNDED);
 		}
 	}
 }
