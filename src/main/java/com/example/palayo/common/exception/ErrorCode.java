@@ -43,7 +43,8 @@ public enum ErrorCode {
     INVALID_DEPOSIT_AMOUNT("잘못된 보증금 금액입니다.", HttpStatus.BAD_REQUEST),
     INVALID_STATUS("잘못된 보증금 상태입니다.", HttpStatus.BAD_REQUEST),
     DEPOSIT_HISTORY_ALREADY_EXISTS("이미 존재하는 보증금 이력입니다.", HttpStatus.BAD_REQUEST),
-    //찜 관련 에러 코드
+	INVALID_DEPOSIT_STATUS("보증금 상태가 이미 변경되었습니다.", HttpStatus.BAD_REQUEST),
+	//찜 관련 에러 코드
     DIB_NOT_FOUND("찜한 경매가 존재하지 않습니다.",HttpStatus.NOT_FOUND),
     DIB_FORBIDDEN("찜한 경매를 조회할 권한이 없습니다.",HttpStatus.UNAUTHORIZED),
     //아이템 관련 에러 코드
@@ -57,8 +58,21 @@ public enum ErrorCode {
     IMAGE_NOT_FOUND("해당 이미지는 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     DUPLICATE_IMAGE("이미 등록된 있습니다.", HttpStatus.BAD_REQUEST),
     //알림 관련 에러 코드
-
+    FCM_TOKEN_NOT_FOUND("FCM 토큰을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    FCM_TOKEN_SAVE_FAILED("FCM 토큰 저장에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    FCM_TOKEN_INVALID("유효하지 않은 FCM 토큰입니다.", HttpStatus.BAD_REQUEST),
+    FCM_TOKEN_DUPLICATE("이미 등록된 FCM 토큰입니다.", HttpStatus.CONFLICT),
+    NOTIFICATION_SEND_FAIL("알림 전송 실패",HttpStatus.BAD_REQUEST),
+    NOTIFICATION_NOT_REGISTERED("알림 등록되지 않았습니다.", HttpStatus.NOT_FOUND),
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다",HttpStatus.NOT_FOUND),
+    //JsonConverter 관련 에러 코드
+    JSON_CONVERT_FAIL("JSON 변환 실패",HttpStatus.BAD_REQUEST),
+    JSON_PARSING_FAIL("JSON 파싱 실패",HttpStatus.BAD_REQUEST),
     //포인트 이력 관련 에러 코드
+
+    //Firebase 관련 에러 코드
+    SERVICEACCOUNT_NOT_FOUND("Firebase 서비스 걔정 json파일을 찾을 수 없습니다.",HttpStatus.NOT_FOUND),
+    FIREBASE_INIT_FAIL("Firebase 초기화 실패.",HttpStatus.INTERNAL_SERVER_ERROR),
 
     //그 외 에러 코드
     TOO_MANY_FILES("최대 10개까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST),
@@ -73,6 +87,6 @@ public enum ErrorCode {
 //    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
     SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
-    private final String message;
-    private final HttpStatus httpStatus;
+	private final String message;
+	private final HttpStatus httpStatus;
 }
