@@ -37,12 +37,12 @@ import lombok.RequiredArgsConstructor;
 public class AuctionService {
 
 	private final AuctionRepository auctionRepository;
+	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final ItemRepository itemRepository;
 	private final AuctionServiceHelper auctionServiceHelper;
 	private final AuctionValidator auctionValidator;
 	private final NotificationService notificationService;
 	private final RedisNotificationFactory redisNotificationFactory;
-	private final AuctionHistoryRepository auctionHistoryRepository;
 
 	// 사용자가 경매를 생성할 때 호출하는 메서드
 	// 상품이 존재하는지, 주인인지, 이미 경매중인지 확인한 후 경매를 새로 만든다
