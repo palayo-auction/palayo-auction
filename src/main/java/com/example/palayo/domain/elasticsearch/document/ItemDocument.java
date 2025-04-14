@@ -1,16 +1,13 @@
 package com.example.palayo.domain.elasticsearch.document;
 
+import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.item.enums.ItemStatus;
-import com.example.palayo.domain.itemimage.entity.ItemImage;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.elasticsearch.annotations.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -29,13 +26,28 @@ public class ItemDocument {
 
     private Long sellerId;
 
-    public static ItemDocument of(Long id, String name, String content, Category category, Long sellerId) {
-        ItemDocument item = new ItemDocument();
-        item.id = id;
-        item.name = name;
-        item.content = content;
-        item.category = category;
-        item.sellerId = sellerId;
-        return item;
+    private ItemStatus itemStatus;
+
+    public static ItemDocument of(Item item) {
+        ItemDocument itemDocument = new ItemDocument();
+        itemDocument.id = item.getId();
+        itemDocument.name = item.getName();
+        itemDocument.content = item.getContent();
+        itemDocument.category = item.getCategory();
+        itemDocument.sellerId = item.getSeller().getId();
+        itemDocument.itemStatus = item.getItemStatus();
+        return itemDocument;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void updateCategory(Category category) {
+        this.category = category;
     }
 }
