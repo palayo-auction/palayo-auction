@@ -24,6 +24,11 @@ import com.example.palayo.domain.auction.util.TimeFormatter;
 import com.example.palayo.domain.auction.util.AuctionValidator;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.repository.ItemRepository;
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.redis.RedisNotification;
+import com.example.palayo.domain.notification.service.NotificationService;
+import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
+import com.example.palayo.domain.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +40,9 @@ public class AuctionService {
 	private final ItemRepository itemRepository;
 	private final AuctionServiceHelper auctionServiceHelper;
 	private final AuctionValidator auctionValidator;
+	private final NotificationService notificationService;
+	private final RedisNotificationFactory redisNotificationFactory;
+	private final AuctionHistoryRepository auctionHistoryRepository;
 
 	// 사용자가 경매를 생성할 때 호출하는 메서드
 	// 상품이 존재하는지, 주인인지, 이미 경매중인지 확인한 후 경매를 새로 만든다
@@ -58,6 +66,10 @@ public class AuctionService {
 
 		// DB에 경매 저장 후 저장된 경매를 응답으로 변환하여 반환
 		Auction savedAuction = auctionRepository.save(auction);
+
+		// 알림 예약 (경매 시작/종료 알림)
+		reserveMyAuctionNotification(savedAuction);
+
 		return AuctionResponse.of(savedAuction);
 	}
 
@@ -178,5 +190,16 @@ public class AuctionService {
 	private Auction findAuctionByIdAndStatus(Long auctionId, List<AuctionStatus> statuses) {
 		return auctionRepository.findByIdAndStatusIn(auctionId, statuses)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+	}
+
+	// 경매 시작/종료 알림 예약 메서드
+	private void reserveMyAuctionNotification(Auction auction) {
+		User seller = auction.getItem().getSeller();
+
+		RedisNotification startNotification = redisNotificationFactory.myAuctionStart(seller, auction);
+		notificationService.saveNotification(startNotification);
+
+		RedisNotification endNotification = redisNotificationFactory.myAuctionEnd(seller, auction);
+		notificationService.saveNotification(endNotification);
 	}
 }

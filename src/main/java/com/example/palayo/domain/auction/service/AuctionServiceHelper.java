@@ -1,6 +1,7 @@
 package com.example.palayo.domain.auction.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Component;
 
@@ -9,10 +10,14 @@ import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
+import com.example.palayo.domain.auction.util.AuctionTimeUtils;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.auctionhistory.service.AuctionHistoryServiceHelper;
-import com.example.palayo.domain.auction.util.AuctionTimeUtils;
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.redis.RedisNotification;
+import com.example.palayo.domain.notification.service.NotificationService;
+import com.example.palayo.domain.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +27,8 @@ public class AuctionServiceHelper {
 
 	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
+	private final RedisNotificationFactory redisNotificationFactory;
+	private final NotificationService notificationService;
 
 	// 경매의 현재 시간에 따라 상태를 변경하는 메서드
 	// (READY, ACTIVE, SUCCESS, FAILED 등으로 변경)
@@ -60,6 +67,7 @@ public class AuctionServiceHelper {
 	public boolean assignWinningBidder(Auction auction) {
 		// 입찰 기록이 없다면 낙찰자 지정 불가
 		if (!hasBids(auction)) {
+			sendBidFailNotifications(auction);
 			return false;
 		}
 
@@ -70,6 +78,7 @@ public class AuctionServiceHelper {
 				.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
 
 			auction.setWinningBidder(topBid.getBidder());
+			sendBidSuccessNotification(auction);
 		}
 
 		// 즉시구매가 도달했으면 성공 처리
@@ -84,6 +93,8 @@ public class AuctionServiceHelper {
 			return true;
 		}
 
+		// 입찰 실패자에게 유찰 알림 전송
+		sendBidFailNotifications(auction);
 		return false;
 	}
 
@@ -158,6 +169,21 @@ public class AuctionServiceHelper {
 		} else {
 			// 낙찰자가 없으면 FAILED 처리
 			auction.markAsFailed();
+		}
+	}
+
+	// 낙찰 성공 알림 전송 메서드
+	private void sendBidSuccessNotification(Auction auction) {
+		RedisNotification winNotice = redisNotificationFactory.bidWin(auction.getWinningBidder(), auction);
+		notificationService.saveNotification(winNotice);
+	}
+
+	// 입찰 실패자에게 유찰 알림 전송 메서드
+	private void sendBidFailNotifications(Auction auction) {
+		List<User> participants = auctionHistoryRepository.findAllBiddersByAuctionId(auction.getId());
+		for (User user : participants) {
+			RedisNotification failNotice = redisNotificationFactory.bidFail(user, auction);
+			notificationService.saveNotification(failNotice);
 		}
 	}
 }

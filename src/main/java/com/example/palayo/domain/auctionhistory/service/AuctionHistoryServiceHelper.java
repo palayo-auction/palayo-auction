@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// 입찰 관련 검증, 조회, 보조 기능을 담당하는 헬퍼 클래스
 @Component
 @RequiredArgsConstructor
 public class AuctionHistoryServiceHelper {
@@ -40,7 +41,7 @@ public class AuctionHistoryServiceHelper {
 		}
 	}
 
-	// 사용자의 포인트가 부족하지 않은지 검증
+	// 사용자의 포인트가 부족하지 않은지 검증 (입찰가 단독 및 누적 합산 초과 체크)
 	public void checkPointLimit(User bidder, int newBidPrice) {
 		Long totalBidAmount = auctionHistoryRepository.sumBidPricesByUserId(bidder.getId());
 		if (totalBidAmount == null) {
@@ -58,7 +59,7 @@ public class AuctionHistoryServiceHelper {
 		}
 	}
 
-	// 기존에 보증금 납부 기록이 없으면 보증금 생성
+	// 기존에 보증금 납부 기록이 없으면 보증금 생성 (기존에 납부한 보증금이 없는 경우에만)
 	public void createDepositIfNotExists(Auction auction, User bidder) {
 		boolean alreadyDeposited = depositHistoryService.existsByAuctionAndUser(auction.getId(), bidder.getId());
 		if (!alreadyDeposited) {
@@ -72,12 +73,12 @@ public class AuctionHistoryServiceHelper {
 		}
 	}
 
-	// 즉시 낙찰가에 도달했는지 여부를 확인
+	// 즉시 낙찰가에 도달했는지 여부를 확인 (즉시 낙찰가 이상 입찰 여부 확인)
 	public boolean isBuyoutPriceReached(Auction auction, int bidPrice) {
 		return bidPrice >= auction.getBuyoutPrice();
 	}
 
-	// 사용자가 해당 경매에 참여했는지 검증
+	// 사용자가 해당 경매에 참여했는지 검증 (입찰 기록 존재 여부 확인)
 	public void validateParticipation(Long auctionId, Long userId) {
 		boolean participated = auctionHistoryRepository.existsByAuctionIdAndBidderId(auctionId, userId);
 		if (!participated) {
@@ -85,7 +86,7 @@ public class AuctionHistoryServiceHelper {
 		}
 	}
 
-	// 경매의 낙찰자 닉네임을 조회하는 메서드
+	// 경매의 낙찰자 닉네임을 조회하는 메서드 (성공 또는 삭제된 경매에서만 반환)
 	public String getWinningBidderNickname(Auction auction) {
 		if (auction.getStatus() == AuctionStatus.SUCCESS ||
 			(auction.getStatus() == AuctionStatus.DELETED && auction.getWinningBidder() != null)) {
