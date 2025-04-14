@@ -2,15 +2,7 @@ package com.example.palayo.domain.auctionhistory.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.exception.BaseException;
@@ -26,10 +18,21 @@ import com.example.palayo.domain.auctionhistory.dto.response.BidHistoryResponse;
 import com.example.palayo.domain.auctionhistory.dto.response.BidResponse;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
+import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.redis.RedisNotification;
+import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +43,8 @@ public class AuctionHistoryService {
 	private final UserRepository userRepository;
 	private final DepositHistoryService depositHistoryService;
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
+	private final RedisNotificationFactory redisNotificationFactory;
+	private final NotificationService notificationService;
 
 	// 사용자가 경매에 입찰할 때 호출하는 메서드
 	@Transactional
@@ -56,6 +61,10 @@ public class AuctionHistoryService {
 		// 입찰 보증금이 존재하지 않으면 생성
 		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
 
+		// 입찰 전 최고 입찰자 찾기 (알림용)
+		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
+			auction.getId());
+
 		// 입찰 내역 생성 및 저장
 		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
 		auctionHistoryRepository.save(auctionHistory);
@@ -68,6 +77,15 @@ public class AuctionHistoryService {
 			auction.markAsSuccess(bidder);
 			auctionHistoryServiceHelper.handleAuctionSuccess(auction, bidder, request.getBidPrice());
 			auctionHistoryServiceHelper.refundFailedBidders(auction);
+		}
+
+		// 알림 보내기: 최고 입찰자가 변경된 경우
+		if (previousTopBidOpt.isPresent()) {
+			User previousTopBidder = previousTopBidOpt.get().getBidder();
+			if (!previousTopBidder.getId().equals(bidder.getId())) {
+				RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
+				notificationService.saveNotification(notification);
+			}
 		}
 
 		return BidResponse.of(auctionHistory);
