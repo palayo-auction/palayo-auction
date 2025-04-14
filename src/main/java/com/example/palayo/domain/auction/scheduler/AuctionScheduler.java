@@ -7,6 +7,7 @@ import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryReposit
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
 import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,20 +40,24 @@ public class AuctionScheduler {
 		);
 
 		for (Auction auction : auctions) {
-			boolean statusUpdated = auctionService.updateAuctionStatus(
-				auction);  // 경매 상태 자동 변경 (READY → ACTIVE → SUCCESS/FAILED)
-			boolean winnerAssigned = auctionService.assignWinningBidder(auction); // 낙찰자 지정 (즉시낙찰, 종료낙찰)
+			// 경매 상태 자동 변경 (READY → ACTIVE → SUCCESS/FAILED)
+			boolean statusUpdated = auctionService.updateAuctionStatus(auction);
 
+			// 낙찰자 지정 (즉시낙찰, 종료낙찰)
+			boolean winnerAssigned = auctionService.assignWinningBidder(auction);
+
+			// 경매 종료 5분 전 알림 전송
 			if (auction.getStatus() == AuctionStatus.ACTIVE &&
-					AuctionTimeUtils.isAboutToExpireInFiveMinutes(auction)) {
+				AuctionTimeUtils.isAboutToExpireInFiveMinutes(auction)) {
 
 				// 최고 입찰자 한 명 조회
 				auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId())
-						.ifPresent(topBid -> {
-							RedisNotification notification =
-									redisNotificationFactory.bidEnd(topBid.getBidder(), auction);
-							notificationService.saveNotification(notification);
-						});
+					.ifPresent(topBid -> {
+						// 최고 입찰자에게 경매 종료 임박 알림 발송
+						RedisNotification notification =
+							redisNotificationFactory.bidEnd(topBid.getBidder(), auction);
+						notificationService.saveNotification(notification);
+					});
 			}
 
 			// 상태 변경 또는 낙찰자 지정이 발생한 경우에만 save 호출
@@ -61,8 +66,6 @@ public class AuctionScheduler {
 			}
 		}
 	}
-
-
 }
 
 
