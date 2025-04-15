@@ -90,30 +90,6 @@ public class ItemImageService {
         return responses;
     }
 
-    /**
-     * 아이템 서비스 delete 로직에서
-     *  아이템 번호에 맞는 이미지들 조회 (아이템 생성 시 이미지가 반드시 있어야 생성되므로 이미지가 없을리가 없음)
-     *  찾은 이미지들의 url을 리스트로 변환
-     *  업로더의 delete 호출 후 삭제
-     *  itemImageRepository.deleteAll(images)
-     *  순서로 감  그래서 필요 없어진거라 판단
-     *  프론트 화면에서 상품 리스트가 있을 때 "수정/삭제" 버튼이 있음
-     *  이때 삭제 버튼을 누르면 위 로직이 한 트랜잭션 안에 동작함
-     * */
-    @Transactional
-    public void deleteItemImage(Long itemId, Long imageId) {
-        Item item = getItemOrThrow(itemId);
-
-        ItemImage image = itemImageRepository.findById(imageId)
-                .orElseThrow(() -> new BaseException(ErrorCode.IMAGE_NOT_FOUND, null));
-
-        if (!image.getItem().equals(item)) {
-            throw new BaseException(ErrorCode.IMAGE_NOT_FOUND, null);
-        }
-
-        itemImageRepository.delete(image);
-    }
-
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
                 .filter(item -> item.getDeletedAt() == null)

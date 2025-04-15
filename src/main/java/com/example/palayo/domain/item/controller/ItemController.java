@@ -61,13 +61,13 @@ public class ItemController {
     Response<List<PageItemResponse>> getMyItems(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String itemStatus,
+            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ){
 
         Page<PageItemResponse> itemPageResponses = itemService.getMyItems(
-                authUser.getUserId(), page, size, category, itemStatus
+                authUser.getUserId(), page, size, category, status
         );
         return Response.fromPage(itemPageResponses);
     }

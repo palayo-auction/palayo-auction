@@ -5,15 +5,14 @@ import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.common.utils.S3Uploader;
 import com.example.palayo.domain.item.dto.request.SaveItemRequest;
 import com.example.palayo.domain.item.dto.request.UpdateItemRequest;
-import com.example.palayo.domain.item.dto.response.PageItemResponse;
 import com.example.palayo.domain.item.dto.response.ItemResponse;
+import com.example.palayo.domain.item.dto.response.PageItemResponse;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.item.repository.ItemRepository;
 import com.example.palayo.domain.itemimage.entity.ItemImage;
 import com.example.palayo.domain.itemimage.repository.ItemImageRepository;
-import com.example.palayo.domain.itemimage.service.ItemImageService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +67,6 @@ public class ItemService {
         return ItemResponse.of(item);
     }
 
-
     @Transactional
     public void deleteItem(Long itemId, String password, Long userId){
         Item item = getItemOrThrow(itemId);
@@ -81,15 +79,13 @@ public class ItemService {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
 
-        //itemRepository.delete(item);
         List<ItemImage> images = itemImageRepository.findByItem(item);
         List<String> imageUrls = images.stream()
                 .map(ItemImage::getImageUrl)
                 .toList();
         s3Uploader.delete(imageUrls);
         itemImageRepository.deleteAll(images);
-        // ✅ 아이템은 soft delete
-        item.markAsDeleted(); // deleted = true or deletedAt = now
+        item.markAsDeleted();
     }
 
     @Transactional(readOnly = true)
@@ -119,6 +115,7 @@ public class ItemService {
                 .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
 
         List<ItemImage> images = itemImageRepository.findByItem(item);
+
         if (images.isEmpty()) {
             throw new BaseException(ErrorCode.IMAGE_REQUIRED, null);
         }
