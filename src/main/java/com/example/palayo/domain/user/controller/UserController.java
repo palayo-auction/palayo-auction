@@ -15,7 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -54,7 +54,7 @@ public class UserController {
     public Response<UserResponse> mypage(
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        return Response.of(userService.mypage(authUser.getUserId()));
+        return Response.of(userService.myPage(authUser.getUserId()));
     }
 
      @GetMapping("v1/users/sold")
