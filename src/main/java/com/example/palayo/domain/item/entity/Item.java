@@ -1,7 +1,6 @@
 package com.example.palayo.domain.item.entity;
 
 import com.example.palayo.common.entity.BaseEntity;
-import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.itemimage.entity.ItemImage;
