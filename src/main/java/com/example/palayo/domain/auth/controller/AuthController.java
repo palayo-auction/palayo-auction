@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.palayo.domain.auth.dto.request.SignupUserRequest;
 
 @RestController
-@RequestMapping("api")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class AuthController {
 
