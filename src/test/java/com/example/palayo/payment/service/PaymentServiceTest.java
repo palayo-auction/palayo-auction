@@ -6,6 +6,7 @@ import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
 import com.example.palayo.domain.payment.service.PaymentService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
+import com.example.palayo.domain.user.enums.PointType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,7 +71,7 @@ public class PaymentServiceTest {
 
         //then
         verify(paymentRepository, times(1)).save(any(Payment.class));
-        verify(pointHistoriesService).chargePoints(metadata.getUserId(), amount);
+        verify(pointHistoriesService).updatePoints(metadata.getUserId(), amount, PointType.RECHARGE);
 
         assertThat(result).contains("결제 완료").contains("10000원");
     }
