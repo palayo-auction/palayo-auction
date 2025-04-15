@@ -74,6 +74,7 @@ public class DibService {
         }
 
         return DibResponse.of(dib);
+        //ci test
     }
 
     private void reserveDibAuctionNotifications(Auction auction) {
