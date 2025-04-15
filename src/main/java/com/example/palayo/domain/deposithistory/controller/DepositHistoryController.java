@@ -41,7 +41,7 @@ public class DepositHistoryController {
         return Response.fromPage(depositHistoryPage);
     }
 
-    // 보증금 이력 생성
+    // 보증금 이력 생성 -> 입찰 시 자동생성 되는 건데, 이 API가 필요한지 의문
     @PostMapping("/v1/deposithistories")
     @ResponseStatus(HttpStatus.CREATED)
     public Response<Void> createDepositHistory(
