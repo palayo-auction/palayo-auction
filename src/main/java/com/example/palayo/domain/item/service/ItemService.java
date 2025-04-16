@@ -10,7 +10,6 @@ import com.example.palayo.domain.item.dto.response.PageItemResponse;
 import com.example.palayo.domain.item.dto.response.ItemResponse;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
-import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.item.repository.ItemRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -51,8 +50,6 @@ public class ItemService {
 
         validateOwnership(userId, item);
 
-        checkStatus(item);
-
         //엘라스틱서치
         ItemDocument itemDocument = getDocument(itemId);
 
@@ -83,8 +80,6 @@ public class ItemService {
 
         validateOwnership(userId, item);
 
-        checkStatus(item);
-
         if(!passwordEncoder.matches(password, item.getSeller().getPassword())) {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
@@ -111,21 +106,14 @@ public class ItemService {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         Category categoryEnum = category != null ? Category.of(category) : null;
-        ItemStatus itemStatusEnum = itemStatus != null ? ItemStatus.of(itemStatus) : null;
 
-        Page<Item> myItems = itemRepository.searchMyItems(userId, categoryEnum, itemStatusEnum, pageable);
+        Page<Item> myItems = itemRepository.searchMyItems(userId, categoryEnum, pageable);
         return myItems.map(PageItemResponse::of);
     }
 
     private void validateOwnership(Long userId, Item item) {
         if(!item.getSeller().getId().equals(userId)){
             throw new BaseException(ErrorCode.ITEM_EDIT_FORBIDDEN, null);
-        }
-    }
-
-    private void checkStatus(Item item) {
-        if(item.getItemStatus() != ItemStatus.UNDER_REVIEW) {
-            throw new BaseException(ErrorCode.INVALID_ITEM_STATUS_FOR_UPDATE, null);
         }
     }
 
