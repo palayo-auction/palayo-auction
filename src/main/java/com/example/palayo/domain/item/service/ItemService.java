@@ -2,20 +2,15 @@ package com.example.palayo.domain.item.service;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
-import com.example.palayo.common.utils.S3Uploader;
-import com.example.palayo.domain.auction.enums.AuctionStatus;
-import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.elasticsearch.document.ItemDocument;
 import com.example.palayo.domain.elasticsearch.repository.ItemElasticSearchRepository;
 import com.example.palayo.domain.item.dto.request.SaveItemRequest;
 import com.example.palayo.domain.item.dto.request.UpdateItemRequest;
-import com.example.palayo.domain.item.dto.response.ItemResponse;
 import com.example.palayo.domain.item.dto.response.PageItemResponse;
+import com.example.palayo.domain.item.dto.response.ItemResponse;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
 import com.example.palayo.domain.item.repository.ItemRepository;
-import com.example.palayo.domain.itemimage.entity.ItemImage;
-import com.example.palayo.domain.itemimage.repository.ItemImageRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,16 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final ItemImageRepository itemImageRepository;
-    private final AuctionRepository auctionRepository;
-    private final S3Uploader s3Uploader;
     private final PasswordEncoder passwordEncoder;
     private final ItemElasticSearchRepository itemElasticSearchRepository;
 
@@ -46,7 +36,7 @@ public class ItemService {
 
         Item item = Item.of(request.getName(), request.getContent(), request.getCategory(), user);
         Item savedItem = itemRepository.save(item);
-
+        
         //엘라스틱서치
         ItemDocument itemDocument = ItemDocument.of(item);
         itemElasticSearchRepository.save(itemDocument);
@@ -59,8 +49,6 @@ public class ItemService {
         Item item = getItemOrThrow(itemId);
 
         validateOwnership(userId, item);
-
-        checkStatus(item);
 
         //엘라스틱서치
         ItemDocument itemDocument = getDocument(itemId);
@@ -85,13 +73,12 @@ public class ItemService {
         return ItemResponse.of(item);
     }
 
+
     @Transactional
     public void deleteItem(Long itemId, String password, Long userId){
         Item item = getItemOrThrow(itemId);
 
         validateOwnership(userId, item);
-
-        checkStatus(item);
 
         if(!passwordEncoder.matches(password, item.getSeller().getPassword())) {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
@@ -102,13 +89,6 @@ public class ItemService {
         //엘라스틱서치
         ItemDocument document = getDocument(itemId);
         itemElasticSearchRepository.delete(document);
-        List<ItemImage> images = itemImageRepository.findByItem(item);
-        List<String> imageUrls = images.stream()
-                .map(ItemImage::getImageUrl)
-                .toList();
-        s3Uploader.delete(imageUrls);
-        itemImageRepository.deleteAll(images);
-        item.markAsDeleted();
     }
 
     @Transactional(readOnly = true)
@@ -122,26 +102,13 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PageItemResponse> getMyItems(Long userId, int page, int size, String category, String status) {
+    public Page<PageItemResponse> getMyItems(Long userId, int page, int size, String category, String itemStatus) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         Category categoryEnum = category != null ? Category.of(category) : null;
-        AuctionStatus auctionStatusEnum = status != null ? AuctionStatus.valueOf(status) : null;
 
-        Page<Item> myItems = itemRepository.searchMyItems(userId, categoryEnum, auctionStatusEnum, pageable);
+        Page<Item> myItems = itemRepository.searchMyItems(userId, categoryEnum, pageable);
         return myItems.map(PageItemResponse::of);
-    }
-
-    @Transactional
-    public void validateItemHasImages(Long itemId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
-
-        List<ItemImage> images = itemImageRepository.findByItem(item);
-
-        if (images.isEmpty()) {
-            throw new BaseException(ErrorCode.IMAGE_REQUIRED, null);
-        }
     }
 
     private void validateOwnership(Long userId, Item item) {
@@ -150,17 +117,8 @@ public class ItemService {
         }
     }
 
-    private void checkStatus(Item item) {
-        if(auctionRepository.existsByItemIdAndStatusIn(item.getId(),
-                List.of(AuctionStatus.READY, AuctionStatus.ACTIVE,
-                        AuctionStatus.SUCCESS, AuctionStatus.FAILED))) {
-            throw new BaseException(ErrorCode.INVALID_ITEM_STATUS_FOR_UPDATE, null);
-        }
-    }
-
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
-                .filter(item -> item.getDeletedAt() == null)
                 .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
     }
 
