@@ -12,8 +12,6 @@ import com.example.palayo.domain.deposithistory.repository.DepositHistoryReposit
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.*;
@@ -27,9 +25,6 @@ public class DepositHistoryService {
 	private final DepositHistoryRepository depositHistoryRepository;
 	private final AuctionRepository auctionRepository;
 	private final UserRepository userRepository;
-
-	@PersistenceContext
-	private EntityManager entityManager;
 
 	// 단건 조회 (DTO 변환)
 	@Transactional(readOnly = true)
@@ -70,17 +65,14 @@ public class DepositHistoryService {
 	// 유저 ID, 경매 ID, 보증금 금액을 받아 보증금 이력을 생성
 	@Transactional
 	public void createDepositHistory(Long userId, Long auctionId, int depositAmount) {
-		Auction auction = entityManager.find(Auction.class, auctionId);
+
 		// Auction 조회
-		if (auction == null) {
-			throw new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId");
-		}
+		Auction auction = auctionRepository.findById(auctionId)
+			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
 		// User 조회
-		User user = entityManager.find(User.class, userId);
-		if (user == null) {
-			throw new BaseException(ErrorCode.USER_NOT_FOUND, "userId");
-		}
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 
 		// 이미 보증금 이력이 있는지 확인
 		boolean alreadyExists = depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId);
