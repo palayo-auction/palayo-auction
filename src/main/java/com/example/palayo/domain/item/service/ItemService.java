@@ -3,6 +3,8 @@ package com.example.palayo.domain.item.service;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.common.utils.S3Uploader;
+import com.example.palayo.domain.auction.enums.AuctionStatus;
+import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.elasticsearch.document.ItemDocument;
 import com.example.palayo.domain.elasticsearch.repository.ItemElasticSearchRepository;
 import com.example.palayo.domain.item.dto.request.SaveItemRequest;
@@ -11,7 +13,6 @@ import com.example.palayo.domain.item.dto.response.ItemResponse;
 import com.example.palayo.domain.item.dto.response.PageItemResponse;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
-import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.item.repository.ItemRepository;
 import com.example.palayo.domain.itemimage.entity.ItemImage;
 import com.example.palayo.domain.itemimage.repository.ItemImageRepository;
@@ -33,6 +34,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ItemImageRepository itemImageRepository;
+    private final AuctionRepository auctionRepository;
     private final S3Uploader s3Uploader;
     private final PasswordEncoder passwordEncoder;
     private final ItemElasticSearchRepository itemElasticSearchRepository;
@@ -120,13 +122,13 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PageItemResponse> getMyItems(Long userId, int page, int size, String category, String itemStatus) {
+    public Page<PageItemResponse> getMyItems(Long userId, int page, int size, String category, String status) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         Category categoryEnum = category != null ? Category.of(category) : null;
-        ItemStatus itemStatusEnum = itemStatus != null ? ItemStatus.of(itemStatus) : null;
+        AuctionStatus auctionStatusEnum = status != null ? AuctionStatus.valueOf(status) : null;
 
-        Page<Item> myItems = itemRepository.searchMyItems(userId, categoryEnum, itemStatusEnum, pageable);
+        Page<Item> myItems = itemRepository.searchMyItems(userId, categoryEnum, auctionStatusEnum, pageable);
         return myItems.map(PageItemResponse::of);
     }
 
@@ -149,7 +151,9 @@ public class ItemService {
     }
 
     private void checkStatus(Item item) {
-        if(item.getItemStatus() != ItemStatus.UNDER_REVIEW) {
+        if(auctionRepository.existsByItemIdAndStatusIn(item.getId(),
+                List.of(AuctionStatus.READY, AuctionStatus.ACTIVE,
+                        AuctionStatus.SUCCESS, AuctionStatus.FAILED))) {
             throw new BaseException(ErrorCode.INVALID_ITEM_STATUS_FOR_UPDATE, null);
         }
     }
