@@ -1,7 +1,6 @@
 package com.example.palayo.config;
 
 import com.example.palayo.domain.notification.redis.RedisNotification;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
