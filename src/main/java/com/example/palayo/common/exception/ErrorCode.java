@@ -38,6 +38,7 @@ public enum ErrorCode {
 	BID_PRICE_TOO_LOW("입찰 금액은 현재 가격 + 입찰 단위 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_BID_OWN_AUCTION("자신이 등록한 경매에는 입찰할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_POINT("보유 포인트가 부족합니다.", HttpStatus.BAD_REQUEST),
+	CONCURRENT_BID_CONFLICT("동시 입찰 충돌이 발생했습니다.", HttpStatus.CONFLICT),
     //보증금 이력 관련 에러 코드
     DEPOSIT_HISTORY_NOT_FOUND("보증금 이력을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_DEPOSIT_AMOUNT("잘못된 보증금 금액입니다.", HttpStatus.BAD_REQUEST),

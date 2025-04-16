@@ -31,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,46 +50,50 @@ public class AuctionHistoryService {
 	// 사용자가 경매에 입찰할 때 호출하는 메서드
 	@Transactional
 	public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
-		Auction auction = findActiveAuctionById(auctionId);
-		User bidder = findUserById(authUser.getUserId());
+		try {
+			Auction auction = findActiveAuctionById(auctionId); // 낙관적 락
+			// Auction auction = findActiveAuctionByIdWithPessimisticLock(auctionId); // 비관적 락
+			User bidder = findUserById(authUser.getUserId());
 
-		// 입찰자가 상품 주인인지 검증 (주인이면 입찰 불가)
-		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
-		// 입찰 가격이 유효한지 검증
-		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
-		// 사용자의 포인트가 충분한지 체크
-		auctionHistoryServiceHelper.checkPointLimit(bidder, request.getBidPrice());
-		// 입찰 보증금이 존재하지 않으면 생성
-		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
+			// 입찰자가 상품 주인인지 검증 (주인이면 입찰 불가)
+			auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
+			// 입찰 가격이 유효한지 검증
+			auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
+			// 사용자의 포인트가 충분한지 체크
+			auctionHistoryServiceHelper.checkPointLimit(bidder, request.getBidPrice());
+			// 입찰 보증금이 존재하지 않으면 생성
+			auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
 
-		// 입찰 전 최고 입찰자 찾기 (알림용)
-		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
-			auction.getId());
+			// 입찰 전 최고 입찰자 찾기 (알림용)
+			Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
+				auction.getId());
 
-		// 입찰 내역 생성 및 저장
-		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
-		auctionHistoryRepository.save(auctionHistory);
+			// 입찰 내역 생성 및 저장
+			AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
+			auctionHistoryRepository.save(auctionHistory);
 
-		// 현재 경매 최고가 업데이트
-		auction.updateCurrentPrice(request.getBidPrice());
+			// 현재 경매 최고가 업데이트
+			auction.updateCurrentPrice(request.getBidPrice());
 
-		// 입찰 가격이 즉시낙찰가에 도달했는지 체크 후 경매 성공 처리
-		if (auctionHistoryServiceHelper.isBuyoutPriceReached(auction, request.getBidPrice())) {
-			auction.markAsSuccess(bidder);
-			auctionHistoryServiceHelper.handleAuctionSuccess(auction, bidder, request.getBidPrice());
-			auctionHistoryServiceHelper.refundFailedBidders(auction);
-		}
-
-		// 알림 보내기: 최고 입찰자가 변경된 경우
-		if (previousTopBidOpt.isPresent()) {
-			User previousTopBidder = previousTopBidOpt.get().getBidder();
-			if (!previousTopBidder.getId().equals(bidder.getId())) {
-				RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
-				notificationService.saveNotification(notification);
+			// 입찰 가격이 즉시낙찰가에 도달했는지 체크 후 경매 성공 처리
+			if (auctionHistoryServiceHelper.isBuyoutPriceReached(auction, request.getBidPrice())) {
+				auction.markAsSuccess(bidder);
+				auctionHistoryServiceHelper.handleAuctionSuccess(auction, bidder, request.getBidPrice());
+				auctionHistoryServiceHelper.refundFailedBidders(auction);
 			}
-		}
 
-		return BidResponse.of(auctionHistory);
+			// 알림 보내기: 최고 입찰자가 변경된 경우
+			if (previousTopBidOpt.isPresent()) {
+				User previousTopBidder = previousTopBidOpt.get().getBidder();
+				if (!previousTopBidder.getId().equals(bidder.getId())) {
+					RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
+					notificationService.saveNotification(notification);
+				}
+			}
+			return BidResponse.of(auctionHistory);
+		} catch (ObjectOptimisticLockingFailureException e) {
+			throw new BaseException(ErrorCode.CONCURRENT_BID_CONFLICT, "동시 입찰 충돌 발생");
+		}
 	}
 
 	// 특정 경매에 대한 입찰 기록을 조회하는 메서드
@@ -152,9 +157,22 @@ public class AuctionHistoryService {
 	}
 
 	// 경매 ID로 ACTIVE 상태의 경매를 조회하는 메서드 (단순 조회용)
+	// Optimistic Lock
 	private Auction findActiveAuctionById(Long auctionId) {
 		Auction auction = auctionRepository.findById(auctionId)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+		if (auction.getStatus() != AuctionStatus.ACTIVE) {
+			throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, "auctionId");
+		}
+		return auction;
+	}
+
+	// 비관적 락 걸고 경매 조회
+	// Pessimistic Lock
+	private Auction findActiveAuctionByIdWithPessimisticLock(Long auctionId) {
+		Auction auction = auctionRepository.findByIdForUpdate(auctionId)
+			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+
 		if (auction.getStatus() != AuctionStatus.ACTIVE) {
 			throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, "auctionId");
 		}
