@@ -26,11 +26,12 @@ public class AuctionTimeUtils {
 		return now.isAfter(auction.getExpiredAt());
 	}
 
+	// 경매 종료 5분 전 알림을 보내야 하는 시간대인지 확인
 	public static boolean isAboutToExpireInFiveMinutes(Auction auction) {
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime expireAt = auction.getExpiredAt();
 
 		return now.isAfter(expireAt.minusMinutes(5).minusSeconds(30)) &&
-				now.isBefore(expireAt.minusMinutes(5).plusSeconds(30));
+			now.isBefore(expireAt.minusMinutes(5).plusSeconds(30));
 	}
 }

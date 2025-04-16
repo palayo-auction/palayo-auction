@@ -48,6 +48,12 @@ class DibServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private RedisNotificationFactory redisNotificationFactory;
+
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private DibService dibService;
 
@@ -102,6 +108,9 @@ class DibServiceTest {
             ReflectionTestUtils.setField(dib, "id", 1L);
             return dib;
         });
+        given(dibRepository.findAllByAuction(any())).willReturn(List.of(Dib.of(user, auction)));
+        given(redisNotificationFactory.dibAuctionStart(anyList(), eq(auction))).willReturn(List.of());
+        given(redisNotificationFactory.dibAuctionEnd(anyList(), eq(auction))).willReturn(List.of());
 
         given(dibRepository.findAllByAuction(any())).willReturn(List.of(Dib.of(user, auction)));
         given(redisNotificationFactory.dibAuctionStart(anyList(), eq(auction))).willReturn(List.of());
