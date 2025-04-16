@@ -2,6 +2,8 @@ package com.example.palayo.domain.item.service;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
+import com.example.palayo.domain.elasticsearch.document.ItemDocument;
+import com.example.palayo.domain.elasticsearch.repository.ItemElasticSearchRepository;
 import com.example.palayo.domain.item.dto.request.SaveItemRequest;
 import com.example.palayo.domain.item.dto.request.UpdateItemRequest;
 import com.example.palayo.domain.item.dto.response.PageItemResponse;
@@ -26,6 +28,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ItemElasticSearchRepository itemElasticSearchRepository;
 
     @Transactional
     public ItemResponse saveItem(Long userId, SaveItemRequest request){
@@ -34,6 +37,11 @@ public class ItemService {
 
         Item item = Item.of(request.getName(), request.getContent(), request.getCategory(), user);
         Item savedItem = itemRepository.save(item);
+        
+        //엘라스틱서치
+        ItemDocument itemDocument = ItemDocument.of(item);
+        itemElasticSearchRepository.save(itemDocument);
+
         return ItemResponse.of(savedItem);
     }
 
@@ -45,17 +53,25 @@ public class ItemService {
 
         checkStatus(item);
 
+        //엘라스틱서치
+        ItemDocument itemDocument = getDocument(itemId);
+
         if(request.getName() != null){
             item.updateName(request.getName());
+            itemDocument.updateName(request.getName());
         }
 
         if (request.getContent() != null){
             item.updateContent(request.getContent());
+            itemDocument.updateContent(request.getContent());
         }
 
         if (request.getCategory() != null){
             item.updateCategory(Category.of(request.getCategory()));
+            itemDocument.updateCategory(Category.of(request.getCategory()));
         }
+
+        itemElasticSearchRepository.save(itemDocument);
 
         return ItemResponse.of(item);
     }
@@ -74,6 +90,10 @@ public class ItemService {
         }
 
         itemRepository.delete(item);
+
+        //엘라스틱서치
+        ItemDocument document = getDocument(itemId);
+        itemElasticSearchRepository.delete(document);
     }
 
     @Transactional(readOnly = true)
@@ -112,5 +132,9 @@ public class ItemService {
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
+    }
+
+    private ItemDocument getDocument(Long documentId) {
+        return itemElasticSearchRepository.findById(documentId).get();
     }
 }
