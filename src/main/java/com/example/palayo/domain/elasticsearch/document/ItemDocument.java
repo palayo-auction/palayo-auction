@@ -11,7 +11,7 @@ import org.springframework.data.elasticsearch.annotations.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Document(indexName = "items")
+@Document(indexName = "items", writeTypeHint = WriteTypeHint.FALSE)
 @Setting(settingPath = "elastic/item-setting.json")
 @Mapping(mappingPath = "elastic/item-mapping.json")
 public class ItemDocument {

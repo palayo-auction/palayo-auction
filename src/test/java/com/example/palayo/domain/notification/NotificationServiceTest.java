@@ -43,6 +43,7 @@ class NotificationServiceTest {
     @InjectMocks
     private NotificationService notificationService;
 
+    @Mock
     private User user;
 
     @BeforeEach
