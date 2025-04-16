@@ -16,10 +16,6 @@
     },
     "sellerId": {
       "type": "long"
-    },
-    "itemStatus": {
-      "type": "keyword",
-      "index": false
     }
   }
 }
