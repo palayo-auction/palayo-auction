@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 // 입찰 관련 검증, 조회, 보조 기능을 담당하는 헬퍼 클래스
 @Component
