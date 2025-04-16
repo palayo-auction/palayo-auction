@@ -1,4 +1,4 @@
-package com.example.palayo.auction.service;
-
-public class AuctionServiceTest {
-}
+//package com.example.palayo.auction.service;
+//
+//public class AuctionServiceTest {
+//}

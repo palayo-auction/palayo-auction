@@ -75,7 +75,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse mypage(Long userId) {
+    public UserResponse myPage(Long userId) {
         User user = findById(userId);
 
         return UserResponse.of(
