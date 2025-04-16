@@ -2,7 +2,6 @@ package com.example.palayo.domain.item.repository;
 
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
-import com.example.palayo.domain.item.enums.ItemStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -20,14 +19,13 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Item> searchMyItems(Long userId, Category category, ItemStatus itemStatus, Pageable pageable) {
+    public Page<Item> searchMyItems(Long userId, Category category, Pageable pageable) {
 
         List<Item> results = queryFactory
                 .selectFrom(item)
                 .where(
                         item.seller.id.eq(userId),
-                        eqCategory(category),
-                        eqItemStatus(itemStatus)
+                        eqCategory(category)
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -39,8 +37,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .from(item)
                 .where(
                         item.seller.id.eq(userId),
-                        eqCategory(category),
-                        eqItemStatus(itemStatus)
+                        eqCategory(category)
                 );
 
         return PageableExecutionUtils.getPage(results, pageable,
@@ -49,9 +46,5 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
 
     private BooleanExpression eqCategory(Category category) {
         return category != null ? item.category.eq(category) : null;
-    }
-
-    private BooleanExpression eqItemStatus(ItemStatus status) {
-        return status != null ? item.itemStatus.eq(status) : null;
     }
 }
