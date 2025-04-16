@@ -47,12 +47,14 @@ public class RedisConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // 🔥 여기 추가!
-        objectMapper.activateDefaultTyping(
-                BasicPolymorphicTypeValidator.builder().allowIfSubType(Object.class).build(),
-                ObjectMapper.DefaultTyping.EVERYTHING,
-                JsonTypeInfo.As.PROPERTY
+        objectMapper.activateDefaultTypingAsProperty(
+                BasicPolymorphicTypeValidator.builder()
+                        .allowIfSubType("com.example.palayo.domain.notification.redis")
+                        .build(),
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                "@Class"
         );
+
 
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
