@@ -11,6 +11,8 @@ import com.example.palayo.domain.dib.repository.DibRepository;
 import com.example.palayo.domain.dib.service.DibService;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
+import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +63,12 @@ class DibServiceTest {
     @Mock
     private Item item;
 
+    @Mock
+    private RedisNotificationFactory redisNotificationFactory;
+
+    @Mock
+    private NotificationService notificationService;
+
     @BeforeEach
     void setUp() {
         user = User.of("test@email.com", "password123", "kimchiman");
@@ -94,6 +102,11 @@ class DibServiceTest {
             ReflectionTestUtils.setField(dib, "id", 1L);
             return dib;
         });
+
+        given(dibRepository.findAllByAuction(any())).willReturn(List.of(Dib.of(user, auction)));
+        given(redisNotificationFactory.dibAuctionStart(anyList(), eq(auction))).willReturn(List.of());
+        given(redisNotificationFactory.dibAuctionEnd(anyList(), eq(auction))).willReturn(List.of());
+
 
         // when
         DibResponse result = dibService.dibAuction(authUser, 1L);
