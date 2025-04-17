@@ -69,6 +69,9 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             pkill -f 'java -jar' || true
-            cd /home/${{ secrets.EC2_USER }}/app
-            setsid java -jar palayo-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null &
+            cd /home/ubuntu/app
+            nohup java -jar palayo-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null &
+            disown
+            sleep 3
+          
       
