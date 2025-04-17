@@ -3,6 +3,7 @@ package com.example.palayo.domain.item.service;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.common.utils.S3Uploader;
+import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.elasticsearch.document.ItemDocument;
@@ -139,15 +140,17 @@ public class ItemService {
         }
     }
 
-    private void checkStatus(Item item) {
-        if(auctionRepository.existsByItemIdAndStatusIn(item.getId(),
-                List.of(AuctionStatus.READY, AuctionStatus.ACTIVE,
-                        AuctionStatus.SUCCESS, AuctionStatus.DELETED))) {
-            throw new BaseException(ErrorCode.INVALID_ITEM_STATUS_FOR_UPDATE, null);
+    private void checkStatus(Item item){
+        Auction auction = auctionRepository.findByItemId(item.getId())
+                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
+
+        if(!auction.getStatus().equals(AuctionStatus.FAILED)){
+            throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, item.getId().toString());
         }
     }
 
     private ItemDocument getDocument(Long documentId) {
-        return itemElasticSearchRepository.findById(documentId).get();
+        return itemElasticSearchRepository.findById(documentId)
+                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
     }
 }
