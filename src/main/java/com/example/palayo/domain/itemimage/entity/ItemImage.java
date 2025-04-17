@@ -16,9 +16,6 @@ public class ItemImage {
     private Long id;
 
     @Column(nullable = false)
-    private String imageName;
-
-    @Column(nullable = false)
     private String imageUrl;
 
     @Column(nullable = false)
@@ -28,18 +25,16 @@ public class ItemImage {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    public static ItemImage of(String imageName, String imageUrl, Integer imageIndex, Item item){
+    public static ItemImage of(String imageUrl, Integer imageIndex, Item item){
         ItemImage itemImage = new ItemImage();
-        itemImage.imageName = imageName;
         itemImage.imageUrl = imageUrl;
         itemImage.imageIndex = imageIndex;
         itemImage.item = item;
         return itemImage;
     }
 
-    public void updateItemImage(String url, String name, Integer index) {
+    public void updateItemImage(String url, Integer index) {
         this.imageUrl = url;
-        this.imageName = name;
         this.imageIndex = index;
     }
 
