@@ -68,7 +68,7 @@ public class AuctionService {
 		Auction savedAuction = auctionRepository.save(auction);
 
 		// 알림 예약 (경매 시작/종료 알림)
-		reserveMyAuctionNotification(savedAuction);
+//		reserveMyAuctionNotification(savedAuction);
 
 		return AuctionResponse.of(savedAuction);
 	}
