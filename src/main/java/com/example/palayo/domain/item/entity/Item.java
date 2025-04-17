@@ -2,7 +2,6 @@ package com.example.palayo.domain.item.entity;
 
 import com.example.palayo.common.entity.BaseEntity;
 import com.example.palayo.domain.item.enums.Category;
-import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.itemimage.entity.ItemImage;
 import com.example.palayo.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -10,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,10 +32,6 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private Category category;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ItemStatus itemStatus;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
@@ -44,14 +40,19 @@ public class Item extends BaseEntity {
     @OrderBy("imageIndex ASC")
     private List<ItemImage> itemImages = new ArrayList<>();
 
+    private LocalDateTime deletedAt;
+
     public static Item of(String name, String content, Category category, User seller){
         Item item = new Item();
         item.seller = seller;
         item.name = name;
         item.content = content;
         item.category = category;
-        item.itemStatus = ItemStatus.UNDER_REVIEW;
         return item;
+    }
+
+    public void markAsDeleted() {
+        this.deletedAt = LocalDateTime.now();
     }
 
     public void updateName(String name) {
@@ -60,10 +61,6 @@ public class Item extends BaseEntity {
 
     public void updateContent(String content) {
         this.content = content;
-    }
-
-    public void updateStatus(ItemStatus itemStatus) {
-        this.itemStatus = itemStatus;
     }
 
     public void updateCategory(Category category) {

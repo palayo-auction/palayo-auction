@@ -2,7 +2,6 @@ package com.example.palayo.domain.elasticsearch.document;
 
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
-import com.example.palayo.domain.item.enums.ItemStatus;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,8 +25,6 @@ public class ItemDocument {
 
     private Long sellerId;
 
-    private ItemStatus itemStatus;
-
     public static ItemDocument of(Item item) {
         ItemDocument itemDocument = new ItemDocument();
         itemDocument.id = item.getId();
@@ -35,7 +32,6 @@ public class ItemDocument {
         itemDocument.content = item.getContent();
         itemDocument.category = item.getCategory();
         itemDocument.sellerId = item.getSeller().getId();
-        itemDocument.itemStatus = item.getItemStatus();
         return itemDocument;
     }
 
