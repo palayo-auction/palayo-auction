@@ -2,6 +2,7 @@ package com.example.palayo.domain.item.entity;
 
 import com.example.palayo.common.entity.BaseEntity;
 import com.example.palayo.domain.item.enums.Category;
+import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.itemimage.entity.ItemImage;
 import com.example.palayo.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -32,6 +33,10 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private Category category;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ItemStatus status;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
@@ -51,10 +56,6 @@ public class Item extends BaseEntity {
         return item;
     }
 
-    public void markAsDeleted() {
-        this.deletedAt = LocalDateTime.now();
-    }
-
     public void updateName(String name) {
         this.name = name;
     }
@@ -65,5 +66,22 @@ public class Item extends BaseEntity {
 
     public void updateCategory(Category category) {
         this.category = category;
+    }
+
+    public void markAsAvailable() {
+        this.status = ItemStatus.AVAILABLE;
+    }
+    public void markAsAuctionReady() {
+        this.status = ItemStatus.AUCTION_READY;
+    }
+    public void markAsAuctionOngoing() {
+        this.status = ItemStatus.AUCTION_ONGOING;
+    }
+    public void markAsSold() {
+        this.status = ItemStatus.SOLD;
+    }
+    public void markAsDeleted() {
+        this.deletedAt = LocalDateTime.now();
+        this.status = ItemStatus.DELETED;
     }
 }

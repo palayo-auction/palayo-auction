@@ -26,7 +26,7 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 	// 특정 상태(READY, ACTIVE)인 경매 다건 조회 (페이징)
 	Page<Auction> findAllByStatusIn(List<AuctionStatus> statuses, Pageable pageable);
 
-	// 판매자 ID로 특정 상태(READY, ACTIVE, SUCCESS, FAILED, DELETED)인 경매 다건 조회 (페이징)
+	// 판매자 ID로 특정 상태(READY, ACTIVE, SUCCESS, FAILED)인 경매 다건 조회 (페이징)
 	Page<Auction> findAllByItemSellerIdAndStatusIn(Long sellerId, List<AuctionStatus> statuses, Pageable pageable);
 
 	// 주어진 경매 ID 목록 + 특정 상태 조건으로 경매 다건 조회 (페이징)
@@ -39,6 +39,4 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("SELECT a FROM Auction a WHERE a.id = :id")
 	Optional<Auction> findByIdForUpdate(@Param("id") Long id);
-
-	Optional<Auction> findByItemId(Long itemId);
 }

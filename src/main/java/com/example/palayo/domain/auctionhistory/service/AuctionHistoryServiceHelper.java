@@ -120,4 +120,21 @@ public class AuctionHistoryServiceHelper {
 			pointHistoriesService.updatePoints(failedBidder.getId(), depositAmount, PointType.REFUNDED);
 		}
 	}
+
+	// 특정 경매에서 사용자의 최고 입찰 금액을 조회
+	public Integer getMyHighestBid(Long auctionId, Long userId) {
+		return auctionHistoryRepository
+			.findTopByAuctionIdAndBidderIdOrderByBidPriceDescCreatedAtDesc(auctionId, userId)
+			.map(AuctionHistory::getBidPrice)
+			.orElse(null);
+	}
+
+	// 경매가 종료된 경우, 사용자가 낙찰자인지 여부를 반환 (진행 중인 경매는 null)
+	public Boolean isWinner(Auction auction, Long userId) {
+		if (auction.getStatus() == AuctionStatus.ACTIVE) {
+			return null;
+		}
+		return auction.getWinningBidder() != null &&
+			auction.getWinningBidder().getId().equals(userId);
+	}
 }
