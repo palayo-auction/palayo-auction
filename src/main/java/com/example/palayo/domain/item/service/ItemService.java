@@ -3,17 +3,16 @@ package com.example.palayo.domain.item.service;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.common.utils.S3Uploader;
-import com.example.palayo.domain.auction.entity.Auction;
-import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.elasticsearch.document.ItemDocument;
 import com.example.palayo.domain.elasticsearch.repository.ItemElasticSearchRepository;
 import com.example.palayo.domain.item.dto.request.SaveItemRequest;
 import com.example.palayo.domain.item.dto.request.UpdateItemRequest;
-import com.example.palayo.domain.item.dto.response.PageItemResponse;
 import com.example.palayo.domain.item.dto.response.ItemResponse;
+import com.example.palayo.domain.item.dto.response.PageItemResponse;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
+import com.example.palayo.domain.item.enums.ItemStatus;
 import com.example.palayo.domain.item.repository.ItemRepository;
 import com.example.palayo.domain.item.util.ItemValidator;
 import com.example.palayo.domain.itemimage.entity.ItemImage;
@@ -37,7 +36,6 @@ public class ItemService {
     private final UserRepository userRepository;
     private final ItemImageRepository itemImageRepository;
     private final ItemValidator itemValidator;
-    private final AuctionRepository auctionRepository;
     private final S3Uploader s3Uploader;
     private final PasswordEncoder passwordEncoder;
     private final ItemElasticSearchRepository itemElasticSearchRepository;
@@ -45,11 +43,11 @@ public class ItemService {
     @Transactional
     public ItemResponse saveItem(Long userId, SaveItemRequest request){
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
+            .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
 
         Item item = Item.of(request.getName(), request.getContent(), request.getCategory(), user);
         Item savedItem = itemRepository.save(item);
-        
+
         //엘라스틱서치
         ItemDocument itemDocument = ItemDocument.of(item);
         itemElasticSearchRepository.save(itemDocument);
@@ -100,8 +98,8 @@ public class ItemService {
 
         List<ItemImage> images = itemImageRepository.findByItem(item);
         List<String> imageUrls = images.stream()
-                .map(ItemImage::getImageUrl)
-                .toList();
+            .map(ItemImage::getImageUrl)
+            .toList();
         s3Uploader.delete(imageUrls);
         itemImageRepository.deleteAll(images);
         item.markAsDeleted();
@@ -141,16 +139,13 @@ public class ItemService {
     }
 
     private void checkStatus(Item item){
-        Auction auction = auctionRepository.findByItemId(item.getId())
-                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
-
-        if(!auction.getStatus().equals(AuctionStatus.FAILED)){
-            throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, item.getId().toString());
+        if(item.getStatus() != ItemStatus.AVAILABLE) {
+            throw new BaseException(ErrorCode.INVALID_ITEM_STATUS_FOR_UPDATE, null);
         }
     }
 
     private ItemDocument getDocument(Long documentId) {
         return itemElasticSearchRepository.findById(documentId)
-                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
+            .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
     }
 }
