@@ -69,4 +69,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             pkill -f 'java -jar' || true
-            nohup java -jar /home/${{ secrets.EC2_USER }}/app/palayo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            cd /home/${{ secrets.EC2_USER }}/app
+            nohup java -jar palayo-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null &
+            sleep 3
+          
