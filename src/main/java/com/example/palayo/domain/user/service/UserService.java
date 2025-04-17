@@ -2,6 +2,8 @@ package com.example.palayo.domain.user.service;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
+import com.example.palayo.domain.auction.entity.Auction;
+import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.repository.ItemRepository;
 import com.example.palayo.domain.user.dto.response.UserResponse;
@@ -17,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -24,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ItemRepository itemRepository;
+    private final AuctionRepository auctionRepository;
 
     @Transactional
     public UserResponse updateNickname(String nickname, Long id) {
@@ -87,7 +92,7 @@ public class UserService {
     }
 
      @Transactional(readOnly = true)
-     public Page<UserItemResponse> myItem(Long id, int page, int size) {
+     public Page<UserItemResponse> soldItems(Long id, int page, int size) {
          User user = findById(id);
 
          Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
@@ -95,6 +100,15 @@ public class UserService {
 
          return items.map(UserItemResponse::of);
      }
+
+     @Transactional(readOnly = true)
+    public Page<UserItemResponse> buyItems(Long userId, int page, int size) {
+        User user = findById(userId);
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<Auction> auctions = auctionRepository.findByWinningBidder_Id(user.getId(), pageable);
+        return auctions.map(auction -> UserItemResponse.of(auction.getItem()));
+    }
 
     @Transactional
     public void delete(Long userId, String password) {
