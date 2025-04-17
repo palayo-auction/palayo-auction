@@ -50,20 +50,29 @@ public class UserController {
         return Response.of(updatedPassword);
     }
 
-    @GetMapping("v1/users/mypage")
+    @GetMapping("v1/users/myPage")
     public Response<UserResponse> mypage(
             @AuthenticationPrincipal AuthUser authUser
     ) {
         return Response.of(userService.myPage(authUser.getUserId()));
     }
 
-     @GetMapping("v1/users/sold")
-     public Response<List<UserItemResponse>> sold(
+     @GetMapping("v1/users/soldItems")
+     public Response<List<UserItemResponse>> soldItems(
              @AuthenticationPrincipal AuthUser authUser,
              @RequestParam(defaultValue = "1") int page,
              @RequestParam(defaultValue = "10") int size
      ) {
-         return Response.fromPage(userService.myItem(authUser.getUserId(), page, size));
+         return Response.fromPage(userService.soldItems(authUser.getUserId(), page, size));
+     }
+
+     @GetMapping("v1/users/buyItems")
+     public Response<List<UserItemResponse>> buyItems(
+             @AuthenticationPrincipal AuthUser authUser,
+             @RequestParam(defaultValue = "1") int page,
+             @RequestParam(defaultValue = "10") int size
+     ){
+        return Response.fromPage(userService.buyItems(authUser.getUserId(), page, size));
      }
 
     @DeleteMapping("v1/users")
