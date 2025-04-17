@@ -70,4 +70,4 @@ jobs:
           script: |
             pkill -f 'java -jar' || true
             cd /home/ubuntu/app
-            nohup java -jar palayo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            nohup java -Xms512m -Xmx1024m -jar /home/ubuntu/palayo-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
