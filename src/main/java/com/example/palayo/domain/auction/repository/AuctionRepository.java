@@ -29,4 +29,6 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
 	// 특정 상태(READY, ACTIVE)인 경매 전체 조회 (스케줄러용)
 	List<Auction> findAllByStatusIn(List<AuctionStatus> statuses);
+
+	Optional<Auction> findByItemId(Long itemId);
 }
