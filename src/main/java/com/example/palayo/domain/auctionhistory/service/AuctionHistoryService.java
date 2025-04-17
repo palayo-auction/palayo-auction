@@ -51,8 +51,7 @@ public class AuctionHistoryService {
 	@Transactional
 	public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
 		try {
-			Auction auction = findActiveAuctionById(auctionId); // 낙관적 락
-			// Auction auction = findActiveAuctionByIdWithPessimisticLock(auctionId); // 비관적 락
+			Auction auction = findActiveAuctionById(auctionId);
 			User bidder = findUserById(authUser.getUserId());
 
 			// 입찰자가 상품 주인인지 검증 (주인이면 입찰 불가)
@@ -112,6 +111,7 @@ public class AuctionHistoryService {
 	@Transactional(readOnly = true)
 	public Page<AuctionListResponse> getParticipatedAuctions(AuthUser authUser, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+		Long userId = authUser.getUserId();
 
 		// 사용자가 입찰한 경매 ID 목록 조회
 		List<Long> participatedAuctionIds = auctionHistoryRepository.findDistinctAuctionIdsByBidderId(
@@ -129,10 +129,22 @@ public class AuctionHistoryService {
 			pageable
 		);
 
-		// AuctionListResponse로 변환하여 반환
 		LocalDateTime now = LocalDateTime.now();
-		return auctions.map(
-			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction)));
+
+		// 각 경매에 대해 내가 입찰한 최고 금액과 낙찰 여부 포함 응답
+		return auctions.map(auction -> {
+			// 해당 경매에서 사용자의 최고 입찰 금액 조회
+			Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auction.getId(), userId);
+			// 낙찰자인지 여부 판단 (진행 중인 경매는 null 반환)
+			Boolean isWinner = auctionHistoryServiceHelper.isWinner(auction, userId);
+
+			return AuctionListResponse.of(
+				auction,
+				TimeFormatter.formatRemainingTime(now, auction),
+				myBidPrice,
+				isWinner
+			);
+		});
 	}
 
 	// 사용자가 참여한 특정 경매 상세정보를 조회하는 메서드
@@ -144,35 +156,35 @@ public class AuctionHistoryService {
 			List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED)
 		).orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
+		Long userId = authUser.getUserId();
+
 		// 사용자가 이 경매에 참여했는지 검증
 		auctionHistoryServiceHelper.validateParticipation(auctionId, authUser.getUserId());
 
-		// 낙찰자의 닉네임 가져오기
+		// 경매 상태가 SUCCESS 또는 DELETED인 경우에만 낙찰자 닉네임 조회
 		String winningBidderNickname = auctionHistoryServiceHelper.getWinningBidderNickname(auction);
 
-		// AuctionDetailResponse로 변환하여 반환
+		// 사용자의 최고 입찰 금액 조회
+		Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auctionId, userId);
+
+		// 낙찰자인지 여부 확인 (ACTIVE 상태는 null 반환)
+		Boolean isWinner = auctionHistoryServiceHelper.isWinner(auction, userId);
+
 		LocalDateTime now = LocalDateTime.now();
-		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction),
-			winningBidderNickname);
+
+		return AuctionDetailResponse.of(
+			auction,
+			TimeFormatter.formatRemainingTime(now, auction),
+			winningBidderNickname,
+			myBidPrice,
+			isWinner
+		);
 	}
 
 	// 경매 ID로 ACTIVE 상태의 경매를 조회하는 메서드 (단순 조회용)
-	// Optimistic Lock
 	private Auction findActiveAuctionById(Long auctionId) {
 		Auction auction = auctionRepository.findById(auctionId)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
-		if (auction.getStatus() != AuctionStatus.ACTIVE) {
-			throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, "auctionId");
-		}
-		return auction;
-	}
-
-	// 비관적 락 걸고 경매 조회
-	// Pessimistic Lock
-	private Auction findActiveAuctionByIdWithPessimisticLock(Long auctionId) {
-		Auction auction = auctionRepository.findByIdForUpdate(auctionId)
-			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
-
 		if (auction.getStatus() != AuctionStatus.ACTIVE) {
 			throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, "auctionId");
 		}
