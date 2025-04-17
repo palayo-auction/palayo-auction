@@ -6,14 +6,9 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
-
-import jakarta.persistence.LockModeType;
 
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
@@ -35,8 +30,6 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
 	// 특정 상태(READY, ACTIVE)인 경매 전체 조회 (스케줄러용)
 	List<Auction> findAllByStatusIn(List<AuctionStatus> statuses);
 
-	// 경매를 조회할 때 데이터베이스 레벨에서 락을 걸어 다른 트랜잭션의 수정을 막습니다
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("SELECT a FROM Auction a WHERE a.id = :id")
-	Optional<Auction> findByIdForUpdate(@Param("id") Long id);
+	// 낙찰자 ID로 경매 목록 조회 (페이징) — 사용자가 낙찰받은 경매 내역 조회 시 사용
+	Page<Auction> findByWinningBidder_Id(Long winningBidderId, Pageable pageable);
 }
