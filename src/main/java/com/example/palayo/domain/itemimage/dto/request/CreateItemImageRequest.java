@@ -5,6 +5,5 @@ import lombok.Getter;
 @Getter
 public class CreateItemImageRequest {
     private String imageUrl;
-    private String imageName;
     private Integer imageIndex;
 }
