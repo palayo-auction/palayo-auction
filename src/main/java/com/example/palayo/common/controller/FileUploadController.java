@@ -33,11 +33,4 @@ public class FileUploadController {
         List<String> updatedUrls = s3Uploader.updateFiles(originalUrls, files);
         return Response.of(updatedUrls);
     }
-
-    @DeleteMapping("/delete")
-    public Response<Void> deleteImages(@RequestBody ImageDeleteRequest request) {
-        s3Uploader.delete(request.getImageUrls());
-        return Response.empty();
-    }
-
 }
