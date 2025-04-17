@@ -2,7 +2,6 @@ package com.example.palayo.domain.deposithistory.controller;
 
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.response.Response;
-import com.example.palayo.domain.auth.service.AuthService;
 import com.example.palayo.domain.deposithistory.dto.DepositHistoryRequest;
 import com.example.palayo.domain.deposithistory.dto.DepositHistoryResponse;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
@@ -20,14 +19,11 @@ import java.util.List;
 public class DepositHistoryController {
 
     private final DepositHistoryService depositHistoryService;
-    private final AuthService authService;
 
     // 단건 조회
     @GetMapping("/v1/deposithistories/{id}")
-    public Response<DepositHistoryResponse> getDepositHistory(
-            @PathVariable Long id,
-            @AuthenticationPrincipal AuthUser authUser) {
-        DepositHistoryResponse depositHistoryResponse = depositHistoryService.getDepositHistory(id, authUser);
+    public Response<DepositHistoryResponse> getDepositHistory(@PathVariable Long id) {
+        DepositHistoryResponse depositHistoryResponse = depositHistoryService.getDepositHistory(id);
         return Response.of(depositHistoryResponse);
     }
 
@@ -35,11 +31,10 @@ public class DepositHistoryController {
     @GetMapping("/v1/deposithistories")
     public Response<List<DepositHistoryResponse>> getDepositHistoryList(
             @RequestParam Long auctionId,
-            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal AuthUser authUser) {
-        Page<DepositHistoryResponse> depositHistoryPage = depositHistoryService.getDepositHistoryList(auctionId,status, page, size, authUser);
+        Page<DepositHistoryResponse> depositHistoryPage = depositHistoryService.getDepositHistoryList(auctionId, page, size, authUser);
         return Response.fromPage(depositHistoryPage);
     }
 
