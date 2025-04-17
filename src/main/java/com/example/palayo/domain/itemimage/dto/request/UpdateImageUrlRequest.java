@@ -4,7 +4,6 @@ import lombok.Getter;
 
 @Getter
 public class UpdateImageUrlRequest {
-    private String originalImageUrl;
+    private String targetImageUrl;
     private String newImageUrl;
 }
-

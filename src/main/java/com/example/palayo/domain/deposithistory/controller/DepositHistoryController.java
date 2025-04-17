@@ -22,10 +22,8 @@ public class DepositHistoryController {
 
     // 단건 조회
     @GetMapping("/v1/deposithistories/{id}")
-    public Response<DepositHistoryResponse> getDepositHistory(
-            @PathVariable Long id,
-            @AuthenticationPrincipal AuthUser authUser) {
-        DepositHistoryResponse depositHistoryResponse = depositHistoryService.getDepositHistory(id, authUser);
+    public Response<DepositHistoryResponse> getDepositHistory(@PathVariable Long id) {
+        DepositHistoryResponse depositHistoryResponse = depositHistoryService.getDepositHistory(id);
         return Response.of(depositHistoryResponse);
     }
 
@@ -33,11 +31,10 @@ public class DepositHistoryController {
     @GetMapping("/v1/deposithistories")
     public Response<List<DepositHistoryResponse>> getDepositHistoryList(
             @RequestParam Long auctionId,
-            @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal AuthUser authUser) {
-        Page<DepositHistoryResponse> depositHistoryPage = depositHistoryService.getDepositHistoryList(auctionId, status, page, size, authUser);
+        Page<DepositHistoryResponse> depositHistoryPage = depositHistoryService.getDepositHistoryList(auctionId, page, size, authUser);
         return Response.fromPage(depositHistoryPage);
     }
 

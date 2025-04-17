@@ -12,8 +12,6 @@ import com.example.palayo.domain.deposithistory.repository.DepositHistoryReposit
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.*;
@@ -28,34 +26,31 @@ public class DepositHistoryService {
 	private final AuctionRepository auctionRepository;
 	private final UserRepository userRepository;
 
-	@PersistenceContext
-	private EntityManager entityManager;
-
 	// 단건 조회 (DTO 변환)
 	@Transactional(readOnly = true)
-	public DepositHistoryResponse getDepositHistory(Long id, AuthUser authUser) {
+	public DepositHistoryResponse getDepositHistory(Long id) {
 		DepositHistory depositHistory = depositHistoryRepository.findById(id)
-			.orElseThrow(() -> new BaseException(ErrorCode.DEPOSIT_HISTORY_NOT_FOUND, "id"));
+				.orElseThrow(() -> new BaseException(ErrorCode.DEPOSIT_HISTORY_NOT_FOUND, "id"));
 		return DepositHistoryResponse.fromEntity(depositHistory);
 	}
 
 	// 다건 조회 (페이징 처리 포함)
 	@Transactional(readOnly = true)
-	public Page<DepositHistoryResponse> getDepositHistoryList(Long auctionId, String status, int page, int size,
-		AuthUser authUser) {
+	public Page<DepositHistoryResponse> getDepositHistoryList(Long auctionId, int page, int size,
+															  AuthUser authUser) {
 		// Auction 조회 (레포지토리 사용)
 		Auction auction = auctionRepository.findById(auctionId)
-			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
 		// AuthUser에서 userId를 추출하여 User 조회
 		User user = userRepository.findById(authUser.getUserId())
-			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, authUser.getUserId().toString()));
+				.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, authUser.getUserId().toString()));
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
 		// DepositHistory 조회 (페이징 처리)
 		Page<DepositHistory> depositHistoryPage = depositHistoryRepository.findByAuctionAndUser(auction, user,
-			pageable);
+				pageable);
 
 		// DepositHistory를 DepositHistoryResponse로 변환 후 반환
 		return depositHistoryPage.map(DepositHistoryResponse::fromEntity);
@@ -70,17 +65,14 @@ public class DepositHistoryService {
 	// 유저 ID, 경매 ID, 보증금 금액을 받아 보증금 이력을 생성
 	@Transactional
 	public void createDepositHistory(Long userId, Long auctionId, int depositAmount) {
-		Auction auction = entityManager.find(Auction.class, auctionId);
+
 		// Auction 조회
-		if (auction == null) {
-			throw new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId");
-		}
+		Auction auction = auctionRepository.findById(auctionId)
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
 		// User 조회
-		User user = entityManager.find(User.class, userId);
-		if (user == null) {
-			throw new BaseException(ErrorCode.USER_NOT_FOUND, "userId");
-		}
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 
 		// 이미 보증금 이력이 있는지 확인
 		boolean alreadyExists = depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId);
@@ -90,10 +82,10 @@ public class DepositHistoryService {
 
 		// 보증금 이력 생성
 		DepositHistory depositHistory = new DepositHistory(
-			auction,
-			user,
-			depositAmount,
-			DepositStatus.PENDING
+				auction,
+				user,
+				depositAmount,
+				DepositStatus.PENDING
 		);
 
 		// 보증금 이력 저장
@@ -127,12 +119,12 @@ public class DepositHistoryService {
 	// 공통 단건 조회 메서드
 	private DepositHistory findDepositHistory(Long auctionId, Long userId) {
 		Auction auction = auctionRepository.findById(auctionId)
-			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
 		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 
 		return depositHistoryRepository.findByAuctionAndUser(auction, user)
-			.orElseThrow(() -> new BaseException(ErrorCode.DEPOSIT_HISTORY_NOT_FOUND, "auctionId, userId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.DEPOSIT_HISTORY_NOT_FOUND, "auctionId, userId"));
 	}
 }

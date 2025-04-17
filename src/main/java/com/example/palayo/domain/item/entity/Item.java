@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +40,8 @@ public class Item extends BaseEntity {
     @OrderBy("imageIndex ASC")
     private List<ItemImage> itemImages = new ArrayList<>();
 
+    private LocalDateTime deletedAt;
+
     public static Item of(String name, String content, Category category, User seller){
         Item item = new Item();
         item.seller = seller;
@@ -46,6 +49,10 @@ public class Item extends BaseEntity {
         item.content = content;
         item.category = category;
         return item;
+    }
+
+    public void markAsDeleted() {
+        this.deletedAt = LocalDateTime.now();
     }
 
     public void updateName(String name) {

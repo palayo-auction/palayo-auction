@@ -19,12 +19,13 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Item> searchMyItems(Long userId, Category category, Pageable pageable) {
+    public Page<Item> searchMyItems(Long userId, String keyword, Category category, Pageable pageable) {
 
         List<Item> results = queryFactory
                 .selectFrom(item)
                 .where(
                         item.seller.id.eq(userId),
+                        containsKeyword(keyword),
                         eqCategory(category)
                 )
                 .offset(pageable.getOffset())
@@ -37,11 +38,20 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom{
                 .from(item)
                 .where(
                         item.seller.id.eq(userId),
+                        containsKeyword(keyword),
                         eqCategory(category)
                 );
 
         return PageableExecutionUtils.getPage(results, pageable,
                 countQuery::fetchOne);
+    }
+
+    private BooleanExpression containsKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return item.name.containsIgnoreCase(keyword)
+                .or(item.content.containsIgnoreCase(keyword));
     }
 
     private BooleanExpression eqCategory(Category category) {
