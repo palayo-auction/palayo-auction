@@ -3,7 +3,7 @@ package com.example.palayo.domain.itemimage.service;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.item.entity.Item;
-import com.example.palayo.domain.item.repository.ItemRepository;
+import com.example.palayo.domain.item.util.ItemValidator;
 import com.example.palayo.domain.itemimage.dto.request.CreateItemImageRequest;
 import com.example.palayo.domain.itemimage.dto.request.UpdateImageUrlRequest;
 import com.example.palayo.domain.itemimage.dto.request.UpdateItemImageRequest;
@@ -21,11 +21,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemImageService {
     private final ItemImageRepository itemImageRepository;
-    private final ItemRepository itemRepository;
+    private final ItemValidator itemValidator;
 
     @Transactional
-    public List<ItemImageResponse> saveImages(Long itemId, List<CreateItemImageRequest> imageRequests) {
-        Item item = getItemOrThrow(itemId);
+    public List<ItemImageResponse> saveImages(Long userId, Long itemId, List<CreateItemImageRequest> imageRequests) {
+        Item item = itemValidator.getValidItem(itemId);
+        itemValidator.validateOwnership(item, userId);
 
         for (CreateItemImageRequest request : imageRequests) {
             if (itemImageRepository.existsByItemAndImageUrl(item, request.getImageUrl())) {
@@ -44,15 +45,14 @@ public class ItemImageService {
     }
 
     @Transactional
-    public List<ItemImageResponse> updateImageInfo(Long itemId, List<UpdateItemImageRequest> requests) {
-        Item item = getItemOrThrow(itemId);
+    public List<ItemImageResponse> updateImageInfo(Long userId, Long itemId, List<UpdateItemImageRequest> requests) {
+        Item item = itemValidator.getValidItem(itemId);
+        itemValidator.validateOwnership(item, userId);
 
         List<ItemImageResponse> updated = new ArrayList<>();
 
         for (UpdateItemImageRequest req : requests) {
-            ItemImage image = itemImageRepository.findByItemAndImageUrl(item, req.getImageUrl())
-                    .orElseThrow(() -> new BaseException(ErrorCode.IMAGE_NOT_FOUND, req.getImageUrl()));
-
+            ItemImage image = getImageByItemAndUrl(item, req.getImageUrl());
             image.updateItemImage(req.getImageUrl(), req.getImageIndex());
             updated.add(ItemImageResponse.of(image));
         }
@@ -61,14 +61,14 @@ public class ItemImageService {
     }
 
     @Transactional
-    public List<ItemImageResponse> updateImageUrl(Long itemId, List<UpdateImageUrlRequest> requests) {
-        Item item = getItemOrThrow(itemId);
+    public List<ItemImageResponse> updateImageUrl(Long userId,Long itemId, List<UpdateImageUrlRequest> requests) {
+        Item item = itemValidator.getValidItem(itemId);
+        itemValidator.validateOwnership(item, userId);
 
         List<ItemImageResponse> updated = new ArrayList<>();
 
         for(UpdateImageUrlRequest req : requests) {
-            ItemImage itemImage = itemImageRepository.findByItemAndImageUrl(item, req.getOriginalImageUrl())
-                    .orElseThrow(() -> new BaseException(ErrorCode.IMAGE_NOT_FOUND, req.getOriginalImageUrl()));
+            ItemImage itemImage = getImageByItemAndUrl(item, req.getOriginalImageUrl());
             itemImage.updateItemImageUrl(req.getNewImageUrl());
             updated.add(ItemImageResponse.of(itemImage));
         }
@@ -78,21 +78,18 @@ public class ItemImageService {
 
     @Transactional(readOnly = true)
     public List<ItemImageResponse> getImagesByItemId(Long itemId) {
-        Item item = getItemOrThrow(itemId);
+        Item item = itemValidator.getValidItem(itemId);
 
         List<ItemImage> images = itemImageRepository.findByItemOrderByImageIndex(item);
 
-        List<ItemImageResponse> responses = new ArrayList<>();
-        for (ItemImage image : images) {
-            responses.add(ItemImageResponse.of(image));
-        }
-
-        return responses;
+        return images.stream()
+                .map(ItemImageResponse::of)
+                .toList();
     }
 
-    private Item getItemOrThrow(Long itemId) {
-        return itemRepository.findById(itemId)
-                .filter(item -> item.getDeletedAt() == null)
-                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
+    private ItemImage getImageByItemAndUrl(Item item, String imageUrl) {
+        return itemImageRepository.findByItemAndImageUrl(item, imageUrl)
+                .orElseThrow(() -> new BaseException(ErrorCode.IMAGE_NOT_FOUND, imageUrl));
     }
+
 }
