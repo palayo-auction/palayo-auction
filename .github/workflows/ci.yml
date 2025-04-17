@@ -32,6 +32,10 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew clean bootJar
 
+      # 5. 빌드 디렉토리 내용 확인
+      - name: List build directory contents
+        run: ls -al build
+
   deploy:
     runs-on: ubuntu-latest
     needs: build  # build 작업이 성공해야 deploy 작업이 실행됨
@@ -49,12 +53,8 @@ jobs:
           distribution: 'temurin'
 
       # 3. 빌드된 JAR 파일 목록 확인
-      - name: List files in the build directory
-        run: |
-          echo "Current Directory:"
-          pwd
-          echo "Listing files in the build/libs directory"
-          ls -al build/libs
+      - name: List files in the build/libs directory
+        run: ls -al build/libs
 
       # 4. EC2에 JAR 파일 복사
       - name: Copy jar to EC2
