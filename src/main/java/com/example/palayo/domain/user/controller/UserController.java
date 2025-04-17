@@ -35,7 +35,7 @@ public class UserController {
         return Response.of(updatedNickname);
     }
 
-    @PutMapping("v1/users/password")
+    @PutMapping("/v1/users/password")
     public Response<UserResponse> updatePassword(
             @Valid @RequestBody UpdateUserRequest requestDto,
             @AuthenticationPrincipal AuthUser authUser
@@ -50,14 +50,14 @@ public class UserController {
         return Response.of(updatedPassword);
     }
 
-    @GetMapping("v1/users/myPage")
-    public Response<UserResponse> mypage(
+    @GetMapping("/v1/users/myPage")
+    public Response<UserResponse> myPage(
             @AuthenticationPrincipal AuthUser authUser
     ) {
         return Response.of(userService.myPage(authUser.getUserId()));
     }
 
-     @GetMapping("v1/users/soldItems")
+     @GetMapping("/v1/users/soldItems")
      public Response<List<UserItemResponse>> soldItems(
              @AuthenticationPrincipal AuthUser authUser,
              @RequestParam(defaultValue = "1") int page,
@@ -66,7 +66,7 @@ public class UserController {
          return Response.fromPage(userService.soldItems(authUser.getUserId(), page, size));
      }
 
-     @GetMapping("v1/users/buyItems")
+     @GetMapping("/v1/users/buyItems")
      public Response<List<UserItemResponse>> buyItems(
              @AuthenticationPrincipal AuthUser authUser,
              @RequestParam(defaultValue = "1") int page,
@@ -75,7 +75,7 @@ public class UserController {
         return Response.fromPage(userService.buyItems(authUser.getUserId(), page, size));
      }
 
-    @DeleteMapping("v1/users")
+    @DeleteMapping("/v1/users")
     public Response<Void> delete(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestBody DeleteUserRequest requestDto
