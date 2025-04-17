@@ -28,9 +28,9 @@ jobs:
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x gradlew
 
-      # 4. Gradle로 빌드
+      # 4. Gradle로 JAR 빌드
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: ./gradlew clean bootJar
 
   deploy:
     runs-on: ubuntu-latest
