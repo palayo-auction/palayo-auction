@@ -49,8 +49,8 @@ jobs:
           distribution: 'temurin'
 
       # 3. 빌드된 JAR 파일 목록 확인
-      - name: List files in the build directory
-        run: ls -al build
+      - name: List files in the build/libs directory
+        run: ls -al build/libs
 
       # 4. EC2에 JAR 파일 복사
       - name: Copy jar to EC2
