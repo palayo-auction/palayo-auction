@@ -69,3 +69,4 @@ jobs:
             # 기존 실행 중인 Spring Boot 앱 종료
             pkill -f 'java -jar' || true
             # 새로 빌드한 JAR 파일 실행
+            java -jar /home/ubuntu/app/palayo-0.0.1-SNAPSHOT.jar
