@@ -6,5 +6,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ItemRepositoryCustom {
-    Page<Item> searchMyItems(Long userId, Category category, Pageable pageable);
+    Page<Item> searchMyItems(Long userId, String keyword, Category category, Pageable pageable);
 }
