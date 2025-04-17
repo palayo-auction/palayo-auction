@@ -9,7 +9,10 @@ import java.util.Optional;
 
 public interface ItemImageRepository extends JpaRepository<ItemImage,Long> {
     Optional<ItemImage> findByItemAndImageUrl(Item item, String imageUrl);
+
     boolean existsByItemAndImageUrl(Item item, String imageUrl);
 
     List<ItemImage> findByItemOrderByImageIndex(Item item);
+
+    List<ItemImage> findByItem(Item item);
 }
