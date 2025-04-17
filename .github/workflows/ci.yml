@@ -34,7 +34,7 @@ jobs:
 
       # 5. 빌드 디렉토리 내용 확인
       - name: List build directory contents
-        run: ls -al build
+        run: ls -al build/libs
 
   deploy:
     runs-on: ubuntu-latest
