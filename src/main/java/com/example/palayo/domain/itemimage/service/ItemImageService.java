@@ -68,7 +68,7 @@ public class ItemImageService {
         List<ItemImageResponse> updated = new ArrayList<>();
 
         for(UpdateImageUrlRequest req : requests) {
-            ItemImage itemImage = getImageByItemAndUrl(item, req.getOriginalImageUrl());
+            ItemImage itemImage = getImageByItemAndUrl(item, req.getTargetImageUrl());
             itemImage.updateItemImageUrl(req.getNewImageUrl());
             updated.add(ItemImageResponse.of(itemImage));
         }
