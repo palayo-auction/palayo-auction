@@ -7,7 +7,6 @@ public record ItemSearchResponse (
         String name,
         String content,
         String category,
-        String ItemStatus,
         Long sellerId
 ) {
     public static ItemSearchResponse of(ItemDocument item) {
@@ -16,7 +15,6 @@ public record ItemSearchResponse (
                 item.getName(),
                 item.getContent(),
                 item.getCategory().name(),
-                item.getItemStatus().name(),
                 item.getSellerId()
         );
     }

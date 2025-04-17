@@ -51,17 +51,23 @@ public class ItemController {
         return Response.empty();
     }
 
+    @PostMapping("/v1/items/{itemId}/check")
+    public Response<Void> validateItemHasImages(@PathVariable Long itemId) {
+        itemService.requireImages(itemId);
+        return Response.empty();
+    }
+
     @GetMapping("/v1/items")
     Response<List<PageItemResponse>> getMyItems(
             @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String itemStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ){
 
         Page<PageItemResponse> itemPageResponses = itemService.getMyItems(
-                authUser.getUserId(), page, size, category, itemStatus
+                authUser.getUserId(), keyword, category, page, size
         );
         return Response.fromPage(itemPageResponses);
     }

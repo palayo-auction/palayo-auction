@@ -2,7 +2,6 @@ package com.example.palayo.domain.item.dto.response;
 
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.enums.Category;
-import com.example.palayo.domain.item.enums.ItemStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +14,6 @@ public class ItemResponse {
     private String userNickname;
     private String content;
     private Category category;
-    private ItemStatus itemStatus;
 
     public static ItemResponse of(Item item) {
         return new ItemResponse(
@@ -23,8 +21,7 @@ public class ItemResponse {
                 item.getName(),
                 item.getSeller().getNickname(),
                 item.getContent(),
-                item.getCategory(),
-                item.getItemStatus()
+                item.getCategory()
         );
     }
 }

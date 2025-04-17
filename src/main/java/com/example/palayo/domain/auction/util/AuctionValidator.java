@@ -1,10 +1,5 @@
 package com.example.palayo.domain.auction.util;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
@@ -12,24 +7,26 @@ import com.example.palayo.domain.auction.dto.request.CreateAuctionRequest;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.item.entity.Item;
-import com.example.palayo.domain.item.repository.ItemRepository;
-
+import com.example.palayo.domain.item.util.ItemValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 // 경매 생성 시 상품, 소유자, 요청 값 유효성을 검증하는 유틸리티 클래스
 @Component
 @RequiredArgsConstructor
 public class AuctionValidator {
 
-	private final ItemRepository itemRepository;
+	private final ItemValidator itemValidator;
 	private final AuctionRepository auctionRepository;
 
 	// 경매 생성 요청에 대한 종합 검증
 	public Item validateAuctionCreation(CreateAuctionRequest request, AuthUser authUser) {
 
 		// 상품 존재 여부 검증
-		Item item = itemRepository.findById(request.getItemId())
-			.orElseThrow(() -> new BaseException(ErrorCode.INVALID_ITEM_OWNER, "itemId"));
+		Item item = itemValidator.getValidItem(request.getItemId());
 
 		// 요청자가 상품 소유자인지 검증
 		if (!item.getSeller().getId().equals(authUser.getUserId())) {
