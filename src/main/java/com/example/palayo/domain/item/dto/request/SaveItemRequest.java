@@ -12,5 +12,5 @@ public class SaveItemRequest {
     @NotBlank
     private String content;
     @NotNull
-    private Category category;
+    private String category;
 }
