@@ -35,6 +35,15 @@ services:
     depends_on:
       - es
 
+  redis:
+    image: redis:7.2
+    container_name: noti
+    ports:
+      - 6380:6380
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
   mongo:
     image: mongo:8.0.8
     container_name: mongo
@@ -49,6 +58,8 @@ services:
 
 volumes:
   es-data:
+    driver: local
+  redis-data:
     driver: local
   mongo-data:
     driver: local

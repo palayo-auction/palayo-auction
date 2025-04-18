@@ -30,15 +30,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js"></script>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyBzZZDBwYnhAt6Vik-u-Q69p-yLb3FRhxo",
-        authDomain: "palayo-auction-test.firebaseapp.com",
-        projectId: "palayo-auction-test",
-        storageBucket: "palayo-auction-test.appspot.com",
-        messagingSenderId: "841013647267",
-        appId: "1:841013647267:web:f4dc5f7db738245e846c16"
-    };
+<script type="module">
+    import { firebaseConfig, vapidKey } from './const.js';
 
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
@@ -48,24 +41,25 @@
             .then((registration) => {
                 console.log("서비스 워커 등록 완료");
 
-                messaging.getToken({
-                    vapidKey: "BHMfUs8NxE6H71mH3R2kxWcct7KiY4KFm6_efcyN5awWsLdLSfK4C-l4VNpqF0Q6Sp07mBKRxLX6PfrCEN_mrjU",
+                return messaging.getToken({
+                    vapidKey: vapidKey,
                     serviceWorkerRegistration: registration
-                }).then((token) => {
-                    console.log("FCM 토큰:", token);
-
-                    fetch("http://localhost:8080/api/notification/register", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ token })
-                    });
                 });
             })
-            .catch((err) => console.error("sevice worker 등록 실패:", err));
+            .then((token) => {
+                console.log("FCM 토큰:", token);
+
+                fetch("http://localhost:8080/api/notification/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token })
+                });
+            })
+            .catch((err) => console.error("서비스 워커 등록 실패:", err));
     }
 
     messaging.onMessage((payload) => {
-        console.log("웹이 켜져있을 때 메세지 수신:", payload);
+        console.log("웹에서 메시지 수신:", payload);
 
         const { title, body } = payload.data;
 
@@ -78,15 +72,15 @@
         }, 4000);
     });
 
-    function requestPermission() {
+    window.requestPermission = function () {
         Notification.requestPermission().then((permission) => {
             if (permission === "granted") {
-                console.log("알림 권한 허용");
+                console.log("알림 권한 허용됨");
             } else {
-                console.warn("알림 권한 거부");
+                console.warn("알림 권한 거부됨");
             }
         });
-    }
+    };
 </script>
 </body>
 </html>
