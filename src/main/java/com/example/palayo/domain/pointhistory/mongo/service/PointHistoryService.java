@@ -30,7 +30,7 @@ public class PointHistoryService {
             throw new BaseException(ErrorCode.INSUFFICIENT_POINT, null);
         }
 
-        user.updatePointAmount(amount);
+//        user.updatePointAmount(amount);
 
         PointHistoryDocument pointHistory = PointHistoryDocument.builder()
                 .userId(userId)

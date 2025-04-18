@@ -9,11 +9,13 @@ import com.example.palayo.domain.user.dto.response.UserResponse;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import com.example.palayo.domain.user.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,10 +28,8 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -43,7 +43,7 @@ public class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Mock
+    @Spy
     private User user;
 
     @Mock
@@ -52,17 +52,20 @@ public class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
+    @BeforeEach
+    void setUp() {
+        User user = spy(User.of("email", "password", "nickname"));
+        ReflectionTestUtils.setField(user, "id", 1L);
+    }
+
     @Test
     @DisplayName("닉네임 변경 성공")
     void updateNickNameTest() {
         String newNickname = "newNickname";
 
         //given
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-        given(user.getNickname())
-                .willReturn("oldNickname")  //처음에는 변경 전 닉네임이 나와야함
-                .willReturn(newNickname); //변경후에 getNickname() 호출시 변경 된 닉네임이 나와야함.
-        given(userRepository.findByNickname(newNickname)).willReturn(Optional.of(user));
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
+        given(userRepository.findByNickname(newNickname)).willReturn(Optional.empty());
 
         //when
         UserResponse response = userService.updateNickname(newNickname, user.getId());
@@ -82,7 +85,7 @@ public class UserServiceTest {
 
         //given
         ReflectionTestUtils.setField(user, "password", encodedPassword);
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(passwordEncoder.matches(newPassword, encodedPassword)).willReturn(false);
         given(passwordEncoder.matches(oldPassword, encodedPassword)).willReturn(true);
         given(passwordEncoder.encode(newPassword)).willReturn(encodedPassword);
@@ -124,7 +127,7 @@ public class UserServiceTest {
     void deleteTest() {
         //given
         ReflectionTestUtils.setField(user, "password", "test");
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+        given(userRepository.findById(user.getId())).willReturn(Optional.of(user));
         given(passwordEncoder.matches("test", user.getPassword())).willReturn(true);
 
         //when
