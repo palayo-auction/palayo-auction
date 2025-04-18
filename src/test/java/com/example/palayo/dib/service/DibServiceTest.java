@@ -107,11 +107,6 @@ class DibServiceTest {
         given(redisNotificationFactory.dibAuctionStart(anyList(), eq(auction))).willReturn(List.of());
         given(redisNotificationFactory.dibAuctionEnd(anyList(), eq(auction))).willReturn(List.of());
 
-        given(dibRepository.findAllByAuction(any())).willReturn(List.of(Dib.of(user, auction)));
-        given(redisNotificationFactory.dibAuctionStart(anyList(), eq(auction))).willReturn(List.of());
-        given(redisNotificationFactory.dibAuctionEnd(anyList(), eq(auction))).willReturn(List.of());
-
-
         // when
         DibResponse result = dibService.dibAuction(authUser, 1L);
 
