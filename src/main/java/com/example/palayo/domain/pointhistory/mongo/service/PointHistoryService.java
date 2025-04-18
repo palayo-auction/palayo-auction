@@ -24,7 +24,7 @@ public class PointHistoryService {
     public void updatePointHistory(Long userId, int amount, PointType pointType) {
         User user = findById(userId);
 
-        if(pointType.equals(PointType.DECREASE) && user.getPointAmount() < amount) {
+        if (pointType.equals(PointType.DECREASE) && user.getPointAmount() < amount) {
             throw new BaseException(ErrorCode.INSUFFICIENT_POINT, null);
         }
 
@@ -50,7 +50,7 @@ public class PointHistoryService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, userId.toString()));
 
-        if(user.getDeletedAt() != null) {
+        if (user.getDeletedAt() != null) {
             throw new BaseException(ErrorCode.INACTIVE_USER, userId.toString());
         }
 
