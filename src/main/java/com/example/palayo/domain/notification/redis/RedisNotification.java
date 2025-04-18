@@ -1,6 +1,5 @@
 package com.example.palayo.domain.notification.redis;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

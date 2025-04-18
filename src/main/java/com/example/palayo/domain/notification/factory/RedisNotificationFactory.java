@@ -15,7 +15,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RedisNotificationFactory {
 
-
     public RedisNotification buildNotification(User user, Auction auction, String title, String body, String type, LocalDateTime scheduledAt) {
 
         Map<String, String> data = new HashMap<>();
