@@ -1,13 +1,17 @@
 package com.example.palayo.domain.payment.service;
 
+import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.payment.TossPaymentClient;
 import com.example.palayo.domain.payment.dto.response.PaymentConfirmResponse;
+import com.example.palayo.domain.payment.dto.response.PaymentResponse;
 import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import com.example.palayo.domain.user.enums.PointType;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +69,11 @@ public class PaymentService {
                 .build();
 
         paymentRepository.save(failedPayment);
+    }
+
+    public Page<PaymentResponse> getPayments(Long userId, Pageable pageable) {
+        Page<Payment> payments = paymentRepository.findByUserId(userId, pageable);
+        return payments.map(PaymentResponse::of);
     }
 }
 
