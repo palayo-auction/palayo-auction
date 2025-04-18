@@ -41,5 +41,5 @@ src/main/resources/**/*.yml
 src/main/resources/**/*.properties
 
 src/main/resources/service_account_key.json
-
+src/main/resources/template/Const.js
 .DS_Store
