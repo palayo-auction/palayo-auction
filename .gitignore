@@ -43,3 +43,5 @@ src/main/resources/**/*.properties
 src/main/resources/service_account_key.json
 
 .DS_Store
+
+.env
