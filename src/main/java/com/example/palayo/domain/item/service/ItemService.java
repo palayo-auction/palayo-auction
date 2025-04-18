@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,16 +46,23 @@ public class ItemService {
     @Transactional
     public ItemResponse saveItem(Long userId, SaveItemRequest request){
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, null));
 
-        Item item = Item.of(request.getName(), request.getContent(), request.getCategory(), user);
+        Category category = Category.of(request.getCategory());
+
+        Item item = Item.of(request.getName(), request.getContent(), category, user);
         Item savedItem = itemRepository.save(item);
 
+        List<String> imageUrls = itemImageRepository.findByItemOrderByImageIndex(item)
+                .stream()
+                .map(ItemImage::getImageUrl)
+                .toList();
+        
         //엘라스틱서치
         ItemDocument itemDocument = ItemDocument.of(item);
         itemElasticSearchRepository.save(itemDocument);
 
-        return ItemResponse.of(savedItem);
+        return ItemResponse.of(savedItem, imageUrls);
     }
 
     @Transactional
@@ -82,9 +90,14 @@ public class ItemService {
             itemDocument.updateCategory(Category.of(request.getCategory()));
         }
 
+        List<String> imageUrls = itemImageRepository.findByItemOrderByImageIndex(item)
+                .stream()
+                .map(ItemImage::getImageUrl)
+                .toList();
+
         itemElasticSearchRepository.save(itemDocument);
 
-        return ItemResponse.of(item);
+        return ItemResponse.of(item, imageUrls);
     }
 
     @Transactional
@@ -100,8 +113,8 @@ public class ItemService {
 
         List<ItemImage> images = itemImageRepository.findByItem(item);
         List<String> imageUrls = images.stream()
-            .map(ItemImage::getImageUrl)
-            .toList();
+                .map(ItemImage::getImageUrl)
+                .toList();
         s3Uploader.delete(imageUrls);
         itemImageRepository.deleteAll(images);
         item.markAsDeleted();
@@ -117,7 +130,13 @@ public class ItemService {
         Item item = itemValidator.getValidItem(itemId);
         itemValidator.validateOwnership(item, userId);
 
-        return ItemResponse.of(item);
+
+        List<String> imageUrls = itemImageRepository.findByItemOrderByImageIndex(item)
+                .stream()
+                .map(ItemImage::getImageUrl)
+                .toList();
+
+        return ItemResponse.of(item, imageUrls);
     }
 
     @Transactional(readOnly = true)
@@ -126,7 +145,14 @@ public class ItemService {
         Category categoryEnum = category != null ? Category.of(category) : null;
 
         Page<Item> myItems = itemRepository.searchMyItems(userId, keyword, categoryEnum, pageable);
-        return myItems.map(PageItemResponse::of);
+        return myItems.map(item -> {
+            String thumbnailUrl = itemImageRepository
+                    .findTopByItemOrderByImageIndexAsc(item)
+                    .map(ItemImage::getImageUrl)
+                    .orElse(null);
+
+            return PageItemResponse.of(item, thumbnailUrl);
+        });
     }
 
     @Transactional
@@ -141,16 +167,16 @@ public class ItemService {
     }
 
     private void checkStatus(Item item){
-        Auction auction = auctionRepository.findByItemId(item.getId())
-            .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
-
-        if(!auction.getStatus().equals(AuctionStatus.FAILED)){
-            throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, item.getId().toString());
-        }
+        auctionRepository.findOptionalByItemId(item.getId()) // 해당 아이템으로 등록된 경매 조회
+                .ifPresent(auction -> { // 조회된 경매가 있으면 실행, 없으면 메서드 종료
+                    if(!auction.getStatus().equals(AuctionStatus.FAILED)) {
+                        throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, item.getId().toString());
+                    }
+                });
     }
 
     private ItemDocument getDocument(Long documentId) {
         return itemElasticSearchRepository.findById(documentId)
-            .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
+                .orElseThrow(() -> new BaseException(ErrorCode.ITEM_NOT_FOUND, null));
     }
 }

@@ -1,5 +1,6 @@
 package com.example.palayo.domain.itemimage.entity;
 
+import com.example.palayo.common.entity.BaseEntity;
 import com.example.palayo.domain.item.entity.Item;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "item_images")
-public class ItemImage {
+public class ItemImage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
