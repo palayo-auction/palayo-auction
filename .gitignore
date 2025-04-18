@@ -4,6 +4,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+!**/src/main/**/DockerDesktopWSL/
 
 ### STS ###
 .apt_generated
@@ -42,4 +43,7 @@ src/main/resources/**/*.properties
 
 src/main/resources/service_account_key.json
 
+src/main/resources/template/Const.js
 .DS_Store
+.env
+

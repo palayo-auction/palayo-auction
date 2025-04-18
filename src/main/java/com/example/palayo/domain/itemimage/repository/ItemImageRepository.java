@@ -15,4 +15,6 @@ public interface ItemImageRepository extends JpaRepository<ItemImage,Long> {
     List<ItemImage> findByItemOrderByImageIndex(Item item);
 
     List<ItemImage> findByItem(Item item);
+
+    Optional<ItemImage> findTopByItemOrderByImageIndexAsc(Item item);
 }
