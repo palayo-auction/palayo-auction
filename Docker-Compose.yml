@@ -35,6 +35,17 @@ services:
     depends_on:
       - es
 
+  redis:
+    image: redis:7.2
+    container_name: noti
+    ports:
+      - 6380:6380
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
 volumes:
   es-data:
+    driver: local
+  redis-data:
     driver: local
