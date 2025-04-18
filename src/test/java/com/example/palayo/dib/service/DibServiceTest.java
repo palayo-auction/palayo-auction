@@ -69,11 +69,6 @@ class DibServiceTest {
     @Mock
     private Item item;
 
-    @Mock
-    private RedisNotificationFactory redisNotificationFactory;
-
-    @Mock
-    private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {
