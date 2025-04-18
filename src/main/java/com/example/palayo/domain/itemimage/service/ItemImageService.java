@@ -76,17 +76,6 @@ public class ItemImageService {
         return updated;
     }
 
-    @Transactional(readOnly = true)
-    public List<ItemImageResponse> getImagesByItemId(Long itemId) {
-        Item item = itemValidator.getValidItem(itemId);
-
-        List<ItemImage> images = itemImageRepository.findByItemOrderByImageIndex(item);
-
-        return images.stream()
-                .map(ItemImageResponse::of)
-                .toList();
-    }
-
     private ItemImage getImageByItemAndUrl(Item item, String imageUrl) {
         return itemImageRepository.findByItemAndImageUrl(item, imageUrl)
                 .orElseThrow(() -> new BaseException(ErrorCode.IMAGE_NOT_FOUND, imageUrl));
