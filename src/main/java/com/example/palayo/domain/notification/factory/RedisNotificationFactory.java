@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,12 +16,16 @@ import java.util.Map;
 public class RedisNotificationFactory {
 
     public RedisNotification buildNotification(User user, Auction auction, String title, String body, String type, LocalDateTime scheduledAt) {
+
+        Map<String, String> data = new HashMap<>();
+        data.put("auctionId", auction.getId().toString());
+
         return RedisNotification.builder()
                 .userId(user.getId())
                 .title(title)
                 .body(body)
                 .type(type)
-                .data(Map.of("auctionId", auction.getId().toString()))
+                .data(data)
                 .scheduledAt(scheduledAt)
                 .build();
     }
