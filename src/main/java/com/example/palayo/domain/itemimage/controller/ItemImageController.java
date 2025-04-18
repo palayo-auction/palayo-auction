@@ -37,14 +37,6 @@ public class ItemImageController {
         return Response.of(itemImageResponses);
     }
 
-    @GetMapping("/v1/items/{itemId}/images")
-    public Response<List<ItemImageResponse>> getImages(
-            @PathVariable Long itemId
-    ){
-       List<ItemImageResponse> responseList = itemImageService.getImagesByItemId(itemId);
-       return Response.of(responseList);
-    }
-
     @PatchMapping("/v1/items/{itemId}/urls")
     public Response<List<ItemImageResponse>> updateImageFiles(
             @AuthenticationPrincipal AuthUser authUser,
