@@ -76,6 +76,10 @@ dependencies {
     //quartz
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
 
+    //monitoring
+    implementation("org.springframework.boot:spring-boot-starter-actuator:3.3.0")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.13.0")
+
     //mongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 }

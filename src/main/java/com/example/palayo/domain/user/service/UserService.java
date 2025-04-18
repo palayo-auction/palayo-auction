@@ -38,11 +38,21 @@ public class UserService {
             throw new BaseException(ErrorCode.NICKNAME_SAME_AS_OLD, nickname);
         }
 
+<<<<<<< Updated upstream
         userRepository.findByNickname(nickname).ifPresent(
              foundUser -> {
                  throw new BaseException(ErrorCode.DUPLICATE_NICNKNAME, nickname);
              }
         );
+=======
+//        User findByNicknameUser = userRepository.findByNickname(nickname)
+//                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, nickname)
+//        );
+//
+//        if (!user.getId().equals(findByNicknameUser.getId())) {
+//            throw new BaseException(ErrorCode.DUPLICATE_NICNKNAME, nickname);
+//        }
+>>>>>>> Stashed changes
 
         user.updateNickname(nickname);
 
