@@ -38,13 +38,11 @@ public class UserService {
             throw new BaseException(ErrorCode.NICKNAME_SAME_AS_OLD, nickname);
         }
 
-        User findByNicknameUser = userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, nickname)
+        userRepository.findByNickname(nickname).ifPresent(
+             foundUser -> {
+                 throw new BaseException(ErrorCode.DUPLICATE_NICNKNAME, nickname);
+             }
         );
-
-        if (!user.getId().equals(findByNicknameUser.getId())) {
-            throw new BaseException(ErrorCode.DUPLICATE_NICNKNAME, nickname);
-        }
 
         user.updateNickname(nickname);
 
