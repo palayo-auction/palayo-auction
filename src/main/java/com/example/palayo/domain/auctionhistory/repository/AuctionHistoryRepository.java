@@ -1,14 +1,12 @@
 package com.example.palayo.domain.auctionhistory.repository;
 
 import com.example.palayo.domain.auction.entity.Auction;
+import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.user.entity.User;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
-
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -50,4 +48,8 @@ public interface AuctionHistoryRepository extends JpaRepository<AuctionHistory, 
 	// 경매 ID로 입찰자 목록 조회 (중복 제거)
 	@Query("SELECT DISTINCT ah.bidder FROM AuctionHistory ah WHERE ah.auction.id = :auctionId")
 	List<User> findAllBiddersByAuctionId(@Param("auctionId") Long auctionId);
+
+	// 경매ID + 입찰자 ID로 가장 높은 입찰 (시간 최신 순)
+	Optional<AuctionHistory> findTopByAuctionIdAndBidderIdOrderByBidPriceDescCreatedAtDesc(Long auctionId,
+		Long bidderId);
 }
