@@ -11,8 +11,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.example.palayo.domain.auction.enums.AuctionStatus;
-import com.example.palayo.domain.item.entity.Item;
-import com.example.palayo.domain.user.entity.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,6 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -35,6 +34,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 public class Auction {
+
+	// // Optimistic Lock 버전
+	// // 버전을 관리하여 동시성 충돌을 방지
+	// @Version
+	// @Column(name = "version")
+	// private Integer version;
 
 	// 경매 ID
 	@Id
