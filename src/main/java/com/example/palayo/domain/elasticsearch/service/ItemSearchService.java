@@ -4,11 +4,15 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.example.palayo.common.exception.BaseException;
+import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.elasticsearch.document.ItemDocument;
 import com.example.palayo.domain.elasticsearch.dto.response.ItemSearchResponse;
 import com.example.palayo.domain.elasticsearch.repository.ItemElasticSearchRepository;
 import com.example.palayo.domain.item.enums.Category;
 
+import com.example.palayo.domain.user.entity.User;
+import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,9 +32,11 @@ public class ItemSearchService {
 
     private final ElasticsearchClient elasticsearchClient;
     private final ItemElasticSearchRepository itemElasticSearchRepository;
+    private final UserRepository userRepository;
 
     public Page<ItemSearchResponse> searchItems(String keyword, Category category, Long sellerId, Pageable pageable) {
         try {
+            findById(sellerId);
             // 쿼리 동적 구성
             List<Query> mustQueries = new ArrayList<>();
             List<Query> filterQueries = new ArrayList<>();
@@ -90,8 +96,21 @@ public class ItemSearchService {
     }
 
     public Page<ItemSearchResponse> findBySellerId(Long id, Pageable pageable) {
+        findById(id);
         Page<ItemDocument> items = itemElasticSearchRepository.findBySellerId(id, pageable);
 
         return items.map(ItemSearchResponse::of);
+    }
+
+    private User findById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new BaseException(ErrorCode.USER_NOT_FOUND, id.toString())
+        );
+
+        if (user.getDeletedAt() != null) {
+            throw new BaseException(ErrorCode.INACTIVE_USER, id.toString());
+        }
+
+        return user;
     }
 }

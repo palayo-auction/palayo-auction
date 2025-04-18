@@ -1,5 +1,7 @@
 package com.example.palayo.domain.payment.service;
 
+import com.example.palayo.common.exception.BaseException;
+import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.payment.TossPaymentClient;
 import com.example.palayo.domain.payment.dto.response.PaymentConfirmResponse;
@@ -8,8 +10,10 @@ import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
 import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
+import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.enums.PointType;
 
+import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +28,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PointHistoriesService pointHistoriesService;
     private final PointHistoryService pointHistoryService;
+    private final UserRepository userRepository;
 
     @Transactional
     public String confirmAndSave(String paymentKey, String orderId, int amount) {
@@ -78,6 +83,18 @@ public class PaymentService {
     public Page<PaymentResponse> getPayments(Long userId, Pageable pageable) {
         Page<Payment> payments = paymentRepository.findByUserId(userId, pageable);
         return payments.map(PaymentResponse::of);
+    }
+
+    private User findById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new BaseException(ErrorCode.USER_NOT_FOUND, id.toString())
+        );
+
+        if(user.getDeletedAt() != null){
+            throw new BaseException(ErrorCode.INACTIVE_USER, id.toString());
+        }
+
+        return user;
     }
 }
 
