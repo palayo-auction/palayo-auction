@@ -45,6 +45,7 @@ public class PointHistoriesService {
 	// 사용자 포인트 이력 최신순 조회
 	@Transactional(readOnly = true)
 	public Page<PointHistoriesResponse> findByUserId(Long userId, int page, int size) {
+		findUserById(userId);
 		Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
 		Page<PointHistories> pointHistories = pointHistoriesRepository.findByUserId(userId, pageable);
 		return pointHistories.map(PointHistoriesResponse::of);
@@ -52,7 +53,13 @@ public class PointHistoriesService {
 
 	// 사용자 ID로 사용자 조회 (없으면 예외 발생)
 	private User findUserById(Long userId) {
-		return userRepository.findById(userId)
-			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, userId.toString()));
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, userId.toString()));
+
+		if (user.getDeletedAt() != null) {
+			throw new BaseException(ErrorCode.INACTIVE_USER, userId.toString());
+		}
+
+		return user;
 	}
 }

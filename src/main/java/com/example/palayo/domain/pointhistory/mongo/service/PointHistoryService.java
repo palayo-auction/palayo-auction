@@ -22,9 +22,7 @@ public class PointHistoryService {
     private final UserRepository userRepository;
 
     public void updatePointHistory(Long userId, int amount, PointType pointType) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
-        );
+        User user = findById(userId);
 
         if(pointType.equals(PointType.DECREASE) && user.getPointAmount() < amount) {
             throw new BaseException(ErrorCode.INSUFFICIENT_POINT, null);
@@ -42,8 +40,20 @@ public class PointHistoryService {
     }
 
     public Page<PointHistoryResponse> getPointHistory(Long userId, int page, int size) {
+        findById(userId);
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<PointHistoryDocument> pointHistory = pointHistoryRepository.findByUserId(userId, pageable);
         return pointHistory.map(PointHistoryResponse::of);
+    }
+
+    private User findById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, userId.toString()));
+
+        if(user.getDeletedAt() != null) {
+            throw new BaseException(ErrorCode.INACTIVE_USER, userId.toString());
+        }
+
+        return user;
     }
 }
