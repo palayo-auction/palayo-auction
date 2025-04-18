@@ -16,7 +16,7 @@ import java.util.List;
 public class FileUploadController {
     private final S3Uploader s3Uploader;
 
-    @PostMapping("/{itemId}/upload")
+    @PostMapping(value = "/{itemId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Response<List<String>> uploadFiles(
             @RequestParam("files") List<MultipartFile> files,
             @PathVariable Long itemId
@@ -33,11 +33,4 @@ public class FileUploadController {
         List<String> updatedUrls = s3Uploader.updateFiles(originalUrls, files);
         return Response.of(updatedUrls);
     }
-
-    @DeleteMapping("/delete")
-    public Response<Void> deleteImages(@RequestBody ImageDeleteRequest request) {
-        s3Uploader.delete(request.getImageUrls());
-        return Response.empty();
-    }
-
 }

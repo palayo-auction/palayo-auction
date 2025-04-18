@@ -13,13 +13,15 @@ public class PageItemResponse {
     private String name;
     private String content;
     private Category category;
+    private String thumbnailUrl;
 
-    public static PageItemResponse of(Item item){
+    public static PageItemResponse of(Item item, String thumbnailUrl){
         return new PageItemResponse(
                 item.getId(),
                 item.getName(),
                 item.getContent(),
-                item.getCategory()
+                item.getCategory(),
+                thumbnailUrl
         );
     }
 }

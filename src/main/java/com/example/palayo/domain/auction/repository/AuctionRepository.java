@@ -13,7 +13,7 @@ import com.example.palayo.domain.auction.enums.AuctionStatus;
 public interface AuctionRepository extends JpaRepository<Auction, Long> {
 
 	// 상품 ID로 경매 단건 조회
-	Optional<Auction> findByItemId(Long itemId);
+	Optional<Auction> findOptionalByItemId(Long itemId);
 
 	// 상품 ID로 특정 상태(READY, ACTIVE)인 경매 존재 여부 조회
 	boolean existsByItemIdAndStatusIn(Long itemId, List<AuctionStatus> statuses);
