@@ -83,4 +83,13 @@ public class UserController {
         userService.delete(authUser.getUserId(), requestDto.getPassword());
         return Response.empty();
     }
+
+    @PostMapping("/v1/users")
+    public Response<Void> unDelete(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestBody DeleteUserRequest requestDto
+    ) {
+        userService.unDelete(authUser.getUserId(), requestDto.getPassword());
+        return Response.empty();
+    }
 }

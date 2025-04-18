@@ -42,7 +42,6 @@ public class AuctionHistoryService {
 	private final AuctionRepository auctionRepository;
 	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final UserRepository userRepository;
-	private final DepositHistoryService depositHistoryService;
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
 	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;

@@ -119,11 +119,28 @@ public class UserService {
         user.deleteUser();
     }
 
+    @Transactional
+    public void unDelete(Long userId, String password) {
+        User user = findById(userId);
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
+        }
+
+        user.unDeleteUser();
+    }
+
 
     //계속 중복되어 메서드화
     private User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(
+        User user = userRepository.findById(id).orElseThrow(
                 () -> new BaseException(ErrorCode.USER_NOT_FOUND, null)
         );
+
+        if (user.getDeletedAt() != null) {
+            throw new BaseException(ErrorCode.INACTIVE_USER, null);
+        }
+
+        return user;
     }
 }

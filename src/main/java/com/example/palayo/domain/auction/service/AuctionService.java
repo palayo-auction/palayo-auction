@@ -37,8 +37,6 @@ import lombok.RequiredArgsConstructor;
 public class AuctionService {
 
 	private final AuctionRepository auctionRepository;
-	private final AuctionHistoryRepository auctionHistoryRepository;
-	private final ItemRepository itemRepository;
 	private final AuctionServiceHelper auctionServiceHelper;
 	private final AuctionValidator auctionValidator;
 	private final NotificationService notificationService;
