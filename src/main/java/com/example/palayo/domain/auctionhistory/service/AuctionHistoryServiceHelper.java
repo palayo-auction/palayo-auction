@@ -7,6 +7,7 @@ import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
+import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.enums.PointType;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 // 입찰 관련 검증, 조회, 보조 기능을 담당하는 헬퍼 클래스
 @Component
@@ -26,6 +26,7 @@ public class AuctionHistoryServiceHelper {
 	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final DepositHistoryService depositHistoryService;
 	private final PointHistoriesService pointHistoriesService;
+	private final PointHistoryService pointHistoryService;
 
 	// 사용자가 본인 경매에 입찰하려고 하는지 검증 (본인 경매 입찰 불가)
 	public void validateNotOwner(Auction auction, User bidder) {
@@ -71,6 +72,8 @@ public class AuctionHistoryServiceHelper {
 
 			// 포인트 감소 및 포인트 기록 추가
 			pointHistoriesService.updatePoints(bidder.getId(), -depositAmount, PointType.DECREASE);
+			//몽고디비
+			pointHistoryService.updatePointHistory(bidder.getId(), -depositAmount, PointType.DECREASE);
 		}
 	}
 
@@ -103,6 +106,8 @@ public class AuctionHistoryServiceHelper {
 		int additionalCharge = finalBidPrice - depositAmount;
 		if (additionalCharge > 0) {
 			pointHistoriesService.updatePoints(winner.getId(), -additionalCharge, PointType.DECREASE);
+			//몽고디비
+			pointHistoryService.updatePointHistory(winner.getId(), -additionalCharge, PointType.DECREASE);
 		}
 	}
 
@@ -119,6 +124,25 @@ public class AuctionHistoryServiceHelper {
 			depositHistoryService.refundDeposit(auction.getId(), failedBidder.getId());
 			int depositAmount = (int)Math.ceil(auction.getStartingPrice() * 0.1);
 			pointHistoriesService.updatePoints(failedBidder.getId(), depositAmount, PointType.REFUNDED);
+			//몽고디비
+			pointHistoryService.updatePointHistory(failedBidder.getId(), depositAmount, PointType.REFUNDED);
 		}
+	}
+
+	// 특정 경매에서 사용자의 최고 입찰 금액을 조회
+	public Integer getMyHighestBid(Long auctionId, Long userId) {
+		return auctionHistoryRepository
+			.findTopByAuctionIdAndBidderIdOrderByBidPriceDescCreatedAtDesc(auctionId, userId)
+			.map(AuctionHistory::getBidPrice)
+			.orElse(null);
+	}
+
+	// 경매가 종료된 경우, 사용자가 낙찰자인지 여부를 반환 (진행 중인 경매는 null)
+	public Boolean isWinner(Auction auction, Long userId) {
+		if (auction.getStatus() == AuctionStatus.ACTIVE) {
+			return null;
+		}
+		return auction.getWinningBidder() != null &&
+			auction.getWinningBidder().getId().equals(userId);
 	}
 }

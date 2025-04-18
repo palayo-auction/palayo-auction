@@ -68,7 +68,7 @@ public class AuctionService {
 		Auction savedAuction = auctionRepository.save(auction);
 
 		// 알림 예약 (경매 시작/종료 알림)
-		reserveMyAuctionNotification(savedAuction);
+//		reserveMyAuctionNotification(savedAuction);
 
 		return AuctionResponse.of(savedAuction);
 	}
@@ -99,7 +99,7 @@ public class AuctionService {
 		LocalDateTime now = LocalDateTime.now();
 		// 각 경매에 대해 남은 시간 포맷팅해서 응답 변환
 		return auctions.map(
-			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction))
+			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
 		);
 	}
 
@@ -110,7 +110,7 @@ public class AuctionService {
 
 		LocalDateTime now = LocalDateTime.now();
 		// 낙찰자 정보 없이 경매 상세 응답 반환
-		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null);
+		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null, null);
 	}
 
 	// 내가 등록한 모든 경매를 조회하는 메서드 (삭제된 경매 포함)
@@ -125,8 +125,7 @@ public class AuctionService {
 				AuctionStatus.READY,
 				AuctionStatus.ACTIVE,
 				AuctionStatus.SUCCESS,
-				AuctionStatus.FAILED,
-				AuctionStatus.DELETED
+				AuctionStatus.FAILED
 			),
 			pageable
 		);
@@ -134,7 +133,7 @@ public class AuctionService {
 		LocalDateTime now = LocalDateTime.now();
 		// 각 경매의 남은 시간을 함께 응답
 		return auctions.map(
-			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction))
+			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
 		);
 	}
 
@@ -147,8 +146,7 @@ public class AuctionService {
 				AuctionStatus.READY,
 				AuctionStatus.ACTIVE,
 				AuctionStatus.SUCCESS,
-				AuctionStatus.FAILED,
-				AuctionStatus.DELETED
+				AuctionStatus.FAILED
 			)
 		);
 
@@ -165,7 +163,7 @@ public class AuctionService {
 		LocalDateTime now = LocalDateTime.now();
 		// 낙찰자 정보까지 담아서 경매 상세 응답 반환
 		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction),
-			winningBidderNickname);
+			winningBidderNickname, null, null);
 	}
 
 	// 경매를 삭제하는 메서드 (소프트 딜리트: 실제 삭제가 아니라 상태만 변경)

@@ -1,13 +1,18 @@
 package com.example.palayo.domain.payment.service;
 
+import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.payment.TossPaymentClient;
 import com.example.palayo.domain.payment.dto.response.PaymentConfirmResponse;
+import com.example.palayo.domain.payment.dto.response.PaymentResponse;
 import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
+import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import com.example.palayo.domain.user.enums.PointType;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +23,7 @@ public class PaymentService {
     private final TossPaymentClient tossPaymentClient;
     private final PaymentRepository paymentRepository;
     private final PointHistoriesService pointHistoriesService;
+    private final PointHistoryService pointHistoryService;
 
     @Transactional
     public String confirmAndSave(String paymentKey, String orderId, int amount) {
@@ -43,6 +49,8 @@ public class PaymentService {
 
             paymentRepository.save(payment);
             pointHistoriesService.updatePoints(userId, payment.getAmount(), PointType.RECHARGE);
+            //몽고디비
+            pointHistoryService.updatePointHistory(userId, payment.getAmount(), PointType.RECHARGE);
 
             return "결제 완료 \n금액: " + payment.getAmount() + "원";
     }
@@ -65,6 +73,11 @@ public class PaymentService {
                 .build();
 
         paymentRepository.save(failedPayment);
+    }
+
+    public Page<PaymentResponse> getPayments(Long userId, Pageable pageable) {
+        Page<Payment> payments = paymentRepository.findByUserId(userId, pageable);
+        return payments.map(PaymentResponse::of);
     }
 }
 
