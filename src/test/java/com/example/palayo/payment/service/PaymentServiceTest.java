@@ -5,6 +5,7 @@ import com.example.palayo.domain.payment.dto.response.PaymentConfirmResponse;
 import com.example.palayo.domain.payment.entity.Payment;
 import com.example.palayo.domain.payment.repostiory.PaymentRepository;
 import com.example.palayo.domain.payment.service.PaymentService;
+import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import com.example.palayo.domain.user.enums.PointType;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,9 @@ public class PaymentServiceTest {
 
     @Mock
     private PointHistoriesService pointHistoriesService;
+
+    @Mock
+    private PointHistoryService pointHistoryService;
 
     @Test
     @DisplayName("결제 내역, 포인트 변화 성공 테스트")
