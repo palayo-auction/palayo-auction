@@ -76,8 +76,6 @@ dependencies {
     //quartz
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
 
-    //mongoDB
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 }
 
 tasks.named('test') {
