@@ -13,7 +13,7 @@ public enum Category {
     ART,            // 예술품
     SPORTS,         // 스포츠용품
     TOYS,           // 장난감
-    ETC;             // 기타
+    ETC;            // 기타
 
     public static Category of(String category){
         return Arrays.stream(Category.values())
