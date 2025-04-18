@@ -56,8 +56,6 @@ public class RedisNotificationScheduler {
 
                 } catch (Exception e) {
                     //throw new BaseException(ErrorCode.NOTIFICATION_SEND_FAIL,null);
-                    System.err.println("[알림 전송 실패] key: " + key + ", 이유: " + e.getMessage());
-                    e.printStackTrace();
                 }
             }
         }
