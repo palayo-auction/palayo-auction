@@ -31,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,46 +50,49 @@ public class AuctionHistoryService {
 	// 사용자가 경매에 입찰할 때 호출하는 메서드
 	@Transactional
 	public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
-		Auction auction = findActiveAuctionById(auctionId);
-		User bidder = findUserById(authUser.getUserId());
+		try {
+			Auction auction = findActiveAuctionById(auctionId);
+			User bidder = findUserById(authUser.getUserId());
 
-		// 입찰자가 상품 주인인지 검증 (주인이면 입찰 불가)
-		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
-		// 입찰 가격이 유효한지 검증
-		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
-		// 사용자의 포인트가 충분한지 체크
-		auctionHistoryServiceHelper.checkPointLimit(bidder, request.getBidPrice());
-		// 입찰 보증금이 존재하지 않으면 생성
-		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
+			// 입찰자가 상품 주인인지 검증 (주인이면 입찰 불가)
+			auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
+			// 입찰 가격이 유효한지 검증
+			auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
+			// 사용자의 포인트가 충분한지 체크
+			auctionHistoryServiceHelper.checkPointLimit(bidder, request.getBidPrice());
+			// 입찰 보증금이 존재하지 않으면 생성
+			auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
 
-		// 입찰 전 최고 입찰자 찾기 (알림용)
-		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
-			auction.getId());
+			// 입찰 전 최고 입찰자 찾기 (알림용)
+			Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
+				auction.getId());
 
-		// 입찰 내역 생성 및 저장
-		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
-		auctionHistoryRepository.save(auctionHistory);
+			// 입찰 내역 생성 및 저장
+			AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
+			auctionHistoryRepository.save(auctionHistory);
 
-		// 현재 경매 최고가 업데이트
-		auction.updateCurrentPrice(request.getBidPrice());
+			// 현재 경매 최고가 업데이트
+			auction.updateCurrentPrice(request.getBidPrice());
 
-		// 입찰 가격이 즉시낙찰가에 도달했는지 체크 후 경매 성공 처리
-		if (auctionHistoryServiceHelper.isBuyoutPriceReached(auction, request.getBidPrice())) {
-			auction.markAsSuccess(bidder);
-			auctionHistoryServiceHelper.handleAuctionSuccess(auction, bidder, request.getBidPrice());
-			auctionHistoryServiceHelper.refundFailedBidders(auction);
-		}
-
-		// 알림 보내기: 최고 입찰자가 변경된 경우
-		if (previousTopBidOpt.isPresent()) {
-			User previousTopBidder = previousTopBidOpt.get().getBidder();
-			if (!previousTopBidder.getId().equals(bidder.getId())) {
-				RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
-				notificationService.saveNotification(notification);
+			// 입찰 가격이 즉시낙찰가에 도달했는지 체크 후 경매 성공 처리
+			if (auctionHistoryServiceHelper.isBuyoutPriceReached(auction, request.getBidPrice())) {
+				auction.markAsSuccess(bidder);
+				auctionHistoryServiceHelper.handleAuctionSuccess(auction, bidder, request.getBidPrice());
+				auctionHistoryServiceHelper.refundFailedBidders(auction);
 			}
-		}
 
-		return BidResponse.of(auctionHistory);
+			// 알림 보내기: 최고 입찰자가 변경된 경우
+			if (previousTopBidOpt.isPresent()) {
+				User previousTopBidder = previousTopBidOpt.get().getBidder();
+				if (!previousTopBidder.getId().equals(bidder.getId())) {
+					RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
+					notificationService.saveNotification(notification);
+				}
+			}
+			return BidResponse.of(auctionHistory);
+		} catch (ObjectOptimisticLockingFailureException e) {
+			throw new BaseException(ErrorCode.CONCURRENT_BID_CONFLICT, "동시 입찰 충돌 발생");
+		}
 	}
 
 	// 특정 경매에 대한 입찰 기록을 조회하는 메서드
@@ -107,6 +111,7 @@ public class AuctionHistoryService {
 	@Transactional(readOnly = true)
 	public Page<AuctionListResponse> getParticipatedAuctions(AuthUser authUser, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+		Long userId = authUser.getUserId();
 
 		// 사용자가 입찰한 경매 ID 목록 조회
 		List<Long> participatedAuctionIds = auctionHistoryRepository.findDistinctAuctionIdsByBidderId(
@@ -124,10 +129,22 @@ public class AuctionHistoryService {
 			pageable
 		);
 
-		// AuctionListResponse로 변환하여 반환
 		LocalDateTime now = LocalDateTime.now();
-		return auctions.map(
-			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction)));
+
+		// 각 경매에 대해 내가 입찰한 최고 금액과 낙찰 여부 포함 응답
+		return auctions.map(auction -> {
+			// 해당 경매에서 사용자의 최고 입찰 금액 조회
+			Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auction.getId(), userId);
+			// 낙찰자인지 여부 판단 (진행 중인 경매는 null 반환)
+			Boolean isWinner = auctionHistoryServiceHelper.isWinner(auction, userId);
+
+			return AuctionListResponse.of(
+				auction,
+				TimeFormatter.formatRemainingTime(now, auction),
+				myBidPrice,
+				isWinner
+			);
+		});
 	}
 
 	// 사용자가 참여한 특정 경매 상세정보를 조회하는 메서드
@@ -139,16 +156,29 @@ public class AuctionHistoryService {
 			List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED)
 		).orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
+		Long userId = authUser.getUserId();
+
 		// 사용자가 이 경매에 참여했는지 검증
 		auctionHistoryServiceHelper.validateParticipation(auctionId, authUser.getUserId());
 
-		// 낙찰자의 닉네임 가져오기
+		// 경매 상태가 SUCCESS 또는 DELETED인 경우에만 낙찰자 닉네임 조회
 		String winningBidderNickname = auctionHistoryServiceHelper.getWinningBidderNickname(auction);
 
-		// AuctionDetailResponse로 변환하여 반환
+		// 사용자의 최고 입찰 금액 조회
+		Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auctionId, userId);
+
+		// 낙찰자인지 여부 확인 (ACTIVE 상태는 null 반환)
+		Boolean isWinner = auctionHistoryServiceHelper.isWinner(auction, userId);
+
 		LocalDateTime now = LocalDateTime.now();
-		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction),
-			winningBidderNickname);
+
+		return AuctionDetailResponse.of(
+			auction,
+			TimeFormatter.formatRemainingTime(now, auction),
+			winningBidderNickname,
+			myBidPrice,
+			isWinner
+		);
 	}
 
 	// 경매 ID로 ACTIVE 상태의 경매를 조회하는 메서드 (단순 조회용)

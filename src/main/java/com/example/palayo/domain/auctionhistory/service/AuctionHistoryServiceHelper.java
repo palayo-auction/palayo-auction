@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 // 입찰 관련 검증, 조회, 보조 기능을 담당하는 헬퍼 클래스
 @Component
@@ -128,5 +127,22 @@ public class AuctionHistoryServiceHelper {
 			//몽고디비
 			pointHistoryService.updatePointHistory(failedBidder.getId(), depositAmount, PointType.REFUNDED);
 		}
+	}
+
+	// 특정 경매에서 사용자의 최고 입찰 금액을 조회
+	public Integer getMyHighestBid(Long auctionId, Long userId) {
+		return auctionHistoryRepository
+			.findTopByAuctionIdAndBidderIdOrderByBidPriceDescCreatedAtDesc(auctionId, userId)
+			.map(AuctionHistory::getBidPrice)
+			.orElse(null);
+	}
+
+	// 경매가 종료된 경우, 사용자가 낙찰자인지 여부를 반환 (진행 중인 경매는 null)
+	public Boolean isWinner(Auction auction, Long userId) {
+		if (auction.getStatus() == AuctionStatus.ACTIVE) {
+			return null;
+		}
+		return auction.getWinningBidder() != null &&
+			auction.getWinningBidder().getId().equals(userId);
 	}
 }
