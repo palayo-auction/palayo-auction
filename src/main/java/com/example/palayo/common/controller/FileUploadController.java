@@ -1,7 +1,7 @@
 package com.example.palayo.common.controller;
 
 import com.example.palayo.common.response.Response;
-import com.example.palayo.common.utils.S3Uploader;
+import com.example.palayo.common.util.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
