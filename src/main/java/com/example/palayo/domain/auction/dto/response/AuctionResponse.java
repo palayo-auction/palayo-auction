@@ -11,4 +11,3 @@ public record AuctionResponse(Long auctionId, String status) {
 		);
 	}
 }
-

@@ -59,7 +59,7 @@ public class AuctionHistoryService {
 			// 입찰 가격이 유효한지 검증
 			auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
 			// 사용자의 포인트가 충분한지 체크
-			auctionHistoryServiceHelper.checkPointLimit(bidder, request.getBidPrice());
+			auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
 			// 입찰 보증금이 존재하지 않으면 생성
 			auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
 
@@ -161,8 +161,10 @@ public class AuctionHistoryService {
 		// 사용자가 이 경매에 참여했는지 검증
 		auctionHistoryServiceHelper.validateParticipation(auctionId, authUser.getUserId());
 
-		// 경매 상태가 SUCCESS 또는 DELETED인 경우에만 낙찰자 닉네임 조회
-		String winningBidderNickname = auctionHistoryServiceHelper.getWinningBidderNickname(auction);
+		// 낙찰자 정보가 있다면 닉네임과 낙찰 시각을 조회 (없으면 null)
+		AuctionHistoryServiceHelper.WinningInfo winningInfo = auctionHistoryServiceHelper.getWinningInfoIfPresent(auction);
+		String winningBidderNickname = winningInfo != null ? winningInfo.nickname() : null;
+		LocalDateTime successAt = winningInfo != null ? winningInfo.successAt() : null;
 
 		// 사용자의 최고 입찰 금액 조회
 		Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auctionId, userId);
@@ -177,7 +179,8 @@ public class AuctionHistoryService {
 			TimeFormatter.formatRemainingTime(now, auction),
 			winningBidderNickname,
 			myBidPrice,
-			isWinner
+			isWinner,
+			successAt
 		);
 	}
 
