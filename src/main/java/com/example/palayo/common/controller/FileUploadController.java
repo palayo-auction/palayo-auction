@@ -1,6 +1,5 @@
 package com.example.palayo.common.controller;
 
-import com.example.palayo.common.dto.ImageDeleteRequest;
 import com.example.palayo.common.response.Response;
 import com.example.palayo.common.utils.S3Uploader;
 import lombok.RequiredArgsConstructor;
