@@ -10,6 +10,8 @@ import com.example.palayo.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface DepositHistoryRepository extends JpaRepository<DepositHistory, Long> {
 
@@ -26,4 +28,7 @@ public interface DepositHistoryRepository extends JpaRepository<DepositHistory, 
 	List<DepositHistory> findAllByAuctionId(Long auctionId);
 
 	Optional<DepositHistory> findByAuctionAndUser(Auction auction, User user);
+
+	@Query("SELECT COALESCE(SUM(d.deposit), 0) FROM DepositHistory d WHERE d.user.id = :userId AND d.status = 'PENDING'")
+	int sumDepositsByUserId(@Param("userId") Long userId);
 }
