@@ -1,4 +1,4 @@
-package com.example.palayo.common.utils;
+package com.example.palayo.common.util;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
