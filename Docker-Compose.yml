@@ -66,14 +66,14 @@ services:
       - ./data/prometheus:/prometheus
     command: [ "--config.file=/etc/prometheus/prometheus.yml" ]
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT}:${PROMETHEUS_PORT}"
 
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
     restart: always
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT}:${GRAFANA_PORT}"
     volumes:
       - ./data/grafana:/var/lib/grafana
     depends_on:
@@ -84,7 +84,7 @@ services:
     image: grafana/loki:latest
     restart: always
     ports:
-      - "3100:3100"
+      - "${LOKI_PORT}:${LOKI_PORT}"
     command: [ "--config.file=/etc/loki/loki-config.yaml" ]
     volumes:
       - ./grafana_monitoring_stack_docker/conf/loki-config.yaml:/etc/loki/loki-config.yaml
