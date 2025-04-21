@@ -52,23 +52,43 @@ public class AuctionService {
 		// 상품 존재, 소유자 일치 여부, 중복 경매 여부 검증
 		Item item = auctionValidator.validateAuctionCreation(request, authUser);
 
-		// 검증 통과 후 경매 객체 생성 + 초기값 설정 (상태는 READY, 현재 입찰가는 시작가로)
+		LocalDateTime startedAt;
+		LocalDateTime expiredAt;
+		AuctionStatus status;
+
+		// isInstantStart가 true일 경우, 즉시 시작 경매로 처리
+		if (Boolean.TRUE.equals(request.getIsInstantStart())) {
+			startedAt = LocalDateTime.now();
+			expiredAt = startedAt.plusMinutes(30);
+			status = AuctionStatus.ACTIVE;
+		} else {
+			startedAt = request.getStartedAt();
+			expiredAt = request.getExpiredAt();
+			status = AuctionStatus.READY;
+		}
+
+		// 검증 통과 후 경매 객체 생성 + 초기값 설정 (상태는 READY 또는 ACTIVE, 현재 입찰가는 시작가로)
 		Auction auction = Auction.of(
 			item,
 			request.getStartingPrice(),
 			request.getBuyoutPrice(),
 			request.getBidIncrement(),
-			request.getStartedAt(),
-			request.getExpiredAt()
+			startedAt,
+			expiredAt
 		);
-		auction.markAsReady(); // 경매 상태를 READY로 설정
-		auction.updateCurrentPrice(request.getStartingPrice()); // 현재 입찰가를 시작가로 설정
+		auction.updateCurrentPrice(request.getStartingPrice());
+
+		if (status == AuctionStatus.ACTIVE) {
+			auction.markAsActive(); // 즉시 시작 경매
+		} else {
+			auction.markAsReady(); // 예약 경매
+		}
 
 		// DB에 경매 저장 후 저장된 경매를 응답으로 변환하여 반환
 		Auction savedAuction = auctionRepository.save(auction);
 
 		// 알림 예약 (경매 시작/종료 알림)
-//		reserveMyAuctionNotification(savedAuction);
+		reserveMyAuctionNotification(savedAuction);
 
 		return AuctionResponse.of(savedAuction);
 	}
@@ -110,7 +130,8 @@ public class AuctionService {
 
 		LocalDateTime now = LocalDateTime.now();
 		// 낙찰자 정보 없이 경매 상세 응답 반환
-		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null, null);
+		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null, null,
+			null);
 	}
 
 	// 내가 등록한 모든 경매를 조회하는 메서드 (삭제된 경매 포함)
@@ -153,17 +174,19 @@ public class AuctionService {
 		// 요청자가 진짜 이 경매의 주인인지 확인
 		auctionServiceHelper.validateOwnership(authUser, auction);
 
-		// 낙찰자가 존재하는 경우 닉네임 세팅 (SUCCESS이거나, 과거에 SUCCESS였다가 DELETED된 경우)
-		String winningBidderNickname = null;
-		if (auction.getStatus() == AuctionStatus.SUCCESS ||
-			(auction.getStatus() == AuctionStatus.DELETED && auction.getWinningBidder() != null)) {
-			winningBidderNickname = auction.getWinningBidder().getNickname();
-		}
+		// 낙찰자가 존재하는 경우 닉네임, 낙찰 시간 조회 (SUCCESS이거나, 과거에 SUCCESS였다가 DELETED된 경우)
+		AuctionServiceHelper.WinningInfo winningInfo = auctionServiceHelper.getWinningInfoIfPresent(auction);
 
 		LocalDateTime now = LocalDateTime.now();
+
+		// 낙찰 정보가 있으면 닉네임과 낙찰 시각을 가져오고, 없으면 null로 처리
+		String winningNickname = winningInfo != null ? winningInfo.nickname() : null;
+		LocalDateTime successAt = winningInfo != null ? winningInfo.successAt() : null;
+
 		// 낙찰자 정보까지 담아서 경매 상세 응답 반환
-		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction),
-			winningBidderNickname, null, null);
+		return AuctionDetailResponse.of(
+			auction, TimeFormatter.formatRemainingTime(now, auction), winningNickname, null, null, successAt
+		);
 	}
 
 	// 경매를 삭제하는 메서드 (소프트 딜리트: 실제 삭제가 아니라 상태만 변경)
