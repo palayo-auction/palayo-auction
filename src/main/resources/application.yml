@@ -19,7 +19,7 @@ spring:
 
 
 payment:
-  client-key: test_ck_6bJXmgo28e2oMZygdOg63LAnGKWx
-  secret-key: test_sk_GePWvyJnrKRpBG7wYWnOVgLzN97E
+  client-key: "${PAYMENT_CLIENT_KEY}"
+  secret-key: "${PAYMENT_SECRET_KEY}"
   success_url: "http://localhost:8080/api/v1/payments/success"
   fail_url: "http://localhost:8080/api/v1/payments/fail"
