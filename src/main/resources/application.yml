@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: palayo
+  config:
+    import:
+      - classpath:/local/application-local.yml
+  elasticsearch:
+    uris: "${ELASTICSEARCH_URIS}"
+  data:
+    mongodb:
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+      username: ${MONGO_INITDB_ROOT_USERNAME}
+      password: ${MONGO_INITDB_ROOT_PASSWORD}
+      authentication-database: admin
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+
+payment:
+  client-key: "${PAYMENT_CLIENT_KEY}"
+  secret-key: "${PAYMENT_SECRET_KEY}"
+  success_url: "http://localhost:8080/api/v1/payments/success"
+  fail_url: "http://localhost:8080/api/v1/payments/fail"

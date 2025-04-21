@@ -120,6 +120,25 @@ public class AuctionServiceHelper {
 		}
 	}
 
+	// 낙찰자 정보(닉네임, 낙찰 시각)를 묶어서 반환
+	public WinningInfo getWinningInfoIfPresent(Auction auction) {
+		if ((auction.getStatus() == AuctionStatus.SUCCESS || auction.getStatus() == AuctionStatus.DELETED)
+			&& auction.getWinningBidder() != null) {
+
+			// 낙찰자 닉네임과 낙찰 시점을 함께 묶어서 반환
+			return new WinningInfo(
+				auction.getWinningBidder().getNickname(),
+				auction.getSuccessAt()
+			);
+		}
+		// 낙찰 정보가 없으면 null 반환
+		return null;
+	}
+
+	// 낙찰자 닉네임과 낙찰 시점을 함께 담는 간단한 record 클래스
+	public record WinningInfo(String nickname, LocalDateTime successAt) {
+	}
+
 	// 경매에 입찰 기록이 있는지 확인하는 메서드
 	private boolean hasBids(Auction auction) {
 		return auctionHistoryRepository.existsByAuctionId(auction.getId());

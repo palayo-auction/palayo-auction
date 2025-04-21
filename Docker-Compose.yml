@@ -21,17 +21,17 @@ services:
     volumes:
       - es-data:/usr/share/elasticsearch/data
     ports:
-      - "9200:9200" # https
-      - "9300:9300" #tcp
+      - "${ES_HTTPS_PORT}:${ES_HTTPS_PORT}" # https
+      - "${ES_TCP_PORT}:${ES_TCP_PORT}" #tcp
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.4
     container_name: kibana
     environment:
       SERVER_NAME: kibana
-      ELASTICSEARCH_HOSTS: http://es:9200
+      ELASTICSEARCH_HOSTS: "${ELASTICSEARCH_HOST}"
     ports:
-      - "5601:5601"
+      - "${KIBANA_PORT}:${KIBANA_PORT}"
     depends_on:
       - es
 
@@ -39,7 +39,7 @@ services:
     image: redis:7.2
     container_name: noti
     ports:
-      - 6379:6379
+      - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
@@ -49,7 +49,7 @@ services:
     container_name: mongo
     restart: always
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT}:${MONGO_PORT}"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
