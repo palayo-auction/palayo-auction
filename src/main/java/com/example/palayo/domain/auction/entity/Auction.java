@@ -78,6 +78,9 @@ public class Auction {
 	@Column(nullable = false)
 	private AuctionStatus status;
 
+	// 낙찰 시점 (경매 성공 시각)
+	private LocalDateTime successAt;
+
 	// 경매 시작 일시
 	@Column(nullable = false)
 	private LocalDateTime startedAt;
@@ -128,6 +131,7 @@ public class Auction {
 	public void markAsSuccess(User winningBidder) {
 		this.status = AuctionStatus.SUCCESS;
 		this.winningBidder = winningBidder;
+		this.successAt = LocalDateTime.now(); // 낙찰 시점 기록
 	}
 
 	// 경매 상태를 FAILED로 자동 설정
