@@ -32,6 +32,7 @@ public class AuctionDetailResponse {
 	private Integer myBidPrice;           // 내가 입찰한 최고 금액 (nullable) - 공용 DTO로 상황에 따라 값 숨김을 위해 Integer 사용
 	private Boolean isWinner;             // 낙찰자인지 여부 (nullable)
 
+	private LocalDateTime successAt; // 낙찰 시점 (nullable)
 	private LocalDateTime startedAt;      // 경매 시작 일시
 	private LocalDateTime expiredAt;      // 경매 종료 일시
 	private String remainingTime;         // 남은 시간
@@ -42,7 +43,8 @@ public class AuctionDetailResponse {
 		String remainingTime,
 		String winningBidderNickname,
 		Integer myBidPrice,
-		Boolean isWinner
+		Boolean isWinner,
+		LocalDateTime successAt
 	) {
 		return AuctionDetailResponse.builder()
 			.auctionId(auction.getId())
@@ -67,6 +69,7 @@ public class AuctionDetailResponse {
 			.myBidPrice(myBidPrice)
 			.isWinner(isWinner)
 
+			.successAt(successAt)
 			.startedAt(auction.getStartedAt())
 			.expiredAt(auction.getExpiredAt())
 			.remainingTime(remainingTime)
