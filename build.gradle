@@ -87,6 +87,9 @@ dependencies {
 
     //mongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    //CI 오류 해결용 테스트코드용 DB
+    testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {
