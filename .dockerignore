@@ -1,0 +1,28 @@
+# Git 관련 파일들
+.git
+.gitignore
+
+# Gradle 빌드 관련
+.gradle/
+build/
+
+# IntelliJ 설정 파일
+.idea/
+*.iml
+
+# Node.js 패키지 캐시
+node_modules/
+
+# Java 빌드 파일
+*.class
+*.jar
+*.war
+
+# 환경 파일
+.env
+
+# MacOS
+.DS_Store
+
+# 로그 파일
+*.log

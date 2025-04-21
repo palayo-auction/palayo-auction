@@ -1,4 +1,4 @@
-name: Java CI with Gradle
+name: Java CI with Gradle and Docker
 
 on:
   push:
@@ -13,17 +13,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
+      # 3. Grant execute permission for Gradle Wrapper
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x gradlew
 
+      # 4. Build with Gradle (Java 애플리케이션 빌드)
       - name: Build with Gradle
         run: ./gradlew clean build
+
+      # 5. Set up Docker (Docker 설치 및 설정)
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      # 6. Build Docker image (Docker 이미지 빌드)
+      - name: Build Docker image
+        run: |
+          docker-compose -f docker-compose.yml --env-file .env up -d --build
+
+      # 7. Run tests inside Docker container (컨테이너 내에서 테스트 실행)
+      - name: Run tests in container
+        run: |
+          docker exec -t spring-app ./gradlew test --no-daemon
+
+      # 8. Set Firebase credentials (환경변수 설정)
+      - name: Set Firebase credentials
+        run: |
+          echo "${{ secrets.FIREBASE_ACCOUNT_KEY }}" > firebase-service-account.json
+        env:
+          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
+
+      # 9. Push Docker image to GitHub Container Registry (GHCR)
+      - name: Push Docker image to GHCR
+        run: |
+          docker tag spring-app ghcr.io/palayo-auction/palayo-auction:latest
+          docker push ghcr.io/palayo-auction/palayo-auction:latest
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+      # 10. Shutdown Docker containers (도커 컨테이너 종료)
+      - name: Shutdown containers
+        run: docker-compose down
