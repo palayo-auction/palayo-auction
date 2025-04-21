@@ -34,17 +34,6 @@ public interface AuctionHistoryRepository extends JpaRepository<AuctionHistory, 
 	@Query("SELECT DISTINCT ah.auction.id FROM AuctionHistory ah WHERE ah.bidder.id = :userId")
 	List<Long> findDistinctAuctionIdsByBidderId(@Param("userId") Long userId);
 
-	// 사용자 ID로 전체 입찰 금액 합계 조회
-	@Query("SELECT COALESCE(SUM(ah.bidPrice), 0) FROM AuctionHistory ah WHERE ah.bidder.id = :userId")
-	Long sumBidPricesByUserId(@Param("userId") Long userId);
-
-	//경매에 참가한 사용자에게 알림을 보내기 위해 중복제거 후 입찰자 ID 확인
-	@Query("SELECT DISTINCT ah.bidder.id FROM AuctionHistory ah WHERE ah.auction.id = :auctionId")
-	List<Long> findDistinctBidderIdsByAuctionId(Long auctionId);
-
-	// 경매 객체로 가장 높은 입찰 기록 조회 (가격 높은 순)
-	Optional<AuctionHistory> findTopByAuctionOrderByBidPriceDesc(Auction auction);
-
 	// 경매 ID로 입찰자 목록 조회 (중복 제거)
 	@Query("SELECT DISTINCT ah.bidder FROM AuctionHistory ah WHERE ah.auction.id = :auctionId")
 	List<User> findAllBiddersByAuctionId(@Param("auctionId") Long auctionId);
@@ -52,4 +41,26 @@ public interface AuctionHistoryRepository extends JpaRepository<AuctionHistory, 
 	// 경매ID + 입찰자 ID로 가장 높은 입찰 (시간 최신 순)
 	Optional<AuctionHistory> findTopByAuctionIdAndBidderIdOrderByBidPriceDescCreatedAtDesc(Long auctionId,
 		Long bidderId);
+
+	// 사용자의 ACTIVE 상태 경매에서 입찰한 총 금액 합산 (이미 낙찰/삭제된 경매 제외)
+	@Query(
+		"SELECT COALESCE(SUM(ah.bidPrice), 0) " +
+			"FROM AuctionHistory ah " +
+			"JOIN ah.auction a " +
+			"WHERE ah.bidder.id = :userId " +
+			"AND a.status = 'ACTIVE'"
+	)
+	Long sumActiveBidPricesByUserId(@Param("userId") Long userId);
+
+	// ACTIVE 상태 경매 중 각 경매에서 사용자의 최고 입찰가만 합산
+	@Query("SELECT COALESCE(SUM(ah.bidPrice), 0) " +
+		"FROM AuctionHistory ah " +
+		"WHERE ah.bidder.id = :userId " +
+		"AND ah.auction.status = 'ACTIVE' " +
+		"AND ah.auction.winningBidder IS NULL " +
+		"AND ah.bidPrice = (" +
+		"  SELECT MAX(sub.bidPrice) FROM AuctionHistory sub " +
+		"  WHERE sub.auction.id = ah.auction.id " +
+		"  AND sub.bidder.id = :userId)")
+	Long sumMaxBidPricesByUserIdOnActiveAuctions(@Param("userId") Long userId);
 }
