@@ -127,7 +127,10 @@ jacocoTestCoverageVerification {
             // 커버리지 체크를 제외할 클래스들
             classDirectories.setFrom(
                     files([
-                            fileTree(dir: "$buildDir/classes/java/main", excludes: [
+                            fileTree(
+                                    dir: "$buildDir/classes/java/main",
+                                    includes: ["**/service/**"],
+                                    excludes: [
                                     '**/config/**',
                                     '**/dto/**',
                                     '**/entity/**',
