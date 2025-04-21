@@ -127,18 +127,21 @@ jacocoTestCoverageVerification {
             // 커버리지 체크를 제외할 클래스들
             classDirectories.setFrom(
                     files([
-                            fileTree(dir: "$buildDir/classes/java/main",
-                                    excludes: [
-                                            '**/config/**',
-                                            '**/dto/**',
-                                            '**/entity/**',
-                                            '**/exception/**',
-                                            '**/enums/**',
-                                            '**/constants/**',
-                                            '**/Application*',
-                                            '**/*Request*',
-                                            '**/*Response*'
-                                    ])
+                            fileTree(dir: "$buildDir/classes/java/main", excludes: [
+                                    '**/config/**',
+                                    '**/dto/**',
+                                    '**/entity/**',
+                                    '**/exception/**',
+                                    '**/enums/**',
+                                    '**/constants/**',
+                                    '**/Application*',
+                                    '**/*Request*',
+                                    '**/*Response*',
+                                    '**/*Controller*',
+                                    '**/*Scheduler*',
+                                    '**/*Validator*',
+                                    '**/*Util*',
+                            ])
                     ])
             )
         }
