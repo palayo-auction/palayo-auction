@@ -23,6 +23,7 @@ public enum ErrorCode {
 	ITEM_ALREADY_ON_AUCTION("아이템은 이미 경매에 등록된 상품입니다.", HttpStatus.BAD_REQUEST),
 	INVALID_START_TIME("시작 시간은 현재 시간 이후여야 합니다.", HttpStatus.BAD_REQUEST),
 	INVALID_END_TIME("종료 시간은 시작 시간 이후여야 합니다.", HttpStatus.BAD_REQUEST),
+	INVALID_DURATION("경매 종료시간은 시작시간보다 최소 30분 이상 뒤여야 합니다.", HttpStatus.BAD_REQUEST),
 	INVALID_MINIMUM_PRICE("최소가는 100원 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
 	INVALID_STARTING_PRICE("시작가는 즉시 낙찰가보다 작아야 합니다.", HttpStatus.BAD_REQUEST),
 	INVALID_BID_INCREMENT("입찰 단위는 100, 1,000, 10,000, 100,000, 1,000,000원 중 하나여야 합니다.", HttpStatus.BAD_REQUEST),
