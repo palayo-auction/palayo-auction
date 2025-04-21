@@ -67,7 +67,7 @@ public class AuctionServiceHelper {
 	public boolean assignWinningBidder(Auction auction) {
 		// 입찰 기록이 없다면 낙찰자 지정 불가
 		if (!hasBids(auction)) {
-			sendBidFailNotifications(auction);
+
 			return false;
 		}
 
@@ -94,7 +94,7 @@ public class AuctionServiceHelper {
 		}
 
 		// 입찰 실패자에게 유찰 알림 전송
-		sendBidFailNotifications(auction);
+
 		return false;
 	}
 
@@ -168,6 +168,7 @@ public class AuctionServiceHelper {
 			auctionHistoryServiceHelper.refundFailedBidders(auction);
 		} else {
 			// 낙찰자가 없으면 FAILED 처리
+			sendBidFailNotifications(auction);
 			auction.markAsFailed();
 		}
 	}

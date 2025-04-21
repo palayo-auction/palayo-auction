@@ -68,7 +68,7 @@ public class AuctionService {
 		Auction savedAuction = auctionRepository.save(auction);
 
 		// 알림 예약 (경매 시작/종료 알림)
-//		reserveMyAuctionNotification(savedAuction);
+		reserveMyAuctionNotification(savedAuction);
 
 		return AuctionResponse.of(savedAuction);
 	}
@@ -76,13 +76,26 @@ public class AuctionService {
 	// 시간에 따라 경매 상태(READY -> ACTIVE -> SUCCESS/FAILED)를 갱신하는 메서드
 	@Transactional
 	public boolean updateAuctionStatus(Auction auction) {
-		return auctionServiceHelper.updateStatus(auction);
+		boolean actionStatus = auctionServiceHelper.updateStatus(auction);
+
+		if (actionStatus && auction.getStatus() == AuctionStatus.FAILED) {
+			User seller = auction.getItem().getSeller();
+			RedisNotification failNotification = redisNotificationFactory.bidFail(seller, auction);
+			notificationService.saveNotification(failNotification);
+		}
+		return actionStatus;
 	}
 
 	// 경매 종료 시 최고 입찰자를 낙찰자로 지정하는 메서드
 	@Transactional
 	public boolean assignWinningBidder(Auction auction) {
-		return auctionServiceHelper.assignWinningBidder(auction);
+		boolean winBid = auctionServiceHelper.assignWinningBidder(auction);
+
+		if (winBid && auction.getWinningBidder() != null) {
+			RedisNotification winNotification = redisNotificationFactory.bidWin(auction.getWinningBidder(), auction);
+			notificationService.saveNotification(winNotification);
+		}
+		return winBid;
 	}
 
 	// 현재 진행중인 경매(READY, ACTIVE 상태)를 페이지 단위로 조회하는 메서드
@@ -200,4 +213,5 @@ public class AuctionService {
 		RedisNotification endNotification = redisNotificationFactory.myAuctionEnd(seller, auction);
 		notificationService.saveNotification(endNotification);
 	}
+
 }

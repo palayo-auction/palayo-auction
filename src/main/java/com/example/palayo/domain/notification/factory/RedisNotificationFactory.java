@@ -54,11 +54,11 @@ public class RedisNotificationFactory {
     }
 
     public RedisNotification myAuctionStart(User user, Auction auction) {
-        return buildNotification(user, auction, "내 경매가 곧 시작됩니다.", " 경매가 5분 뒤 시작됩니다!", "STARTED", LocalDateTime.now());
+        return buildNotification(user, auction, "내 경매가 곧 시작됩니다.", " 경매가 5분 뒤 시작됩니다!", "STARTED", auction.getStartedAt().minusMinutes(5));
     }
 
     public RedisNotification myAuctionEnd(User user, Auction auction) {
-        return buildNotification(user, auction, "내 경매가 곧 마감됩니다.", " 경매가 5분 뒤 마감됩니다!", "EXPIRED", LocalDateTime.now());
+        return buildNotification(user, auction, "내 경매가 곧 마감됩니다.", " 경매가 5분 뒤 마감됩니다!", "EXPIRED", auction.getExpiredAt().minusMinutes(5));
     }
 
     // 각각의 알림 메서드 (여러 유저)
@@ -68,6 +68,10 @@ public class RedisNotificationFactory {
 
     public List<RedisNotification> dibAuctionEnd(List<User> users, Auction auction) {
         return buildNotifications(users, auction, "찜한 경매가 곧 마감됩니다!", " 경매가 5분 뒤 마감됩니다!", "EXPIRED", auction.getExpiredAt().minusMinutes(5));
+    }
+
+    public List<RedisNotification> bidEnds(List<User> users, Auction auction) {
+        return buildNotifications(users, auction, "참여한 경매가 곧 마감됩니다!", " 경매가 5분 뒤 마감됩니다!", "EXPIRED", auction.getExpiredAt().minusMinutes(5));
     }
 
 
