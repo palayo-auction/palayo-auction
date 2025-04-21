@@ -139,8 +139,13 @@ jacocoTestCoverageVerification {
                                     '**/*Response*',
                                     '**/*Controller*',
                                     '**/*Scheduler*',
-                                    '**/*Validator*',
+                                    '**/*Factory*',
+                                    '**/*Helper*',
                                     '**/*Util*',
+                                    '**/*Validator*',
+                                    '**/*Document*',
+                                    '**/*Client*',
+                                    '**/*Uploader*'
                             ])
                     ])
             )
