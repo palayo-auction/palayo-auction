@@ -8,7 +8,9 @@ import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.item.entity.Item;
 import com.example.palayo.domain.item.util.ItemValidator;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -42,12 +44,29 @@ public class AuctionValidator {
 		// 요청 데이터 유효성 검증
 		LocalDateTime now = LocalDateTime.now();
 
-		if (request.getStartedAt().isBefore(now)) { // 시작 시간이 과거이면 예외
-			throw new BaseException(ErrorCode.INVALID_START_TIME, "startedAt");
+		boolean isInstant = Boolean.TRUE.equals(request.getIsInstantStart());
+
+		// 실시간 경매일 경우
+		if (isInstant) {
+			if (request.getExpiredAt() == null || !request.getExpiredAt().isAfter(now.plusMinutes(30))) {
+				throw new BaseException(ErrorCode.INVALID_DURATION, "expiredAt"); // 종료 시간이 현재 시간보다 30분 이상 뒤여야 함
+			}
 		}
 
-		if (request.getExpiredAt().isBefore(request.getStartedAt())) { // 종료 시간이 시작 시간보다 빠르면 예외
-			throw new BaseException(ErrorCode.INVALID_END_TIME, "expiredAt");
+		// 예약 경매일 경우
+		else {
+			if (request.getStartedAt() == null) {
+				throw new BaseException(ErrorCode.INVALID_START_TIME, "startedAt"); // 경매 시작 시간은 필수입니다.
+			}
+
+			if (request.getStartedAt().isBefore(now)) {
+				throw new BaseException(ErrorCode.INVALID_START_TIME, "startedAt"); // 시작 시간이 과거이면 예외
+			}
+
+			if (request.getExpiredAt() == null || !request.getExpiredAt()
+				.isAfter(request.getStartedAt().plusMinutes(30))) {
+				throw new BaseException(ErrorCode.INVALID_DURATION, "expiredAt"); // 종료 시간이 시작 시간보다 30분 이상 뒤여야 함
+			}
 		}
 
 		if (request.getStartingPrice() < 100) { // 시작가가 100 미만이면 예외

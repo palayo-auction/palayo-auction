@@ -22,9 +22,11 @@ public class CreateAuctionRequest {
 	@NotNull(message = "입찰 단위는 필수입니다.")
 	private Integer bidIncrement; // 입찰 단위
 
-	@NotNull(message = "경매 시작 시간은 필수입니다.")
 	private LocalDateTime startedAt; // 경매 시작 일시
 
 	@NotNull(message = "경매 종료 시간은 필수입니다.")
-	private LocalDateTime expiredAt; // 경매 종료 일시
+	private LocalDateTime expiredAt; // 경매 종료
+
+	@NotNull(message = "즉시 시작 여부는 필수입니다.")
+	private Boolean isInstantStart; // 즉시 시작 여부 (true: 바로 시작, false: 예약)
 }
