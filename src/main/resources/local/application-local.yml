@@ -1,0 +1,6 @@
+spring:
+  config:
+    import:
+      - classpath:/local/application-datasource.yml
+      - classpath:/local/application-jwt.yml
+      - classpath:/local/application-aws.yml
