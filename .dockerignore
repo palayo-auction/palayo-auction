@@ -16,9 +16,6 @@ node_modules/
 *.class
 *.war
 
-# 환경 파일
-.env
-
 # MacOS
 .DS_Store
 

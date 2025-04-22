@@ -25,9 +25,9 @@ jobs:
       - name: Grant permission for Gradle
         run: chmod +x gradlew
 
-      # 4. Set up envs
-      - name: Create .env and Firebase key
-        run: echo "${{ secrets.FIREBASE_ACCOUNT_KEY }}" > firebase-service-account.json
+#      # 4. Set up envs
+#      - name: Create .env and Firebase key
+#        run: echo "${{ secrets.FIREBASE_ACCOUNT_KEY }}" > firebase-service-account.json
 
       # 5. Build Spring app
       - name: Build with Gradle
