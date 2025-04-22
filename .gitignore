@@ -46,3 +46,17 @@ src/main/resources/template/Const.js
 .DS_Store
 .env
 
+# === Grafana / Prometheus / Loki ===
+*.js
+*.js.map
+grafana/plugins/**/dist/
+grafana/plugins/**/public/build/
+grafana-monitoring-stack-docker/conf/*.json
+grafana-monitoring-stack-docker/data/
+grafana-monitoring-stack-docker/logs/
+data/grafana/
+data/prometheus/
+data/loki/
+logs/
+scripts/promtail-entrypoint.sh
+
