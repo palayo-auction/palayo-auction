@@ -45,7 +45,7 @@ jobs:
 
       # 7. Build Docker image
       - name: Build Docker image
-        run: docker build -f Dockerfile-app -t ${{ secrets.DOCKER_USERNAME }}/spring-app:latest .
+        run: docker build -f Dockerfile-app -t ${{ secrets.DOCKER_USERNAME }}/spring-app:latest build/libs
 
       # 8. Push Docker image
       - name: Push Docker image
