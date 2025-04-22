@@ -4,4 +4,4 @@
 mkdir -p /logs
 
 # promtail 실행
-promtail -config.file=/etc/promtail/config.yml
+promtail --config.file=/etc/promtail/config.yml
