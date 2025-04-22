@@ -56,6 +56,21 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            echo "Generating .env file..."
+            cat <<EOF > ~/env.production
+            AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
+            AWS_BUCKET=${{ secrets.AWS_BUCKET }}
+            AWS_CLOUDFRONT_DOMAIN=${{ secrets.AWS_CLOUDFRONT_DOMAIN }}
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            AWS_SECERET_KEY=${{ secrets.AWS_SECERET_KEY }}
+            ELASTICSEARCH_HOST=${{ secrets.ELASTICSEARCH_HOST }}
+            ELASTICSEARCH_URIS=${{ secrets.ELASTICSEARCH_URIS }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
+            PAYMENT_CLIENT_KEY=${{ secrets.PAYMENT_CLIENT_KEY }}
+            PAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }}
+            EOF
+
             chmod +x ~/deploy.sh
-            export JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
             ~/deploy.sh
