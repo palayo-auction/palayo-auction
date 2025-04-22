@@ -61,7 +61,7 @@ jobs:
             AWS_SECERET_KEY="${{ secrets.AWS_SECERET_KEY }}"
             ELASTICSEARCH_HOST="${{ secrets.ELASTICSEARCH_HOST }}"
             ELASTICSEARCH_URIS="${{ secrets.ELASTICSEARCH_URIS }}"
-            FIREBASE_ACCOUNT_KEY="${{ secrets.FIREBASE_ACCOUNT_KEY }}"
+            FIREBASE_ACCOUNT_KEY=$(echo "${{ secrets.FIREBASE_ACCOUNT_KEY }}" | base64 --decode)
             JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
             MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}"
             MYSQL_USERNAME="${{ secrets.MYSQL_USERNAME }}"
