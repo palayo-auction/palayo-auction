@@ -89,5 +89,6 @@ jobs:
 
       - name: Debug Firebase Account Key (safe way)
         run: |
+          echo "$FIREBASE_ACCOUNT_KEY"
           echo "$FIREBASE_ACCOUNT_KEY" | base64 -d > decoded_service_account_key.json
           ls -l decoded_service_account_key.json
