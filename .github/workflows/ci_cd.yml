@@ -57,4 +57,5 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             chmod +x ~/deploy.sh
+            export JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
             ~/deploy.sh
