@@ -1,9 +1,6 @@
 name: Java CI with Gradle and Docker (Docker Hub)
 
 on:
-  push:
-    branches:
-      - feat/**
   pull_request:
     branches:
       - dev
