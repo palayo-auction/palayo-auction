@@ -4,7 +4,6 @@
 
 # Gradle 빌드 관련
 .gradle/
-build/
 
 # IntelliJ 설정 파일
 .idea/
@@ -15,7 +14,6 @@ node_modules/
 
 # Java 빌드 파일
 *.class
-*.jar
 *.war
 
 # 환경 파일
