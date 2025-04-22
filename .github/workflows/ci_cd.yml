@@ -86,3 +86,8 @@ jobs:
 
             chmod +x ~/deploy.sh
             ~/deploy.sh
+
+      - name: Debug Firebase Account Key (safe way)
+        run: |
+          echo "$FIREBASE_ACCOUNT_KEY" | base64 -d > decoded_service_account_key.json
+          ls -l decoded_service_account_key.json
