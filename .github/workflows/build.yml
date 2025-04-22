@@ -22,33 +22,5 @@ jobs:
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Create .env file from Secrets
-        run: |
-          echo "AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}" >> .env
-          echo "AWS_BUCKET=${{ secrets.AWS_BUCKET }}" >> .env
-          echo "AWS_CLOUDFRONT_DOMAIN=${{ secrets.AWS_CLOUDFRONT_DOMAIN }}" >> .env
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
-          echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}" >> .env
-          echo "ELASTICSEARCH_HOST=${{ secrets.ELASTICSEARCH_HOST }}" >> .env
-          echo "ELASTICSEARCH_URIS=${{ secrets.ELASTICSEARCH_URIS }}" >> .env
-          echo "ES_HTTPS_PORT=${{ secrets.ES_HTTPS_PORT }}" >> .env
-          echo "ES_TCP_PORT=${{ secrets.ES_TCP_PORT }}" >> .env
-          echo "KIBANA_PORT=${{ secrets.KIBANA_PORT }}" >> .env
-          echo "SPRING_PORT=${{ secrets.SPRING_PORT }}" >> .env
-          echo "FIREBASE_ACCOUNT_KEY=${{ secrets.FIREBASE_ACCOUNT_KEY }}" >> .env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-          echo "MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}" >> .env
-          echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}" >> .env
-          echo "MONGO_HOST=${{ secrets.MONGO_HOST }}" >> .env
-          echo "MONGO_PORT=${{ secrets.MONGO_PORT }}" >> .env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
-          echo "MYSQL_URL=${{ secrets.MYSQL_URL }}" >> .env
-          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-          echo "MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}" >> .env
-          echo "PAYMENT_CLIENT_KEY=${{ secrets.PAYMENT_CLIENT_KEY }}" >> .env
-          echo "PAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }}" >> .env
-
-
       - name: Build with Gradle
         run: ./gradlew clean build

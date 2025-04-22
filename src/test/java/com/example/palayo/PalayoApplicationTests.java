@@ -15,11 +15,16 @@ class PalayoApplicationTests {
 
     @BeforeAll
     static void loadEnv() {
-        Dotenv dotenv = Dotenv.load();  // .env 파일 로드
-
-        dotenv.entries().forEach(entry ->
-                System.setProperty(entry.getKey(), entry.getValue())
-        );
+        try {
+            Dotenv dotenv = Dotenv.configure()
+                    .ignoreIfMissing()
+                    .load();
+            dotenv.entries().forEach(entry ->
+                    System.setProperty(entry.getKey(), entry.getValue())
+            );
+        } catch (Exception e) {
+            System.err.println("Warning: .env file not found. Skipping...");
+        }
     }
 
     @Test
