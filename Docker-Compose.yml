@@ -56,38 +56,6 @@ services:
     volumes:
       - mongo-data:/data/db
 
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile-app
-    container_name: spring-app
-    ports:
-      - "${SPRING_PORT}:${SPRING_PORT}"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      SPRING_DATA_MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:${MONGO_PORT}
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: ${REDIS_PORT}
-      SPRING_ELASTICSEARCH_URIS: ${ELASTICSEARCH_URIS}
-      MYSQL_URL: ${MYSQL_URL}
-      MYSQL_USERNAME: ${MYSQL_USERNAME}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      PAYMENT_SECRET_KEY: ${PAYMENT_SECRET_KEY}
-      PAYMENT_CLIENT_KEY: ${PAYMENT_CLIENT_KEY}
-      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
-      AWS_REGION: ${AWS_REGION}
-      AWS_BUCKET: ${AWS_BUCKET}
-      AWS_CLOUDFRONT_DOMAIN: ${AWS_CLOUDFRONT_DOMAIN}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-    depends_on:
-      - mongo
-      - redis
-      - es
-
 volumes:
   es-data:
     driver: local

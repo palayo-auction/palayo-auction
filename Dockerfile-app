@@ -1,26 +1,4 @@
-# Step 1: Base image for building
-FROM eclipse-temurin:17-jdk AS builder
-
-WORKDIR /app
-
-# Copy build.gradle, settings.gradle, etc. first
-COPY build.gradle settings.gradle gradle /app/
-COPY gradlew /app/
-RUN ./gradlew --no-daemon dependencies
-
-# Copy source code
-COPY . /app/
-
-# Build application
-RUN ./gradlew bootJar --no-daemon
-
-# Step 2: Lightweight image for running
 FROM eclipse-temurin:17-jdk-alpine
-
-WORKDIR /app
-
-# Copy built jar
-COPY --from=builder /app/build/libs/*.jar app.jar
-
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ARG JAR_FILE=build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
