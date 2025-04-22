@@ -35,12 +35,6 @@ import lombok.NoArgsConstructor;
 @EntityListeners(AuditingEntityListener.class)
 public class Auction {
 
-	// // Optimistic Lock 버전
-	// // 버전을 관리하여 동시성 충돌을 방지
-	// @Version
-	// @Column(name = "version")
-	// private Integer version;
-
 	// 경매 ID
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
