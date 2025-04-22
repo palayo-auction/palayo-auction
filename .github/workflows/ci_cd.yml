@@ -61,8 +61,19 @@ jobs:
             AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}
             ELASTICSEARCH_HOST=${{ secrets.ELASTICSEARCH_HOST }}
             ELASTICSEARCH_URIS=${{ secrets.ELASTICSEARCH_URIS }}
+            ES_HTTPS_PORT=${{ secrets.ES_HTTPS_PORT }}
+            ES_TCP_PORT=${{ secrets.ES_TCP_PORT }}
+            KIBANA_PORT=${{ secrets.KIBANA_PORT }}
+            SPRING_PORT=${{ secrets.SPRING_PORT }}
             FIREBASE_ACCOUNT_KEY=${{ secrets.FIREBASE_ACCOUNT_KEY }}
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+            MONGO_INITDB_ROOT_PASSWORD${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+            MONGO_HOST=${{ secrets.MONGO_HOST }}
+            MONGO_PORT=${{ secrets.MONGO_PORT }}
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_PORT=${{ secrets.REDIS_PORT }}
+            MYSQL_URL=${{ secrets.MYSQL_URL }}
             MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
             MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
             PAYMENT_CLIENT_KEY=${{ secrets.PAYMENT_CLIENT_KEY }}
