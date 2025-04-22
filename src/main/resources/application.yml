@@ -22,3 +22,6 @@ payment:
   secret-key: ${PAYMENT_SECRET_KEY}
   success_url: "http://localhost:8080/api/v1/payments/success"
   fail_url: "http://localhost:8080/api/v1/payments/fail"
+
+firebase:
+  config-path: ${FIREBASE_CONFIG_PATH:src/main/resources/service_account_key.json}

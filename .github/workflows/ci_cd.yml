@@ -78,7 +78,11 @@ jobs:
             MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
             PAYMENT_CLIENT_KEY=${{ secrets.PAYMENT_CLIENT_KEY }}
             PAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }}
+            FIREBASE_CONFIG_PATH=/home/ubuntu/firebase/service_account_key.json
             EOF
+            
+            mkdir -p ~/firebase
+            echo "$FIREBASE_ACCOUNT_KEY" | base64 -d > ~/firebase/service_account_key.json
 
             chmod +x ~/deploy.sh
             ~/deploy.sh
