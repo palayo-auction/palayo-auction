@@ -127,11 +127,16 @@ public class Auction {
 		this.currentPrice = newPrice;
 	}
 
-	// 경매 상태를 SUCCESS로 자동 설정
+	// 현재 시간으로 SUCCESS 처리
 	public void markAsSuccess(User winningBidder) {
+		this.markAsSuccess(winningBidder, LocalDateTime.now());
+	}
+
+	// 지정된 시간으로 SUCCESS 처리
+	public void markAsSuccess(User winningBidder, LocalDateTime successAt) {
 		this.status = AuctionStatus.SUCCESS;
 		this.winningBidder = winningBidder;
-		this.successAt = LocalDateTime.now(); // 낙찰 시점 기록
+		this.successAt = successAt; // 낙찰 시점 기록
 	}
 
 	// 경매 상태를 FAILED로 자동 설정

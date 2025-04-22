@@ -158,17 +158,22 @@ public class AuctionServiceHelper {
 			throw new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId");
 		}
 
-		// 경매 상태를 SUCCESS로 변경
-		auction.markAsSuccess(auction.getWinningBidder());
+		// 낙찰 시점 분기 처리
+		LocalDateTime successTime = isBuyoutPriceReached(auction)
+			? LocalDateTime.now()               // 즉시 낙찰 → 입찰 시점 기준
+			: auction.getExpiredAt();           // 일반 낙찰 → 경매 종료 시간 기준
 
-		// 낙찰자 포인트 차감 및 보증금 사용 처리
+		// 상태 변경 및 낙찰자 설정
+		auction.markAsSuccess(auction.getWinningBidder(), successTime);
+
+		// 낙찰자 포인트 차감 및 보증금 처리
 		auctionHistoryServiceHelper.handleAuctionSuccess(
 			auction,
 			auction.getWinningBidder(),
 			auction.getCurrentPrice()
 		);
 
-		// 실패자 보증금 환불 처리
+		// 낙찰 실패자 보증금 환불
 		auctionHistoryServiceHelper.refundFailedBidders(auction);
 	}
 
