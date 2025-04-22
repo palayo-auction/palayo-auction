@@ -25,30 +25,26 @@ jobs:
       - name: Grant permission for Gradle
         run: chmod +x gradlew
 
-#      # 4. Set up envs
-#      - name: Create .env and Firebase key
-#        run: echo "${{ secrets.FIREBASE_ACCOUNT_KEY }}" > firebase-service-account.json
-
-      # 5. Build Spring app
+      # 4. Build Spring app
       - name: Build with Gradle
         run: ./gradlew clean build -x test
 
-      # 6. Log in to Docker Hub
+      # 5. Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 7. Build Docker image
+      # 6. Build Docker image
       - name: Build Docker image
         run: docker build -f Dockerfile-app -t ${{ secrets.DOCKER_USERNAME }}/spring-app:latest .
 
-      # 8. Push Docker image
+      # 7. Push Docker image
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
 
-      # 9. CD
+      # 8. CD
       - name: Connect to EC2 and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -57,7 +53,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "Generating .env file..."
-            cat <<EOF > ~/env.production
+            cat <<EOF > ~/.env
             AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
             AWS_BUCKET=${{ secrets.AWS_BUCKET }}
             AWS_CLOUDFRONT_DOMAIN=${{ secrets.AWS_CLOUDFRONT_DOMAIN }}
@@ -65,6 +61,7 @@ jobs:
             AWS_SECERET_KEY=${{ secrets.AWS_SECERET_KEY }}
             ELASTICSEARCH_HOST=${{ secrets.ELASTICSEARCH_HOST }}
             ELASTICSEARCH_URIS=${{ secrets.ELASTICSEARCH_URIS }}
+            FIREBASE_ACCOUNT_KEY=${{ secrets.FIREBASE_ACCOUNT_KEY }}
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
             MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
             MYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }}
