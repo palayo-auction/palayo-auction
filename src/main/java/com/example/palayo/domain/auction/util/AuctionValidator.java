@@ -48,7 +48,7 @@ public class AuctionValidator {
 
 		// 실시간 경매일 경우
 		if (isInstant) {
-			if (request.getExpiredAt() == null || !request.getExpiredAt().isAfter(now.plusMinutes(30))) {
+			if (request.getExpiredAt() == null || !request.getExpiredAt().isAfter(now.plusMinutes(1))) {
 				throw new BaseException(ErrorCode.INVALID_DURATION, "expiredAt"); // 종료 시간이 현재 시간보다 30분 이상 뒤여야 함
 			}
 		}
@@ -64,7 +64,7 @@ public class AuctionValidator {
 			}
 
 			if (request.getExpiredAt() == null || !request.getExpiredAt()
-				.isAfter(request.getStartedAt().plusMinutes(30))) {
+				.isAfter(request.getStartedAt().plusMinutes(1))) {
 				throw new BaseException(ErrorCode.INVALID_DURATION, "expiredAt"); // 종료 시간이 시작 시간보다 30분 이상 뒤여야 함
 			}
 		}

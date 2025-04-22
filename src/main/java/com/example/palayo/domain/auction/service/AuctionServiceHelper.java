@@ -76,14 +76,12 @@ public class AuctionServiceHelper {
 			AuctionHistory topBid = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
 					auction.getId())
 				.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
-
-			auction.setWinningBidder(topBid.getBidder());
-			sendBidSuccessNotification(auction);
 		}
 
 		// 즉시구매가 도달했으면 성공 처리
 		if (isBuyoutPriceReached(auction)) {
 			updateToSuccess(auction);
+			sendBidSuccessNotification(auction);
 			return true;
 		}
 
@@ -170,12 +168,15 @@ public class AuctionServiceHelper {
 
 		// 실패자 보증금 환불 처리
 		auctionHistoryServiceHelper.refundFailedBidders(auction);
+
+		sendBidSuccessNotification(auction);
 	}
 
 	// 경매 종료 후 낙찰 성공/실패를 최종 처리하는 메서드
 	private void updateAfterExpired(Auction auction) {
 		if (auction.getWinningBidder() != null) {
 			// 낙찰자가 있으면 SUCCESS 처리
+			updateToSuccess(auction);
 			auction.markAsSuccess(auction.getWinningBidder());
 
 			auctionHistoryServiceHelper.handleAuctionSuccess(

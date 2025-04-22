@@ -109,13 +109,7 @@ public class AuctionService {
 	// 경매 종료 시 최고 입찰자를 낙찰자로 지정하는 메서드
 	@Transactional
 	public boolean assignWinningBidder(Auction auction) {
-		boolean winBid = auctionServiceHelper.assignWinningBidder(auction);
-
-		if (winBid && auction.getWinningBidder() != null) {
-			RedisNotification winNotification = redisNotificationFactory.bidWin(auction.getWinningBidder(), auction);
-			notificationService.saveNotification(winNotification);
-		}
-		return winBid;
+		return auctionServiceHelper.assignWinningBidder(auction);
 	}
 
 	// 현재 진행중인 경매(READY, ACTIVE 상태)를 페이지 단위로 조회하는 메서드

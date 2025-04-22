@@ -79,9 +79,6 @@ public class AuctionHistoryService {
 				auction.markAsSuccess(bidder);
 				auctionHistoryServiceHelper.handleAuctionSuccess(auction, bidder, request.getBidPrice());
 				auctionHistoryServiceHelper.refundFailedBidders(auction);
-
-				RedisNotification winNotification = redisNotificationFactory.bidWin(bidder, auction);
-				notificationService.saveNotification(winNotification);
 			}
 
 			// 알림 보내기: 최고 입찰자가 변경된 경우
