@@ -3,7 +3,7 @@ name: Deploy Spring Boot API to Elastic Beanstalk (Docker)
 on:
   push:
     branches:
-      - main # 또는 'feat/**' 에서 main으로 머지되는 경우 등
+      - dev
 
 jobs:
   deploy:
