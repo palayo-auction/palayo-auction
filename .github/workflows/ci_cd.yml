@@ -51,6 +51,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: FIREBASE_ACCOUNT_KEY
           script: |
             echo "Generating .env file..."
             cat <<EOF > ~/.env
@@ -68,7 +69,7 @@ jobs:
             FIREBASE_ACCOUNT_KEY=${{ secrets.FIREBASE_ACCOUNT_KEY }}
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
             MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
-            MONGO_INITDB_ROOT_PASSWORD${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+            MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
             MONGO_HOST=${{ secrets.MONGO_HOST }}
             MONGO_PORT=${{ secrets.MONGO_PORT }}
             REDIS_HOST=${{ secrets.REDIS_HOST }}
@@ -89,6 +90,5 @@ jobs:
 
       - name: Debug Firebase Account Key (safe way)
         run: |
-          echo "$FIREBASE_ACCOUNT_KEY"
           echo "$FIREBASE_ACCOUNT_KEY" | base64 -d > decoded_service_account_key.json
           ls -l decoded_service_account_key.json
