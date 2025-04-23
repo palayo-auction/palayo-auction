@@ -3,7 +3,7 @@ services:
   es:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.els
     container_name: es
     environment:
       - node.name=es-node
