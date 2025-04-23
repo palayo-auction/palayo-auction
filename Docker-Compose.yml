@@ -3,7 +3,7 @@ services:
   es:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.els
     container_name: es
     environment:
       - node.name=es-node
@@ -55,6 +55,52 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongo-data:/data/db
+
+  ## --- Prometheus + Grafana + Loki + Promtail ---
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    restart: always
+    volumes:
+      - ./grafana_monitoring_stack_docker/conf/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+    command: [ "--config.file=/etc/prometheus/prometheus.yml" ]
+    ports:
+      - "${PROMETHEUS_PORT}:${PROMETHEUS_PORT}"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    restart: always
+    ports:
+      - "${GRAFANA_PORT}:${GRAFANA_PORT}"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    restart: always
+    ports:
+      - "${LOKI_PORT}:${LOKI_PORT}"
+    command: [ "--config.file=/etc/loki/loki-config.yaml" ]
+    volumes:
+      - ./grafana_monitoring_stack_docker/conf/loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./data/loki:/loki
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:latest
+    restart: always
+    volumes:
+      - ./logs:/logs
+      - ./grafana_monitoring_stack_docker/conf/promtail-config.yml:/etc/promtail/config.yml
+      - ./scripts/promtail-entrypoint.sh:/entrypoint.sh
+    entrypoint: [ "sh", "/entrypoint.sh" ]
+    depends_on:
+      - loki
 
 volumes:
   es-data:
