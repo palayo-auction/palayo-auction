@@ -88,7 +88,8 @@ jobs:
             chmod +x ~/deploy.sh
             ~/deploy.sh
 
-      - name: Debug base64 content (safe preview)
-        run: echo "${FIREBASE_ACCOUNT_KEY}" | head -c 100
-        env:
-          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
+      - name: Debug base64 decoding process
+        run: |
+          echo "$FIREBASE_ACCOUNT_KEY" | base64 -d > decoded_service_account_key.json
+          ls -l decoded_service_account_key.json
+          cat decoded_service_account_key.json
