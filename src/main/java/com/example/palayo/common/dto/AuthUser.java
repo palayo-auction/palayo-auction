@@ -2,8 +2,10 @@ package com.example.palayo.common.dto;
 
 import lombok.Getter;
 
+import java.security.Principal;
+
 @Getter
-public class AuthUser {
+public class AuthUser implements Principal {
 
     private final Long userId;
     private final String email;
@@ -15,5 +17,10 @@ public class AuthUser {
         this.email = email;
 //        this.userRole = role;
 //        this.authorities = List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getName() {
+        return String.valueOf(userId);
     }
 }
