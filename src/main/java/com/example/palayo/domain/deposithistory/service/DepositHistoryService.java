@@ -58,77 +58,99 @@ public class DepositHistoryService {
 		return DepositHistoryResponse.fromEntity(depositHistory);
 	}
 
+	// 다건 조회 (페이징 처리 포함)
 	@Transactional(readOnly = true)
-	public Page<DepositHistoryResponse> getDepositHistoryList(Long auctionId, int page, int size, AuthUser authUser) {
+	public Page<DepositHistoryResponse> getDepositHistoryList(Long auctionId, int page, int size,
+															  AuthUser authUser) {
+		// Auction 조회 (레포지토리 사용)
 		Auction auction = auctionRepository.findById(auctionId)
 				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
+		// AuthUser에서 userId를 추출하여 User 조회
 		User user = userRepository.findById(authUser.getUserId())
 				.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, authUser.getUserId().toString()));
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-		Page<DepositHistory> depositHistoryPage = depositHistoryRepository.findByAuctionAndUser(auction, user, pageable);
+		// DepositHistory 조회 (페이징 처리)
+		Page<DepositHistory> depositHistoryPage = depositHistoryRepository.findByAuctionAndUser(auction, user,
+				pageable);
 
+		// DepositHistory를 DepositHistoryResponse로 변환 후 반환
 		return depositHistoryPage.map(DepositHistoryResponse::fromEntity);
 	}
 
+	// 사용자가 해당 경매에 보증금을 이미 납부했는지 확인
 	@Transactional(readOnly = true)
 	public boolean existsByAuctionAndUser(Long auctionId, Long userId) {
 		return depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId);
 	}
 
+	// 유저 ID, 경매 ID, 보증금 금액을 받아 보증금 이력을 생성
 	@Transactional
 	public void createDepositHistory(Long userId, Long auctionId, int depositAmount) {
-		getLockAndPerform(auctionId, userId, () -> {
-			Auction auction = auctionRepository.findById(auctionId)
-					.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
-			User user = userRepository.findById(userId)
-					.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
+		// Auction 조회
+		Auction auction = auctionRepository.findById(auctionId)
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
-			boolean alreadyExists = depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId);
-			if (alreadyExists) {
-				throw new BaseException(ErrorCode.DEPOSIT_HISTORY_ALREADY_EXISTS, "auctionId, userId");
-			}
+		// User 조회
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 
-			DepositHistory depositHistory = new DepositHistory(
-					auction,
-					user,
-					depositAmount,
-					DepositStatus.PENDING
-			);
+		// 이미 보증금 이력이 있는지 확인
+		boolean alreadyExists = depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId);
+		if (alreadyExists) {
+			throw new BaseException(ErrorCode.DEPOSIT_HISTORY_ALREADY_EXISTS, "auctionId, userId");
+		}
 
-			depositHistoryRepository.save(depositHistory);
-		});
+		// 보증금 이력 생성
+		DepositHistory depositHistory = new DepositHistory(
+				auction,
+				user,
+				depositAmount,
+				DepositStatus.PENDING
+		);
+
+		// 보증금 이력 저장
+		depositHistoryRepository.save(depositHistory);
 	}
 
+	// 보증금 사용 처리 (낙찰자: PENDING → USED)
 	@Transactional
 	public void useDeposit(Long auctionId, Long userId) {
-		getLockAndPerform(auctionId, userId, () -> {
-			DepositHistory depositHistory = findDepositHistory(auctionId, userId);
+		DepositHistory depositHistory = findDepositHistory(auctionId, userId);
 
-			if (depositHistory.getStatus() != DepositStatus.PENDING) {
-				throw new BaseException(ErrorCode.INVALID_DEPOSIT_STATUS, "auctionId, userId");
-			}
+		// 이미 처리된 경우: 예외 대신 무시하고 return
+		if (depositHistory.getStatus() == DepositStatus.USED) {
+			return; // 중복 처리 방지
+		}
 
-			depositHistory.updateStatus(DepositStatus.USED);
-		});
+		if (depositHistory.getStatus() != DepositStatus.PENDING) {
+			throw new BaseException(ErrorCode.INVALID_DEPOSIT_STATUS, "auctionId, userId");
+		}
+
+		depositHistory.updateStatus(DepositStatus.USED);
 	}
 
+	// 보증금 환불 처리 (실패자: PENDING → REFUNDED)
 	@Transactional
 	public void refundDeposit(Long auctionId, Long userId) {
-		getLockAndPerform(auctionId, userId, () -> {
-			DepositHistory depositHistory = findDepositHistory(auctionId, userId);
+		DepositHistory depositHistory = findDepositHistory(auctionId, userId);
 
-			if (depositHistory.getStatus() != DepositStatus.PENDING) {
-				throw new BaseException(ErrorCode.INVALID_DEPOSIT_STATUS, "auctionId, userId");
-			}
+		// 이미 환불된 경우: 중복 처리 방지
+		if (depositHistory.getStatus() == DepositStatus.REFUNDED) {
+			return; // 아무 것도 안 하고 종료
+		}
 
-			depositHistory.updateStatus(DepositStatus.REFUNDED);
-		});
+		if (depositHistory.getStatus() != DepositStatus.PENDING) {
+			throw new BaseException(ErrorCode.INVALID_DEPOSIT_STATUS, "auctionId, userId");
+		}
+
+		depositHistory.updateStatus(DepositStatus.REFUNDED);
 	}
 
+	// 공통 단건 조회 메서드
 	private DepositHistory findDepositHistory(Long auctionId, Long userId) {
 		Auction auction = auctionRepository.findById(auctionId)
 				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
