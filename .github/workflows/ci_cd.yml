@@ -44,6 +44,13 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
 
+      - name: Deploy Firebase Key
+        run: |
+          mkdir -p ~/firebase
+          echo "$FIREBASE_ACCOUNT_KEY" | base64 -d > ~/firebase/service_account_key.json
+        env:
+          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
+
       # 8. CD
       - name: Connect to EC2 and deploy
         uses: appleboy/ssh-action@v1.0.0
@@ -66,7 +73,6 @@ jobs:
             ES_TCP_PORT=${{ secrets.ES_TCP_PORT }}
             KIBANA_PORT=${{ secrets.KIBANA_PORT }}
             SPRING_PORT=${{ secrets.SPRING_PORT }}
-            FIREBASE_ACCOUNT_KEY=${{ secrets.FIREBASE_ACCOUNT_KEY }}
             JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
             MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
             MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
@@ -81,23 +87,18 @@ jobs:
             PAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }}
             FIREBASE_CONFIG_PATH=/app/src/main/resources/firebase/service_account_key.json
             EOF
-            
-            mkdir -p ~/firebase
-            echo "$FIREBASE_ACCOUNT_KEY" | base64 -d > ~/firebase/service_account_key.json
 
             chmod +x ~/deploy.sh
             ~/deploy.sh
-
-      - name: Check FIREBASE_ACCOUNT_KEY length
-        run: |
-          echo "Length of FIREBASE_ACCOUNT_KEY: ${#FIREBASE_ACCOUNT_KEY}"
-          echo "$FIREBASE_ACCOUNT_KEY" | head -c 100
-        env:
-          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
-
 
       - name: Debug base64 decoding process
         run: |
           echo "${FIREBASE_ACCOUNT_KEY}" | tr -d '\n' | base64 -d > decoded_service_account_key.json
           ls -l decoded_service_account_key.json
-          cat decoded_service_account_key.json
+          if [ -s decoded_service_account_key.json ]; then
+            echo "File exists and is not empty."
+            cat decoded_service_account_key.json
+          else
+            echo "Decoded file is empty!"
+          fi
+      
