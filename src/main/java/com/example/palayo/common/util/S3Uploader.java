@@ -42,17 +42,17 @@ public class S3Uploader {
         List<String> uploadedUrls = new ArrayList<>();
 
         for (MultipartFile file : files) {
-            try {
-                String originalFilename = file.getOriginalFilename(); //ex) "example.png"
-                // 디렉토리/UUID_원본 파일명(originalFilename)
-                String key = dir + "/" + UUID.randomUUID() + "_" + originalFilename;
+            String originalFilename = file.getOriginalFilename(); //ex) "example.png"
+            // 디렉토리/UUID_원본 파일명(originalFilename)
+            String key = dir + "/" + UUID.randomUUID() + "_" + originalFilename;
 
-                PutObjectRequest putRequest = PutObjectRequest.builder()
-                        .bucket(bucket) // 버킷 이름
-                        .key(key) //위에 선언된 키
-                        .contentType(file.getContentType()) // image, png 등 MIME
-                        .build();
-                //S3업로드
+            PutObjectRequest putRequest = PutObjectRequest.builder()
+                    .bucket(bucket) // 버킷 이름
+                    .key(key) //위에 선언된 키
+                    .contentType(file.getContentType()) // image, png 등 MIME
+                    .build();
+            //S3업로드
+            try {
                 s3Client.putObject(putRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
                 //업로드된 파일의 url
                 String url = cloudFrontDomain + "/" + key;
@@ -71,19 +71,18 @@ public class S3Uploader {
             return; // 삭제할 게 없으면 바로 리턴
         }
 
+        List<ObjectIdentifier> objects = urls.stream()
+                .map(this::extractKeyFromUrl)
+                .map(key -> ObjectIdentifier.builder().key(key).build())
+                .toList();
+
+        DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
+                .bucket(bucket)
+                .delete(Delete.builder()
+                        .objects(objects)
+                        .build())
+                .build();
         try {
-            List<ObjectIdentifier> objects = urls.stream()
-                    .map(this::extractKeyFromUrl)
-                    .map(key -> ObjectIdentifier.builder().key(key).build())
-                    .toList();
-
-            DeleteObjectsRequest deleteRequest = DeleteObjectsRequest.builder()
-                    .bucket(bucket)
-                    .delete(Delete.builder()
-                            .objects(objects)
-                            .build())
-                    .build();
-
             s3Client.deleteObjects(deleteRequest);
         } catch (Exception e) {
             throw new BaseException(ErrorCode.EXTERNAL_SERVER_ERROR, null);
