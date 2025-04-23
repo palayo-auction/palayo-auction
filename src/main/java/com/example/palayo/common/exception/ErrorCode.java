@@ -79,6 +79,7 @@ public enum ErrorCode {
     FIREBASE_INIT_FAIL("Firebase 초기화 실패.",HttpStatus.INTERNAL_SERVER_ERROR),
 
     //그 외 에러 코드
+
     TOO_MANY_FILES("최대 10개까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST),
     INVALID_DOMAIN("유효한 도메인이 아닙니다.", HttpStatus.BAD_REQUEST),
     EXTERNAL_SERVER_ERROR("외부 API 서버에서 알 수 없는 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
@@ -89,7 +90,13 @@ public enum ErrorCode {
     UNSUPPORTED_FILE_TYPE("지원하지 않는 파일 형식입니다.", HttpStatus.BAD_REQUEST),
     INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
 //    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
-    SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    //락 관련 에러 코드
+    LOCK_ACQUISITION_FAILED("락을 획득할 수 없습니다. 잠시 후 다시 시도해 주세요.", HttpStatus.BAD_REQUEST),  // 락 획득 실패
+    LOCK_ACQUISITION_INTERRUPTED("락 대기 중 인터럽트 발생", HttpStatus.BAD_REQUEST);// 락 타임아웃
+
+
 
 	private final String message;
 	private final HttpStatus httpStatus;
