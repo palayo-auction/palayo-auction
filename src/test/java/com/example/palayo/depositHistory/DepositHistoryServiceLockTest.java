@@ -52,7 +52,7 @@ class DepositHistoryServiceLockTest {
         );
     }
 
-    // ✅ 락 획득 성공 및 저장까지 정상 작동
+    // 락 획득 성공 및 저장까지 정상 작동
     @Test
     void testLockAcquisition_Success() throws InterruptedException {
         Long auctionId = 1L;
@@ -73,7 +73,7 @@ class DepositHistoryServiceLockTest {
         verify(depositHistoryRepository).save(any(DepositHistory.class));
     }
 
-    // ❌ 락 획득 실패 시 예외 발생
+    // 락 획득 실패 시 예외 발생
     @Test
     void testLockAcquisition_Failure() throws InterruptedException {
         Long auctionId = 1L;
@@ -87,7 +87,7 @@ class DepositHistoryServiceLockTest {
         verify(rLock, never()).unlock();
     }
 
-    // ❌ 락 획득 중 인터럽트 발생 시 예외 처리
+    // 락 획득 중 인터럽트 발생 시 예외 처리
     @Test
     void testLockAcquisition_InterruptedException() throws InterruptedException {
         Long auctionId = 1L;
@@ -101,7 +101,7 @@ class DepositHistoryServiceLockTest {
         verify(rLock, never()).unlock();
     }
 
-    // ❌ 이미 보증금 납부 이력이 있는 경우 예외
+    // 이미 보증금 납부 이력이 있는 경우 예외
     @Test
     void testDepositAlreadyExists() throws InterruptedException {
         Long auctionId = 1L;
