@@ -3,6 +3,7 @@ package com.example.palayo.depositHistory;
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
+import com.example.palayo.domain.deposithistory.entity.DepositHistory;
 import com.example.palayo.domain.deposithistory.repository.DepositHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import com.example.palayo.domain.user.entity.User;
@@ -51,7 +52,7 @@ class DepositHistoryServiceLockTest {
         );
     }
 
-    // 락 획득 성공 및 해제 확인
+    // ✅ 락 획득 성공 및 저장까지 정상 작동
     @Test
     void testLockAcquisition_Success() throws InterruptedException {
         Long auctionId = 1L;
@@ -66,14 +67,13 @@ class DepositHistoryServiceLockTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId)).thenReturn(false);
 
-        assertDoesNotThrow(() ->
-                depositHistoryService.createDepositHistory(userId, auctionId, 100)
-        );
+        assertDoesNotThrow(() -> depositHistoryService.createDepositHistory(userId, auctionId, 100));
 
-        verify(rLock).unlock();  // 락 해제 확인
+        verify(rLock).unlock();
+        verify(depositHistoryRepository).save(any(DepositHistory.class));
     }
 
-    // 락 획득 실패 시 예외 발생
+    // ❌ 락 획득 실패 시 예외 발생
     @Test
     void testLockAcquisition_Failure() throws InterruptedException {
         Long auctionId = 1L;
@@ -82,14 +82,12 @@ class DepositHistoryServiceLockTest {
         when(redissonClient.getLock(anyString())).thenReturn(rLock);
         when(rLock.tryLock(anyLong(), anyLong(), any())).thenReturn(false);
 
-        assertThrows(BaseException.class, () ->
-                depositHistoryService.createDepositHistory(userId, auctionId, 100)
-        );
+        assertThrows(BaseException.class, () -> depositHistoryService.createDepositHistory(userId, auctionId, 100));
 
-        verify(rLock, never()).unlock(); // 락 획득 실패 -> unlock 호출 안 됨
+        verify(rLock, never()).unlock();
     }
 
-    // InterruptedException 발생 시 처리
+    // ❌ 락 획득 중 인터럽트 발생 시 예외 처리
     @Test
     void testLockAcquisition_InterruptedException() throws InterruptedException {
         Long auctionId = 1L;
@@ -98,14 +96,12 @@ class DepositHistoryServiceLockTest {
         when(redissonClient.getLock(anyString())).thenReturn(rLock);
         when(rLock.tryLock(anyLong(), anyLong(), any())).thenThrow(new InterruptedException());
 
-        assertThrows(BaseException.class, () ->
-                depositHistoryService.createDepositHistory(userId, auctionId, 100)
-        );
+        assertThrows(BaseException.class, () -> depositHistoryService.createDepositHistory(userId, auctionId, 100));
 
-        verify(rLock, never()).unlock(); // 인터럽트 발생 -> unlock 호출 안 됨
+        verify(rLock, never()).unlock();
     }
 
-    // 락 획득 후 이미 존재하는 경우 예외 발생
+    // ❌ 이미 보증금 납부 이력이 있는 경우 예외
     @Test
     void testDepositAlreadyExists() throws InterruptedException {
         Long auctionId = 1L;
@@ -120,10 +116,8 @@ class DepositHistoryServiceLockTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(depositHistoryRepository.existsByAuctionIdAndUserId(auctionId, userId)).thenReturn(true);
 
-        assertThrows(BaseException.class, () ->
-                depositHistoryService.createDepositHistory(userId, auctionId, 100)
-        );
+        assertThrows(BaseException.class, () -> depositHistoryService.createDepositHistory(userId, auctionId, 100));
 
-        verify(rLock).unlock(); // 락은 획득했으므로 해제되어야 함
+        verify(rLock).unlock();
     }
 }
