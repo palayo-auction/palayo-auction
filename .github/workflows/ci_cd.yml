@@ -88,6 +88,14 @@ jobs:
             chmod +x ~/deploy.sh
             ~/deploy.sh
 
+      - name: Check FIREBASE_ACCOUNT_KEY length
+        run: |
+          echo "Length of FIREBASE_ACCOUNT_KEY: ${#FIREBASE_ACCOUNT_KEY}"
+          echo "$FIREBASE_ACCOUNT_KEY" | head -c 100
+        env:
+          FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
+
+
       - name: Debug base64 decoding process
         run: |
           echo "${FIREBASE_ACCOUNT_KEY}" | tr -d '\n' | base64 -d > decoded_service_account_key.json
