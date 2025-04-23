@@ -32,7 +32,7 @@ jobs:
           files: build/reports/jacoco/test/jacocoTestReport.xml
           fail_ci_if_error: true
 
-      - name: Create EB package with Dockerfile.api
+      - name: Create EB package with Dockerfile.els.api
         run: |
           mkdir eb-build
           cp Dockerfile.api eb-build/Dockerfile
