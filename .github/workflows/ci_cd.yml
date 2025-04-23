@@ -44,6 +44,7 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/spring-app:latest
 
+      # 8. Decoding firebase json and save to EC2
       - name: Deploy Firebase Key
         run: |
           mkdir -p ~/firebase
@@ -51,14 +52,13 @@ jobs:
         env:
           FIREBASE_ACCOUNT_KEY: ${{ secrets.FIREBASE_ACCOUNT_KEY }}
 
-      # 8. CD
+      # 9. CD
       - name: Connect to EC2 and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: FIREBASE_ACCOUNT_KEY
           script: |
             echo "Generating .env file..."
             cat <<EOF > ~/.env
