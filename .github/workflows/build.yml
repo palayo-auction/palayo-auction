@@ -3,7 +3,7 @@ name: Java CI with Gradle & Codecov & EB Deploy
 on:
   push:
     branches:
-      - feat/**
+      - dev
 
 jobs:
   build-and-deploy:
