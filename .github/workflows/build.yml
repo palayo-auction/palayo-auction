@@ -1,16 +1,16 @@
-name: Deploy Spring Boot API to Elastic Beanstalk (Docker)
+name: Java CI with Gradle & Codecov & EB Deploy
 
 on:
   push:
     branches:
-      - dev
+      - feat/**
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -19,13 +19,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build Spring Boot App
-        run: ./gradlew clean build -x test
+      - name: Grant execute permission for Gradle Wrapper
+        run: chmod +x gradlew
 
-      - name: Package Docker app for EB
+      - name: Run tests with coverage and build
+        run: ./gradlew clean testCoverage build
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/test/jacocoTestReport.xml
+          fail_ci_if_error: true
+
+      - name: Create EB package with Dockerfile.api
         run: |
           mkdir eb-build
-          cp Dockerfile eb-build/
+          cp Dockerfile.api eb-build/Dockerfile
           cp build/libs/*.jar eb-build/app.jar
           cd eb-build
           zip -r ../deploy.zip .
