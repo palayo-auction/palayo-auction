@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir eb-build
           cp Dockerfile.api eb-build/Dockerfile
-          cp build/libs/*.jar eb-build/app.jar
+          cp build/libs/palayo-0.0.1-SNAPSHOT.jar eb-build/app.jar
           cd eb-build
           zip -r ../deploy.zip .
 
