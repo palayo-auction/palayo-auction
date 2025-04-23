@@ -122,6 +122,7 @@ public class AuctionHistoryServiceHelper {
 			return new WinningInfo(
 				auction.getWinningBidder().getNickname(),
 				auction.getSuccessAt()
+
 			);
 		}
 		// 낙찰 정보가 없으면 null 반환
@@ -129,7 +130,8 @@ public class AuctionHistoryServiceHelper {
 	}
 
 	// 낙찰자 정보를 담는 간단한 불변 객체
-	public record WinningInfo(String nickname, LocalDateTime successAt) {}
+	public record WinningInfo(String nickname, LocalDateTime successAt) {
+	}
 
 	// 낙찰 성공 시 보증금 처리 및 포인트 차감
 	public void handleAuctionSuccess(Auction auction, User winner, int finalBidPrice) {
