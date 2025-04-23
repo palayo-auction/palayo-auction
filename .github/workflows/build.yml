@@ -1,4 +1,4 @@
-name: Java CI with Gradle
+name: Java CI with Gradle & Codecov
 
 on:
   push:
@@ -22,5 +22,12 @@ jobs:
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew clean build
+      - name: Run tests with coverage and build
+        run: ./gradlew clean testCoverage build
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/test/jacocoTestReport.xml
+          fail_ci_if_error: true
