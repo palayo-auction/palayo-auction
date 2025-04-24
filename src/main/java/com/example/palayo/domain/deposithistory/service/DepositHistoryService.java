@@ -11,9 +11,7 @@ import com.example.palayo.domain.deposithistory.enums.DepositStatus;
 import com.example.palayo.domain.deposithistory.repository.DepositHistoryRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

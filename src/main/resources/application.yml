@@ -2,8 +2,7 @@ spring:
   application:
     name: palayo
   config:
-    import:
-      - classpath:/local/application-local.yml
+    import: optional:classpath:/local/application-local.yml
   elasticsearch:
     uris: "${ELASTICSEARCH_URIS}"
   data:
@@ -16,7 +15,6 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-
 
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"
