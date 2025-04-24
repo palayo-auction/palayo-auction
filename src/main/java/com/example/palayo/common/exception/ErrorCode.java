@@ -79,7 +79,6 @@ public enum ErrorCode {
     FIREBASE_INIT_FAIL("Firebase 초기화 실패.",HttpStatus.INTERNAL_SERVER_ERROR),
 
     //그 외 에러 코드
-
     TOO_MANY_FILES("최대 10개까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST),
     INVALID_DOMAIN("유효한 도메인이 아닙니다.", HttpStatus.BAD_REQUEST),
     EXTERNAL_SERVER_ERROR("외부 API 서버에서 알 수 없는 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
@@ -91,10 +90,6 @@ public enum ErrorCode {
     INVALID_TYPE("유효하지 않은 타입입니다.",HttpStatus.BAD_REQUEST),
 //    DUPLICATE_UNIQUE("기존 데이터베이스 정보와 중복됩니다.", HttpStatus.BAD_REQUEST),
     SERVER_NOT_WORK("서버 문제로 인해 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
-
-
-
-
 
 	private final String message;
 	private final HttpStatus httpStatus;
