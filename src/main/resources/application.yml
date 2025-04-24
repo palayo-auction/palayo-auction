@@ -19,6 +19,12 @@ spring:
     log-startup-info: true
     lazy-initialization: true
 
+logging:
+  level:
+    root: DEBUG
+    org.springframework: DEBUG
+    org.springframework.boot: DEBUG
+
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"
   secret-key: "${PAYMENT_SECRET_KEY}"
