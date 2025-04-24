@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <button id="connectButton">Connect</button>
+    <button id="sendBidButton">Send Bid</button>
+
+    <script>
+        let stompClient = null;
+        const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyIiwiZW1haWwiOiJzZXVuZ21pbkBuYXZlci5jb20iLCJleHAiOjE3NDU0NzY4NTIsImlhdCI6MTc0NTQ3MzI1Mn0._KUiiRy36PXLjRWm4I35Sap5g6Cdcb7ZqTtYFD8vEgc";  // 클라이언트에서 JWT 토큰을 가져옴
+
+        document.getElementById("connectButton").onclick = function() {
+            const socket = new SockJS('http://localhost:8080/ws-bid');  // WebSocket 엔드포인트
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect(
+                { 'Authorization': 'Bearer ' + token },  // 헤더에 JWT 토큰 추가
+                function(frame) {
+                    console.log('Connected: ' + frame);
+
+                    // 서버로부터 응답을 받을 채널을 구독
+                    stompClient.subscribe('/topic/bids.1', function(messageOutput) {
+                        console.log("Received: " + messageOutput.body);
+                    });
+
+                    stompClient.subscribe('/user/queue/errors', function(errorMessage) {
+                        console.log("Error: " + errorMessage.body);
+                    });
+                },
+                function(error) {
+                    console.error('STOMP error: ' + error);
+                }
+            );
+        };
+
+        document.getElementById("sendBidButton").onclick = function() {
+            if (stompClient) {
+                // 서버로 보낼 메시지
+                const bidMessage = {
+                    auctionId: 1,
+                    bidAmount: 1000
+                };
+
+                // /app/bid.send 에 메시지 전송
+                stompClient.send("/app/bid.send", {}, JSON.stringify(bidMessage));
+            }
+        };
+    </script>
+</body>
+</html>

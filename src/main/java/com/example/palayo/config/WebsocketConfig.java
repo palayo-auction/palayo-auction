@@ -19,8 +19,8 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws-bid")
                 .setHandshakeHandler(new AuthUserHandshakeHandler())
                 .addInterceptors(new JwtHandshakeInterceptor(jwtUtil))
-                .setAllowedOrigins("*");
-//                .withSockJS();
+                .setAllowedOrigins("http://localhost:8080")
+                .withSockJS();
     }
 
     @Override

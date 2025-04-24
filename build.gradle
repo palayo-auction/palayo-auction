@@ -20,6 +20,10 @@ configurations {
     }
 }
 
+configurations.implementation {
+    exclude group: 'commons-logging', module: 'commons-logging'
+}
+
 jacoco {
     toolVersion = "0.8.11"
 }
@@ -84,6 +88,7 @@ dependencies {
     //monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator:3.3.0")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.13.0")
+    implementation 'org.springframework.boot:spring-boot-starter-logging'
 
     //mongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'

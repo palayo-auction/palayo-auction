@@ -2,10 +2,11 @@ package com.example.palayo.common.dto;
 
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.security.Principal;
 
 @Getter
-public class AuthUser implements Principal {
+public class AuthUser implements Principal, Serializable {
 
     private final Long userId;
     private final String email;

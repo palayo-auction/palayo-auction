@@ -13,7 +13,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class PalayoApplication {
 
 	public static void main(String[] args) {
+		System.out.println("나 살아있어요");
+		try {
+			SpringApplication.run(PalayoApplication.class, args);
+		} catch (Exception e) {
+			System.out.println("예외 발생함:");
+			e.printStackTrace();
+		}
 		SpringApplication.run(PalayoApplication.class, args);
 	}
-
 }
