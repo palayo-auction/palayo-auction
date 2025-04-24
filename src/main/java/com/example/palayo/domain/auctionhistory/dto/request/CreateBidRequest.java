@@ -10,5 +10,5 @@ public class CreateBidRequest {
 	private int bidPrice; // 입찰 금액
 
 	//이거 웹소켓 때매 추가함
-	Long auctionId;
+	private Long auctionId;
 }

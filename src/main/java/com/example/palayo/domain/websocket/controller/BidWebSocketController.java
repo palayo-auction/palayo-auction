@@ -30,6 +30,7 @@ public class BidWebSocketController {
             Message<?> message
     ) {
         log.info("handleBid called");
+        log.info("Incoming request.getAuctionId: {} + \nIncoming request.getBidPrice: {}", request.getAuctionId(), request.getBidPrice());
 
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         AuthUser authUser = (AuthUser) accessor.getSessionAttributes().get("authUser");
@@ -45,8 +46,9 @@ public class BidWebSocketController {
         try {
             response = auctionHistoryService.createBid(authUser, request.getAuctionId(), request);
         } catch (BaseException e) {
+            log.error("BaseException occurred: {}", e.getMessage(), e);
             messagingTemplate.convertAndSendToUser(
-                    authUser.getEmail(),
+                    authUser.getName(),
                     "/queue/errors",
                     Map.of("errorCode", e.getErrorCode(), "message", e.getMessage())
             );

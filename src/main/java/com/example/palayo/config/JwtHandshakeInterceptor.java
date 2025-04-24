@@ -5,8 +5,10 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.StringUtils;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
@@ -27,30 +29,37 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             Map<String, Object> attributes
     ) {
         HttpHeaders headers = request.getHeaders();
-        String token = headers.getFirst("Authorization");
+        if (headers.getOrigin() != null && !(headers.getOrigin().equals("http://localhost:63342") || !headers.getOrigin().equals("https://localhost:8080"))) {
+            response.setStatusCode(HttpStatus.FORBIDDEN);  // CORS 정책 위반 시
+            return false;
+        }
 
-        if (StringUtils.hasText(token)) {
-            try {
-                String jwt = jwtUtil.substringToken(token);
-                Claims claims = jwtUtil.extractClaims(jwt);
+        if (request instanceof ServletServerHttpRequest servletRequest) {
+            String token = servletRequest.getServletRequest().getParameter("token");
 
-                Long userId = Long.valueOf(claims.getSubject());
-                String email = claims.get("email", String.class);
+            if (StringUtils.hasText(token)) {
+                try {
+                    String jwt = jwtUtil.substringToken(token); // "Bearer " 떼기
+                    Claims claims = jwtUtil.extractClaims(jwt);
 
-                // 프로젝트의 AuthUser 객체 생성
-                AuthUser authUser = new AuthUser(userId, email); // 생성자 맞게 수정
+                    Long userId = Long.valueOf(claims.getSubject());
+                    String email = claims.get("email", String.class);
 
-                if (email == null) {
-                    log.error("JWT token is missing essential claims (userId or email).");
-                    return false;  // 토큰에 필수 정보가 없으면 핸드셰이크 거부
+                    if (email == null) {
+                        log.error("JWT token is missing essential claims.");
+                        return false;
+                    }
+
+                    AuthUser authUser = new AuthUser(userId, email);
+                    attributes.put("authUser", authUser);
+                    log.info("AuthUser from handshake: {}", authUser);
+
+                } catch (Exception e) {
+                    log.error("Invalid JWT token: {}", e.getMessage());
+                    return false;
                 }
-
-                // WebSocket 세션에 사용자 정보 저장
-                attributes.put("authUser", authUser);
-                log.info("AuthUser from handshake!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: {}", authUser);
-
-            } catch (Exception e) {
-                log.error("Invalid JWT token: {}", e.getMessage());
+            } else {
+                log.warn("No token found in query parameter.");
                 return false;
             }
         }
