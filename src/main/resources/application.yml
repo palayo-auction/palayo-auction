@@ -18,6 +18,7 @@ spring:
       port: ${REDIS_PORT}
 
 
+
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"
   secret-key: "${PAYMENT_SECRET_KEY}"
