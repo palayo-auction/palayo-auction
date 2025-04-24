@@ -2,8 +2,7 @@ spring:
   application:
     name: palayo
   config:
-    import:
-      - classpath:/local/application-local.yml
+    import: optional:classpath:/local/application-local.yml
   elasticsearch:
     uris: "${ELASTICSEARCH_URIS}"
   data:
