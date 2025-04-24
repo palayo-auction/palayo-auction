@@ -1,6 +1,11 @@
 spring:
   application:
     name: palayo
+    admin:
+      enabled: false
+  jmx:
+    enabled: false
+
   config:
     import: optional:classpath:/local/application-local.yml
   elasticsearch:
