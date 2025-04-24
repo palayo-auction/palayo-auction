@@ -16,6 +16,9 @@ public class PalayoApplication {
 
 		System.out.println(" PalayoApplication started ");
 		SpringApplication.run(PalayoApplication.class, args);
+		System.out.println(" PalayoApplication after started ");
+
+
 
 	}
 
