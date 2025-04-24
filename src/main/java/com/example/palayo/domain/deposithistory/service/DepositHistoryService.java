@@ -11,9 +11,7 @@ import com.example.palayo.domain.deposithistory.enums.DepositStatus;
 import com.example.palayo.domain.deposithistory.repository.DepositHistoryRepository;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,6 +95,11 @@ public class DepositHistoryService {
 	public void useDeposit(Long auctionId, Long userId) {
 		DepositHistory depositHistory = findDepositHistory(auctionId, userId);
 
+		// 이미 처리된 경우: 예외 대신 무시하고 return
+		if (depositHistory.getStatus() == DepositStatus.USED) {
+			return; // 중복 처리 방지
+		}
+
 		if (depositHistory.getStatus() != DepositStatus.PENDING) {
 			throw new BaseException(ErrorCode.INVALID_DEPOSIT_STATUS, "auctionId, userId");
 		}
@@ -108,6 +111,11 @@ public class DepositHistoryService {
 	@Transactional
 	public void refundDeposit(Long auctionId, Long userId) {
 		DepositHistory depositHistory = findDepositHistory(auctionId, userId);
+
+		// 이미 환불된 경우: 중복 처리 방지
+		if (depositHistory.getStatus() == DepositStatus.REFUNDED) {
+			return; // 아무 것도 안 하고 종료
+		}
 
 		if (depositHistory.getStatus() != DepositStatus.PENDING) {
 			throw new BaseException(ErrorCode.INVALID_DEPOSIT_STATUS, "auctionId, userId");

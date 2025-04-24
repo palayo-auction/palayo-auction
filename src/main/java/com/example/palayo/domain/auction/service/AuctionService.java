@@ -59,7 +59,7 @@ public class AuctionService {
 		// isInstantStart가 true일 경우, 즉시 시작 경매로 처리
 		if (Boolean.TRUE.equals(request.getIsInstantStart())) {
 			startedAt = LocalDateTime.now();
-			expiredAt = startedAt.plusMinutes(30);
+			expiredAt = request.getExpiredAt();
 			status = AuctionStatus.ACTIVE;
 		} else {
 			startedAt = request.getStartedAt();

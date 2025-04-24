@@ -35,12 +35,6 @@ import lombok.NoArgsConstructor;
 @EntityListeners(AuditingEntityListener.class)
 public class Auction {
 
-	// // Optimistic Lock 버전
-	// // 버전을 관리하여 동시성 충돌을 방지
-	// @Version
-	// @Column(name = "version")
-	// private Integer version;
-
 	// 경매 ID
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -127,11 +121,16 @@ public class Auction {
 		this.currentPrice = newPrice;
 	}
 
-	// 경매 상태를 SUCCESS로 자동 설정
+	// 현재 시간으로 SUCCESS 처리
 	public void markAsSuccess(User winningBidder) {
+		this.markAsSuccess(winningBidder, LocalDateTime.now());
+	}
+
+	// 지정된 시간으로 SUCCESS 처리
+	public void markAsSuccess(User winningBidder, LocalDateTime successAt) {
 		this.status = AuctionStatus.SUCCESS;
 		this.winningBidder = winningBidder;
-		this.successAt = LocalDateTime.now(); // 낙찰 시점 기록
+		this.successAt = successAt; // 낙찰 시점 기록
 	}
 
 	// 경매 상태를 FAILED로 자동 설정
