@@ -15,6 +15,7 @@ public class PalayoApplication {
 	public static void main(String[] args) {
 
 		System.out.println(" PalayoApplication started ");
+		app.setWebApplicationType(WebApplicationType.SERVLET);
 		SpringApplication.run(PalayoApplication.class, args);
 		System.out.println(" PalayoApplication after started ");
 
