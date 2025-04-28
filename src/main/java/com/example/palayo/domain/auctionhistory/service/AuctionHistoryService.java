@@ -89,7 +89,7 @@ public class AuctionHistoryService {
 					notificationService.saveNotification(notification);
 				}
 			}
-			return BidResponse.of(auctionHistory);
+			return BidResponse.of(auctionHistory, authUser);
 		} catch (ObjectOptimisticLockingFailureException e) {
 			throw new BaseException(ErrorCode.CONCURRENT_BID_CONFLICT, "동시 입찰 충돌 발생");
 		}

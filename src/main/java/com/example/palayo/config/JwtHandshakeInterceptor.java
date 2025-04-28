@@ -44,15 +44,17 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
                     Long userId = Long.valueOf(claims.getSubject());
                     String email = claims.get("email", String.class);
+                    String nickname = claims.get("nickname", String.class);
 
                     if (email == null) {
                         log.error("JWT token is missing essential claims.");
                         return false;
                     }
 
-                    AuthUser authUser = new AuthUser(userId, email);
+                    AuthUser authUser = new AuthUser(userId, email, nickname);
                     attributes.put("authUser", authUser);
                     log.info("AuthUser from handshake: {}", authUser);
+                    log.info("nickname!!!!!!!!!!!!!!!!!: {}", nickname);
 
                 } catch (Exception e) {
                     log.error("Invalid JWT token: {}", e.getMessage());

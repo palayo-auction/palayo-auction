@@ -61,7 +61,7 @@ public class AuthService {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
 
-        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
+        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getNickname());
 
         return LoginUserResponse.of(
                 bearerToken);
