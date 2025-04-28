@@ -15,8 +15,11 @@
 <button id="connectButton">Connect</button>
 <button id="sendBidButton">Send Bid</button>
 
+<ul id="bidList"></ul>
+
 <script>
     let stompClient = null;
+    let currentAuctionId = null;
 
     function getTokenFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -32,11 +35,26 @@
             stompClient.connect({}, function(frame) {
                 console.log('Connected: ' + frame);
 
+                // 에러 메시지 처리
                 stompClient.subscribe('/user/queue/errors', function(errorMessage) {
                     const error = JSON.parse(errorMessage.body);
                     console.error("입찰 실패:");
                     console.error("코드:", error.errorCode);
                     console.error("메시지:", error.message);
+                });
+
+                currentAuctionId = document.getElementById("auctionIdInput").value;
+                if (!currentAuctionId) {
+                    alert("경매 ID를 입력하고 연결하세요");
+                    return;
+                }
+
+                const topic = `/topic/bids.${currentAuctionId}`;
+                // 입찰 채널 구독
+                stompClient.subscribe(topic, function(messageOutput) {
+                    console.log("응답 도착");
+                    const bid = JSON.parse(messageOutput.body);
+                    displayBid(bid);
                 });
 
             }, function(error) {
@@ -57,12 +75,6 @@
                 return;
             }
 
-            const topic = `/topic/bids.${auctionId}`;
-            stompClient.subscribe(topic, function(messageOutput) {
-                console.log(`응답 도착 from ${topic}`);
-                console.log("Received: ", JSON.parse(messageOutput.body));
-            });
-
             const bidMessage = {
                 auctionId: parseInt(auctionId),
                 bidPrice: parseInt(bidPrice)
@@ -72,6 +84,16 @@
             console.log("Sent bid:", bidMessage);
         }
     };
+
+
+    // 입찰 정보를 화면에 표시
+    function displayBid(bid) {
+        const bidList = document.getElementById('bidList');
+        const bidElement = document.createElement('li');
+        const formattedTime = new Date(bid.bidTime).toLocaleString('ko-KR');
+        bidElement.textContent = `${bid.nickname}, Auction ID: ${bid.auctionId}, Bid Price: ${bid.bidPrice}, Time: ${formattedTime}`;
+        bidList.insertBefore(bidElement, bidList.firstChild);
+    }
 </script>
 </body>
 </html>
