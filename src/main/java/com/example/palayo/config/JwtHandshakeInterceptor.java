@@ -29,7 +29,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             Map<String, Object> attributes
     ) {
         HttpHeaders headers = request.getHeaders();
-        if (headers.getOrigin() != null && !(headers.getOrigin().equals("http://localhost:63342") || !headers.getOrigin().equals("https://localhost:8080"))) {
+        if (headers.getOrigin() != null && !(headers.getOrigin().equals("http://localhost:63342") || headers.getOrigin().equals("https://localhost:8080"))) {
             response.setStatusCode(HttpStatus.FORBIDDEN);  // CORS 정책 위반 시
             return false;
         }
