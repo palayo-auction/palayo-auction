@@ -1,12 +1,19 @@
 package com.example.palayo.domain.auction.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
+import com.example.palayo.domain.auction.job.AuctionEndJob;
+import com.example.palayo.domain.auction.job.AuctionStartJob;
+import lombok.extern.slf4j.Slf4j;
+import org.quartz.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +39,7 @@ import com.example.palayo.domain.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuctionService {
@@ -43,12 +51,12 @@ public class AuctionService {
 	private final AuctionValidator auctionValidator;
 	private final NotificationService notificationService;
 	private final RedisNotificationFactory redisNotificationFactory;
+	private final Scheduler scheduler;
 
 	// 사용자가 경매를 생성할 때 호출하는 메서드
 	// 상품이 존재하는지, 주인인지, 이미 경매중인지 확인한 후 경매를 새로 만든다
 	@Transactional
 	public AuctionResponse saveAuction(AuthUser authUser, CreateAuctionRequest request) {
-
 		// 상품 존재, 소유자 일치 여부, 중복 경매 여부 검증
 		Item item = auctionValidator.validateAuctionCreation(request, authUser);
 
@@ -67,14 +75,14 @@ public class AuctionService {
 			status = AuctionStatus.READY;
 		}
 
-		// 검증 통과 후 경매 객체 생성 + 초기값 설정 (상태는 READY 또는 ACTIVE, 현재 입찰가는 시작가로)
+		// 경매 객체 생성 + 초기값 설정
 		Auction auction = Auction.of(
-			item,
-			request.getStartingPrice(),
-			request.getBuyoutPrice(),
-			request.getBidIncrement(),
-			startedAt,
-			expiredAt
+				item,
+				request.getStartingPrice(),
+				request.getBuyoutPrice(),
+				request.getBidIncrement(),
+				startedAt,
+				expiredAt
 		);
 		auction.updateCurrentPrice(request.getStartingPrice());
 
@@ -82,16 +90,86 @@ public class AuctionService {
 			auction.markAsActive(); // 즉시 시작 경매
 		} else {
 			auction.markAsReady(); // 예약 경매
+
 		}
 
 		// DB에 경매 저장 후 저장된 경매를 응답으로 변환하여 반환
 		Auction savedAuction = auctionRepository.save(auction);
+
+		// 저장된 경매 객체에서 auctionId 확인
+		Long auctionId = savedAuction.getId();
+
+		// 만약 auctionId가 null이면 예외를 던지거나 경고 로그 출력
+		if (auctionId == null) {
+			System.out.println("[ERROR] Auction ID is null after saving the auction!");
+			throw new BaseException(ErrorCode.QUARTZ_SCHEDULER_ERROR, "경매 ID가 null입니다.");
+		}
+		// 예약된 경매 시작 작업을 위해 스케줄링
+		scheduleAuctionStartJob(auction); // 경매 시작 작업 예약
+		// 경매 종료 작업 예약 (Quartz 예약)
+		scheduleAuctionEndJob(savedAuction);
 
 		// 알림 예약 (경매 시작/종료 알림)
 		reserveMyAuctionNotification(savedAuction);
 
 		return AuctionResponse.of(savedAuction);
 	}
+	private void scheduleAuctionStartJob(Auction auction) {
+		try {
+			Long auctionId = auction.getId();
+			if (auctionId == null) {
+				log.warn("[ERROR] auctionId is null before scheduling start job.");
+			}
+			JobDataMap jobDataMap = new JobDataMap();
+			jobDataMap.put("auctionId", auctionId);
+
+			JobDetail jobDetail = JobBuilder.newJob(AuctionStartJob.class)
+					.withIdentity("auctionStartJob_" + auctionId)
+					.usingJobData(jobDataMap)
+					.build();
+
+			Trigger startTrigger = TriggerBuilder.newTrigger()
+					.withIdentity("auctionStartTrigger_" + auctionId)
+					.startAt(Date.from(auction.getStartedAt().atZone(ZoneId.systemDefault()).toInstant()))
+					.build();
+
+			log.warn("[Quartz] AuctionStartJob 예약됨: auctionId = " + auctionId);
+
+			scheduler.scheduleJob(jobDetail, startTrigger);
+		} catch (SchedulerException e) {
+			throw new BaseException(ErrorCode.QUARTZ_SCHEDULER_ERROR, "경매 시작 작업 예약에 실패했습니다.");
+		}
+	}
+	private void scheduleAuctionEndJob(Auction auction) {
+		try {
+			// 경매 종료 시간을 Quartz의 Trigger에 설정
+			JobDataMap jobDataMap = new JobDataMap();
+			jobDataMap.put("auctionId", auction.getId());
+
+			// AuctionEndJob 정의
+			JobDetail jobDetail = JobBuilder.newJob(AuctionEndJob.class)
+					.withIdentity("auctionEndJob_" + auction.getId())
+					.usingJobData(jobDataMap)
+					.build();
+
+			// 종료 시간에 맞춰 Trigger 설정
+			Trigger endTrigger = TriggerBuilder.newTrigger()
+					.withIdentity("auctionEndTrigger_" + auction.getId())
+					.startAt(Date.from(auction.getExpiredAt().atZone(ZoneId.systemDefault()).toInstant())) // 경매 종료 시간에 맞춰 설정
+					.build();
+
+//			 테스트용 로그 (필요 시 주석 해제)
+			 System.out.println("[Quartz] AuctionEndJob 예약됨: auctionId = " + auction.getId());
+
+			// Job 예약
+			scheduler.scheduleJob(jobDetail, endTrigger);
+		} catch (SchedulerException e) {
+			// 예외 처리
+			throw new BaseException(ErrorCode.QUARTZ_SCHEDULER_ERROR, "경매 종료 작업 예약에 실패했습니다.");
+		}
+	}
+
+
 
 	// 시간에 따라 경매 상태(READY -> ACTIVE -> SUCCESS/FAILED)를 갱신하는 메서드
 	@Transactional
@@ -214,7 +292,7 @@ public class AuctionService {
 	}
 
 	// 경매 시작/종료 알림 예약 메서드
-	private void reserveMyAuctionNotification(Auction auction) {
+	public void reserveMyAuctionNotification(Auction auction) {
 		User seller = auction.getItem().getSeller();
 
 		RedisNotification startNotification = redisNotificationFactory.myAuctionStart(seller, auction);
@@ -223,4 +301,46 @@ public class AuctionService {
 		RedisNotification endNotification = redisNotificationFactory.myAuctionEnd(seller, auction);
 		notificationService.saveNotification(endNotification);
 	}
+
+	@Transactional
+	public void markAuctionAsActive(Long auctionId) {
+		// auctionId가 null인 경우 예외를 던짐
+		if (auctionId == null) {
+			throw new BaseException(ErrorCode.USER_NOT_FOUND, "옥션 id가 널이야!");
+		}
+
+		Auction auction = auctionRepository.findById(auctionId)
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+
+		auction.markAsActive(); // 상태를 ACTIVE로 바꿔줌
+	}
+
+	@Transactional
+	public void finishAuction(Long auctionId) {
+		// 경매 조회
+		Auction auction = auctionRepository.findById(auctionId)
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+
+		// 경매가 이미 종료되었는지 확인 (이미 SUCCESS나 FAILED 상태라면 종료된 상태)
+		if (auction.getStatus() == AuctionStatus.SUCCESS || auction.getStatus() == AuctionStatus.FAILED) {
+			throw new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId");
+		}
+
+		// 경매 종료 시간과 상태 설정
+		if (auction.getExpiredAt().isBefore(LocalDateTime.now())) {
+			// 낙찰자가 있을 경우 SUCCESS 처리, 없으면 FAILED 처리
+			if (auction.getWinningBidder() != null) {
+				auction.markAsSuccess(auction.getWinningBidder(), LocalDateTime.now()); // 낙찰 처리
+			} else {
+				auction.markAsFailed(); // 낙찰자가 없으면 실패 처리
+			}
+		} else {
+			throw new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId");
+		}
+
+		// 경매 상태 업데이트 후 저장
+		auctionRepository.save(auction);
+	}
+
+
 }

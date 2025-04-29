@@ -149,3 +149,4 @@ public class Auction {
 		this.winningBidder = winningBidder;
 	}
 }
+
