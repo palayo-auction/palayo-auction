@@ -14,20 +14,28 @@ spring:
   application:
     name: palayo
   config:
-    import:
-      - classpath:/local/application-local.yml
+    import: optional:classpath:/local/application-local.yml
   elasticsearch:
     uris: "${ELASTICSEARCH_URIS}"
   data:
     mongodb:
-      host: ${MONGO_HOST}
-      port: ${MONGO_PORT}
-      username: ${MONGO_INITDB_ROOT_USERNAME}
-      password: ${MONGO_INITDB_ROOT_PASSWORD}
+      host: "${MONGO_HOST}"
+      port: "${MONGO_PORT}"
+      username: "${MONGO_INITDB_ROOT_USERNAME}"
+      password: "${MONGO_INITDB_ROOT_PASSWORD}"
       authentication-database: admin
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: "${REDIS_HOST}"
+      port: "${REDIS_PORT}"
+  main:
+    log-startup-info: true
+    lazy-initialization: true
+
+logging:
+  level:
+    root: DEBUG
+    org.springframework: DEBUG
+    org.springframework.boot: DEBUG
 
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"
@@ -45,4 +53,3 @@ management:
       show-details: always # actuator/health 에 디테일 정보 반환
 #   참고로 actuator 정보는 매우 민감하고 중요한 정보이므로 관련자가 아니라면 공개하면 안되기에,
 #   springboot filter 를 사용하여 actuator 에 접근 가능한 화이트리스트에 등록된 ip 가 아니라면 접근할 수 없도록 처리해야 함
-
