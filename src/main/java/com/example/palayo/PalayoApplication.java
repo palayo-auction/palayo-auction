@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class PalayoApplication {
 
 	public static void main(String[] args) {
+
 		SpringApplication.run(PalayoApplication.class, args);
 	}
 }
