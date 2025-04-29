@@ -41,7 +41,7 @@ public class BidWebSocketController {
         }
 
         log.info("Authenticated User: {}", authUser);
-        log.info("nickname@@@@!@#@!#@!!@#!@#@!##!@#!@!@#!@#@!##@!@: {}", authUser.getNickname());
+        log.info("nickname: {}", authUser.getNickname());
 
         BidResponse response;
         try {
