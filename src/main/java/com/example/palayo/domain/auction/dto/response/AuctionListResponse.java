@@ -13,12 +13,13 @@ import lombok.Getter;
 public class AuctionListResponse {
 
 	private Long auctionId;        // 경매 ID
-	private String itemName;       // 상품명
+	private String itemName;       // 상품 이름
 	private String itemImageUrl;   // 대표 상품 이미지 URL
 	private String auctionStatus;  // 경매 상태
 	private int currentPrice;      // 현재 최고 입찰가
-	private Integer myBidPrice;    // 내가 입찰한 금액 (nullable)
-	private Boolean isWinner;      // 낙찰자인지 여부 (nullable)
+	private Integer myBidPrice;    // 내 최고 입찰가 (nullable) - 공용 DTO로 상황에 따라 값 숨김을 위해 Integer 사용
+	private Boolean isWinner;      // 낙찰 여부 (nullable)
+
 	private String remainingTime;  // 남은 시간
 
 	// N+1 최적화 예정 (Item, ItemImages 연관 조회)
@@ -31,13 +32,16 @@ public class AuctionListResponse {
 		return AuctionListResponse.builder()
 			.auctionId(auction.getId())
 			.itemName(auction.getItem().getName())
-			.itemImageUrl( // 대표 상품 이미지 URL (imageIndex = 0)
+
+			// 대표 상품 이미지 URL (imageIndex = 0)
+			.itemImageUrl(
 				auction.getItem().getItemImages().stream()
 					.filter(image -> image.getImageIndex() == 0)
 					.findFirst()
 					.map(ItemImage::getImageUrl)
 					.orElse(null)
 			)
+
 			.auctionStatus(auction.getStatus().name())
 			.currentPrice(auction.getCurrentPrice())
 			.myBidPrice(myBidPrice)

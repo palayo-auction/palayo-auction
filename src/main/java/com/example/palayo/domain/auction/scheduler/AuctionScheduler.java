@@ -30,7 +30,7 @@ public class AuctionScheduler {
 	private final NotificationService notificationService;
 
 	// 1초마다 경매 상태 및 낙찰자 갱신 (변경된 경우에만 save) - 최적화 예정
-	@Scheduled(fixedRate = 1000)
+	// @Scheduled(fixedRate = 1000)
 	@Transactional
 	public void updateAuctionStatuses() {
 

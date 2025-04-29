@@ -72,7 +72,7 @@ public class Auction {
 	@Column(nullable = false)
 	private AuctionStatus status;
 
-	// 낙찰 시점 (경매 성공 시각)
+	// 낙찰 일시 (경매 성공 시각)
 	private LocalDateTime successAt;
 
 	// 경매 시작 일시
