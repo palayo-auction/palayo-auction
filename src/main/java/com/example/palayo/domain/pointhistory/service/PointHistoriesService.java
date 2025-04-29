@@ -1,7 +1,5 @@
 package com.example.palayo.domain.pointhistory.service;
 
-import java.util.Collections;
-
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.pointhistory.dto.PointHistoriesResponse;
@@ -13,7 +11,6 @@ import com.example.palayo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -49,6 +46,7 @@ public class PointHistoriesService {
 
 	// 포인트 변경(충전, 차감, 환불) 및 변경 이력 저장 (Lua Script)
 	// private static final String DECREASE_LUA_SCRIPT = """
+
 	// 	    local current = redis.call('GET', KEYS[1])
 	// 	    if (not current) then
 	// 	        return -1

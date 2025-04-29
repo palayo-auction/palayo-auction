@@ -3,7 +3,6 @@ package com.example.palayo.domain.auctionhistory.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.exception.BaseException;
@@ -28,7 +27,6 @@ import com.example.palayo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
