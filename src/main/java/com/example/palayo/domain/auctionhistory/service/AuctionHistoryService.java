@@ -12,6 +12,7 @@ import com.example.palayo.domain.auction.dto.response.AuctionListResponse;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
+import com.example.palayo.domain.auction.service.AuctionServiceHelper;
 import com.example.palayo.domain.auction.util.TimeFormatter;
 import com.example.palayo.domain.auctionhistory.dto.request.CreateBidRequest;
 import com.example.palayo.domain.auctionhistory.dto.response.BidHistoryResponse;
@@ -20,18 +21,17 @@ import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
-import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,85 +44,114 @@ public class AuctionHistoryService {
 	private final UserRepository userRepository;
 	private final DepositHistoryService depositHistoryService;
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
+	private final AuctionServiceHelper auctionServiceHelper;
 	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
+	private final RedissonClient redissonClient; // Redis Test
 
-	// 사용자가 경매에 입찰할 때 호출하는 메서드
+	// 입찰을 생성합니다.
 	@Transactional
 	public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
-		try {
-			Auction auction = findActiveAuctionById(auctionId);
-			User bidder = findUserById(authUser.getUserId());
+		Auction auction = findActiveAuctionById(auctionId);
+		User bidder = findUserById(authUser.getUserId());
 
-			// 입찰자가 상품 주인인지 검증 (주인이면 입찰 불가)
-			auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
-			// 입찰 가격이 유효한지 검증
-			auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
-			// 사용자의 포인트가 충분한지 체크
-			auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
-			// 입찰 보증금이 존재하지 않으면 생성
-			auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
+		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
+		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
+		auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
+		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
 
-			// 입찰 전 최고 입찰자 찾기 (알림용)
-			Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
-				auction.getId());
+		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
+			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
 
-			// 입찰 내역 생성 및 저장
-			AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
-			auctionHistoryRepository.save(auctionHistory);
+		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
+		auctionHistoryRepository.save(auctionHistory);
 
-			// 현재 경매 최고가 업데이트
-			auction.updateCurrentPrice(request.getBidPrice());
+		auction.updateCurrentPrice(request.getBidPrice());
+		auctionRepository.save(auction);
 
-			// 입찰 가격이 즉시낙찰가에 도달했는지 체크 후 경매 성공 처리
-			if (auctionHistoryServiceHelper.isBuyoutPriceReached(auction, request.getBidPrice())) {
-				auction.markAsSuccess(bidder);
-				auctionHistoryServiceHelper.handleAuctionSuccess(auction, bidder, request.getBidPrice());
-				auctionHistoryServiceHelper.refundFailedBidders(auction);
+		auctionServiceHelper.checkAndHandleAuctionAfterBid(auction);
+
+		if (previousTopBidOpt.isPresent()) {
+			User previousTopBidder = previousTopBidOpt.get().getBidder();
+			if (!previousTopBidder.getId().equals(bidder.getId())) {
+				auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
 			}
-
-			// 알림 보내기: 최고 입찰자가 변경된 경우
-			if (previousTopBidOpt.isPresent()) {
-				User previousTopBidder = previousTopBidOpt.get().getBidder();
-				if (!previousTopBidder.getId().equals(bidder.getId())) {
-					RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
-					notificationService.saveNotification(notification);
-				}
-			}
-			return BidResponse.of(auctionHistory);
-		} catch (ObjectOptimisticLockingFailureException e) {
-			throw new BaseException(ErrorCode.CONCURRENT_BID_CONFLICT, "동시 입찰 충돌 발생");
 		}
+
+		return BidResponse.of(auctionHistory);
 	}
 
-	// 특정 경매에 대한 입찰 기록을 조회하는 메서드
+	// // 입찰을 생성합니다. (Redisson Lock으로 동시성 제어)
+	// @Transactional
+	// public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
+	// 	RLock lock = redissonClient.getLock("auction:bid:" + auctionId);
+	// 	boolean locked = false;
+	//
+	// 	try {
+	// 		locked = lock.tryLock(3, 5, TimeUnit.SECONDS); // 3초 안에 락 획득 시도, 5초 유지
+	//
+	// 		if (!locked) {
+	// 			throw new BaseException(ErrorCode.BID_CONFLICT, "동시 입찰 충돌");
+	// 		}
+	//
+	// 		Auction auction = findActiveAuctionById(auctionId);
+	// 		User bidder = findUserById(authUser.getUserId());
+	//
+	// 		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
+	// 		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
+	// 		auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
+	// 		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
+	//
+	// 		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
+	// 			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
+	//
+	// 		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
+	// 		auctionHistoryRepository.save(auctionHistory);
+	//
+	// 		auction.updateCurrentPrice(request.getBidPrice());
+	// 		auctionRepository.save(auction);
+	//
+	// 		// bidder, bidPrice를 넘기지 않고 auction만 넘긴다
+	// 		auctionServiceHelper.checkAndHandleAuctionAfterBid(auction);
+	//
+	// 		if (previousTopBidOpt.isPresent()) {
+	// 			User previousTopBidder = previousTopBidOpt.get().getBidder();
+	// 			if (!previousTopBidder.getId().equals(bidder.getId())) {
+	// 				auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
+	// 			}
+	// 		}
+	//
+	// 		return BidResponse.of(auctionHistory);
+	//
+	// 	} catch (InterruptedException e) {
+	// 		Thread.currentThread().interrupt();
+	// 		throw new BaseException(ErrorCode.BID_LOCK_FAILED, "락 획득 실패");
+	// 	} finally {
+	// 		if (locked && lock.isHeldByCurrentThread()) {
+	// 			lock.unlock();
+	// 		}
+	// 	}
+	// }
+
+	// 특정 경매의 입찰 내역을 조회합니다.
 	@Transactional(readOnly = true)
 	public Page<BidHistoryResponse> getAuctionBidHistories(Long auctionId, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-		// 해당 경매 ID로 입찰 기록을 페이징 조회
 		Page<AuctionHistory> histories = auctionHistoryRepository.findByAuctionId(auctionId, pageable);
-
-		// BidHistoryResponse로 변환하여 반환
 		return histories.map(BidHistoryResponse::of);
 	}
 
-	// 사용자가 참여한 경매 목록을 조회하는 메서드
+	// 내가 참여한 경매 목록을 조회합니다.
 	@Transactional(readOnly = true)
 	public Page<AuctionListResponse> getParticipatedAuctions(AuthUser authUser, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 		Long userId = authUser.getUserId();
 
-		// 사용자가 입찰한 경매 ID 목록 조회
-		List<Long> participatedAuctionIds = auctionHistoryRepository.findDistinctAuctionIdsByBidderId(
-			authUser.getUserId());
-
-		// 참여한 경매가 없으면 빈 페이지 반환
+		List<Long> participatedAuctionIds = auctionHistoryRepository.findDistinctAuctionIdsByBidderId(userId);
 		if (participatedAuctionIds.isEmpty()) {
 			return Page.empty(pageable);
 		}
 
-		// 참여한 경매들 중 특정 상태(ACTIVE, SUCCESS, DELETED)만 조회
 		Page<Auction> auctions = auctionRepository.findAllByIdInAndStatusIn(
 			participatedAuctionIds,
 			List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED),
@@ -131,26 +160,17 @@ public class AuctionHistoryService {
 
 		LocalDateTime now = LocalDateTime.now();
 
-		// 각 경매에 대해 내가 입찰한 최고 금액과 낙찰 여부 포함 응답
 		return auctions.map(auction -> {
-			// 해당 경매에서 사용자의 최고 입찰 금액 조회
 			Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auction.getId(), userId);
-			// 낙찰자인지 여부 판단 (진행 중인 경매는 null 반환)
 			Boolean isWinner = auctionHistoryServiceHelper.isWinner(auction, userId);
-
-			return AuctionListResponse.of(
-				auction,
-				TimeFormatter.formatRemainingTime(now, auction),
-				myBidPrice,
-				isWinner
-			);
+			return AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), myBidPrice,
+				isWinner);
 		});
 	}
 
-	// 사용자가 참여한 특정 경매 상세정보를 조회하는 메서드
+	// 내가 참여한 특정 경매를 상세 조회합니다.
 	@Transactional(readOnly = true)
 	public AuctionDetailResponse getParticipatedAuctionDetail(AuthUser authUser, Long auctionId) {
-		// 경매 조회 (특정 상태만 허용)
 		Auction auction = auctionRepository.findByIdAndStatusIn(
 			auctionId,
 			List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED)
@@ -158,33 +178,25 @@ public class AuctionHistoryService {
 
 		Long userId = authUser.getUserId();
 
-		// 사용자가 이 경매에 참여했는지 검증
-		auctionHistoryServiceHelper.validateParticipation(auctionId, authUser.getUserId());
+		auctionHistoryServiceHelper.validateParticipation(auctionId, userId);
 
-		// 낙찰자 정보가 있다면 닉네임과 낙찰 시각을 조회 (없으면 null)
-		AuctionHistoryServiceHelper.WinningInfo winningInfo = auctionHistoryServiceHelper.getWinningInfoIfPresent(auction);
+		AuctionHistoryServiceHelper.WinningInfo winningInfo = auctionHistoryServiceHelper.getWinningInfoIfPresent(
+			auction);
 		String winningBidderNickname = winningInfo != null ? winningInfo.nickname() : null;
 		LocalDateTime successAt = winningInfo != null ? winningInfo.successAt() : null;
 
-		// 사용자의 최고 입찰 금액 조회
 		Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auctionId, userId);
-
-		// 낙찰자인지 여부 확인 (ACTIVE 상태는 null 반환)
 		Boolean isWinner = auctionHistoryServiceHelper.isWinner(auction, userId);
 
 		LocalDateTime now = LocalDateTime.now();
 
 		return AuctionDetailResponse.of(
-			auction,
-			TimeFormatter.formatRemainingTime(now, auction),
-			winningBidderNickname,
-			myBidPrice,
-			isWinner,
+			auction, TimeFormatter.formatRemainingTime(now, auction), winningBidderNickname, myBidPrice, isWinner,
 			successAt
 		);
 	}
 
-	// 경매 ID로 ACTIVE 상태의 경매를 조회하는 메서드 (단순 조회용)
+	// ID로 ACTIVE 상태의 경매를 조회합니다.
 	private Auction findActiveAuctionById(Long auctionId) {
 		Auction auction = auctionRepository.findById(auctionId)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
@@ -194,7 +206,7 @@ public class AuctionHistoryService {
 		return auction;
 	}
 
-	// 사용자 ID로 사용자 조회하는 메서드 (단순 조회용)
+	// 사용자 ID로 사용자 정보를 조회합니다.
 	private User findUserById(Long userId) {
 		return userRepository.findById(userId)
 			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));

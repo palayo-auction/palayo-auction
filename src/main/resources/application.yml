@@ -2,20 +2,28 @@ spring:
   application:
     name: palayo
   config:
-    import:
-      - classpath:/local/application-local.yml
+    import: optional:classpath:/local/application-local.yml
   elasticsearch:
     uris: "${ELASTICSEARCH_URIS}"
   data:
     mongodb:
-      host: ${MONGO_HOST}
-      port: ${MONGO_PORT}
-      username: ${MONGO_INITDB_ROOT_USERNAME}
-      password: ${MONGO_INITDB_ROOT_PASSWORD}
+      host: "${MONGO_HOST}"
+      port: "${MONGO_PORT}"
+      username: "${MONGO_INITDB_ROOT_USERNAME}"
+      password: "${MONGO_INITDB_ROOT_PASSWORD}"
       authentication-database: admin
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: "${REDIS_HOST}"
+      port: "${REDIS_PORT}"
+  main:
+    log-startup-info: true
+    lazy-initialization: true
+
+logging:
+  level:
+    root: DEBUG
+    org.springframework: DEBUG
+    org.springframework.boot: DEBUG
 
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"
