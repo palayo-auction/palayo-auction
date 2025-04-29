@@ -1,5 +1,7 @@
 package com.example.palayo.config;
 
+import com.example.palayo.common.exception.BaseException;
+import com.example.palayo.common.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -32,13 +34,14 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String createToken(Long userId, String email/*, UserRole userRole*/) {
+    public String createToken(Long userId, String email, String nickname/*, UserRole userRole*/) {
         Date date = new Date();
 
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setSubject(String.valueOf(userId))
                         .claim("email", email)
+                        .claim("nickname", nickname)
 //                        .claim("userRole", userRole.getUserRole())
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME))
                         .setIssuedAt(date) // 발급일
@@ -51,7 +54,7 @@ public class JwtUtil {
             return tokenValue.substring(7);
         }
         log.error("Not Found Token");
-        throw new NullPointerException("Not Found Token");
+        throw new BaseException(ErrorCode.NOT_FOUND_TOKEN, null);
     }
 
     public Claims extractClaims(String token) {

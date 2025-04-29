@@ -71,7 +71,7 @@ public class AuthService {
         // // 로그인 성공 후 Redis 포인트 초기화
         // initializeUserPointInRedis(user.getId());
 
-        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
+        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getNickname());
 
         return LoginUserResponse.of(
                 bearerToken);

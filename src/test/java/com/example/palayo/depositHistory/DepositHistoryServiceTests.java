@@ -141,7 +141,7 @@ class DepositHistoryServiceTests {
 
         // when
         Page<DepositHistoryResponse> result = depositHistoryService.getDepositHistoryList(
-                auction.getId(), 0, 10, new com.example.palayo.common.dto.AuthUser(user.getId(), "ROLE_USER")
+                auction.getId(), 0, 10, new com.example.palayo.common.dto.AuthUser(user.getId(), user.getEmail(), user.getNickname())
         );
 
         // then

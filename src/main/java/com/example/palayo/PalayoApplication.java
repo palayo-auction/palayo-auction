@@ -16,5 +16,4 @@ public class PalayoApplication {
 
 		SpringApplication.run(PalayoApplication.class, args);
 	}
-
 }

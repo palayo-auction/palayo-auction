@@ -81,6 +81,7 @@ public enum ErrorCode {
     FIREBASE_INIT_FAIL("Firebase 초기화 실패.",HttpStatus.INTERNAL_SERVER_ERROR),
 
     //그 외 에러 코드
+    NOT_FOUND_TOKEN("토큰을 찾지 못했습니다.", HttpStatus.NOT_FOUND),
     TOO_MANY_FILES("최대 10개까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST),
     INVALID_DOMAIN("유효한 도메인이 아닙니다.", HttpStatus.BAD_REQUEST),
     EXTERNAL_SERVER_ERROR("외부 API 서버에서 알 수 없는 오류가 발생했습니다.", HttpStatus.BAD_GATEWAY),
