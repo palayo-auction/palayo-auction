@@ -30,8 +30,6 @@ public class PointHistoryService {
             throw new BaseException(ErrorCode.INSUFFICIENT_POINT, null);
         }
 
-//        user.updatePointAmount(amount);
-
         PointHistoryDocument pointHistory = PointHistoryDocument.builder()
                 .userId(userId)
                 .amount(amount)
@@ -46,4 +44,6 @@ public class PointHistoryService {
         Page<PointHistoryDocument> pointHistory = pointHistoryRepository.findByUserId(userId, pageable);
         return pointHistory.map(PointHistoryResponse::of);
     }
+
+    
 }

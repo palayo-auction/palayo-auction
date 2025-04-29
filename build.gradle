@@ -73,6 +73,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    // Redisson (Redis 기반 분산 락)
+    implementation 'org.redisson:redisson-spring-boot-starter:3.23.5'
+
     //quartz
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
 

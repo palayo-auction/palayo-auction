@@ -1,0 +1,17 @@
+{
+	"ulid": "01JSQC0AX3534PDP72P4W5K9T3",
+	"minTime": 1745604009815,
+	"maxTime": 1745611200000,
+	"stats": {
+		"numSamples": 2400,
+		"numSeries": 5,
+		"numChunks": 21
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01JSQC0AX3534PDP72P4W5K9T3"
+		]
+	},
+	"version": 1
+}

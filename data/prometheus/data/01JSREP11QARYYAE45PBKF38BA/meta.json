@@ -1,0 +1,17 @@
+{
+	"ulid": "01JSREP11QARYYAE45PBKF38BA",
+	"minTime": 1745618409294,
+	"maxTime": 1745625600000,
+	"stats": {
+		"numSamples": 1520,
+		"numSeries": 5,
+		"numChunks": 15
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01JSREP11QARYYAE45PBKF38BA"
+		]
+	},
+	"version": 1
+}
