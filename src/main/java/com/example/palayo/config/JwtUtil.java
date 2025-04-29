@@ -1,5 +1,7 @@
 package com.example.palayo.config;
 
+import com.example.palayo.common.exception.BaseException;
+import com.example.palayo.common.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -52,7 +54,7 @@ public class JwtUtil {
             return tokenValue.substring(7);
         }
         log.error("Not Found Token");
-        throw new NullPointerException("Not Found Token");
+        throw new BaseException(ErrorCode.NOT_FOUND_TOKEN, null);
     }
 
     public Claims extractClaims(String token) {
