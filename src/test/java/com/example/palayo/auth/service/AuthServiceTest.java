@@ -68,7 +68,7 @@ public class AuthServiceTest {
         given(passwordEncoder.encode(password)).willReturn("encodedPassword@1");
         given(passwordEncoder.matches(password, "encodedPassword@1")).willReturn(true);
         given(userRepository.save(any(User.class))).willReturn(user);
-        given(jwtUtil.createToken(user.getId(), user.getEmail())).willReturn("testToken");
+        given(jwtUtil.createToken(user.getId(), user.getEmail(), user.getNickname())).willReturn("testToken");
 
         //when
         SignupUserResponse responseDto = authService.singUp(email, password, nickname);
@@ -127,7 +127,7 @@ public class AuthServiceTest {
         assertEquals(ErrorCode.EMAIL_MISMATCH, exception.getErrorCode());
         assertEquals("존재하지 않는 이메일입니다.", exception.getMessage());
         assertEquals(email, exception.getField());
-        verify(jwtUtil, times(0)).createToken(user.getId(), email);
+        verify(jwtUtil, times(0)).createToken(user.getId(), email, user.getNickname());
     }
 
     @Test
@@ -145,6 +145,6 @@ public class AuthServiceTest {
         assertEquals(ErrorCode.PASSWORD_MISMATCH, exception.getErrorCode());
         assertEquals("잘못된 비밀번호입니다.", exception.getMessage());
         assertNull(null, exception.getField());
-        verify(jwtUtil, times(0)).createToken(user.getId(), email);
+        verify(jwtUtil, times(0)).createToken(user.getId(), email, user.getNickname());
     }
 }

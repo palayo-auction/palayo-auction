@@ -88,7 +88,7 @@ class DibServiceTest {
         );
         ReflectionTestUtils.setField(auction, "id", 1L);
 
-        authUser = new AuthUser(user.getId(), "ROLE_USER");
+        authUser = new AuthUser(user.getId(), user.getEmail(), user.getNickname());
     }
 
     @Test

@@ -29,7 +29,7 @@ public enum ErrorCode {
 	INVALID_BID_INCREMENT("입찰 단위는 100, 1,000, 10,000, 100,000, 1,000,000원 중 하나여야 합니다.", HttpStatus.BAD_REQUEST),
 	BID_INCREMENT_TOO_HIGH("입찰 단위는 시작가보다 작아야 합니다.", HttpStatus.BAD_REQUEST),
 	AUCTION_NOT_FOUND("해당 경매 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-	NO_WINNING_BIDDER("경매 종료 시 낙찰자가 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
+	NO_WINNING_BIDDER("낙찰자를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
 	AUCTION_CANNOT_BE_FAILED("경매를 실패 상태로 변경할 수 없습니다.", HttpStatus.BAD_REQUEST),
 	UNAUTHORIZED_ACCESS("해당 경매에 접근할 권한이 없습니다.", HttpStatus.UNAUTHORIZED),
 	INVALID_AUCTION_STATUS("허용되지 않은 경매 상태입니다.", HttpStatus.BAD_REQUEST),
@@ -39,7 +39,8 @@ public enum ErrorCode {
 	BID_PRICE_TOO_LOW("입찰 금액은 현재 가격 + 입찰 단위 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_BID_OWN_AUCTION("자신이 등록한 경매에는 입찰할 수 없습니다.", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_POINT("보유 포인트가 부족합니다.", HttpStatus.BAD_REQUEST),
-	CONCURRENT_BID_CONFLICT("동시 입찰 충돌이 발생했습니다.", HttpStatus.CONFLICT),
+	BID_CONFLICT("동시 입찰 충돌이 발생했습니다.", HttpStatus.CONFLICT),
+	BID_LOCK_FAILED("락 획득에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     //보증금 이력 관련 에러 코드
     DEPOSIT_HISTORY_NOT_FOUND("보증금 이력을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_DEPOSIT_AMOUNT("잘못된 보증금 금액입니다.", HttpStatus.BAD_REQUEST),
@@ -73,7 +74,8 @@ public enum ErrorCode {
     JSON_CONVERT_FAIL("JSON 변환 실패",HttpStatus.BAD_REQUEST),
     JSON_PARSING_FAIL("JSON 파싱 실패",HttpStatus.BAD_REQUEST),
     //포인트 이력 관련 에러 코드
-
+	INVALID_POINT_AMOUNT("포인트 금액은 0보다 커야 합니다.", HttpStatus.BAD_REQUEST),
+	USER_POINT_NOT_FOUND("사용자의 포인트 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     //Firebase 관련 에러 코드
     SERVICEACCOUNT_NOT_FOUND("Firebase 서비스 걔정 json파일을 찾을 수 없습니다.",HttpStatus.NOT_FOUND),
     FIREBASE_INIT_FAIL("Firebase 초기화 실패.",HttpStatus.INTERNAL_SERVER_ERROR),
