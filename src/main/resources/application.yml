@@ -1,5 +1,16 @@
 spring:
-
+  amqp:
+    deserialization:
+      trust:
+        all: true
+  #rabbitMQ quartz test
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: 1234
+  quartz:
+    job-store-type: memory
   application:
     name: palayo
   config:
@@ -18,8 +29,6 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
-
-
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"
   secret-key: "${PAYMENT_SECRET_KEY}"
@@ -36,3 +45,4 @@ management:
       show-details: always # actuator/health 에 디테일 정보 반환
 #   참고로 actuator 정보는 매우 민감하고 중요한 정보이므로 관련자가 아니라면 공개하면 안되기에,
 #   springboot filter 를 사용하여 actuator 에 접근 가능한 화이트리스트에 등록된 ip 가 아니라면 접근할 수 없도록 처리해야 함
+

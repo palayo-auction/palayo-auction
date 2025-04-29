@@ -19,6 +19,7 @@ import com.example.palayo.domain.auctionhistory.dto.response.BidResponse;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
+import com.example.palayo.domain.notification.enums.NotificationType;
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
 import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
@@ -86,7 +87,13 @@ public class AuctionHistoryService {
 				User previousTopBidder = previousTopBidOpt.get().getBidder();
 				if (!previousTopBidder.getId().equals(bidder.getId())) {
 					RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
-					notificationService.saveNotification(notification);
+					notificationService.sendNotification(
+							previousTopBidder,
+							NotificationType.HIGHER_BID_PLACED,
+							notification.getTitle(),
+							notification.getBody(),
+							notification.getData()
+					);
 				}
 			}
 			return BidResponse.of(auctionHistory);

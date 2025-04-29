@@ -25,7 +25,7 @@ public class NotificationScheduler {
     private final NotificationRepository notificationRepository;
     private final NotificationHistoryRepository historyRepository;
 
-    @Scheduled(fixedRate = 60000) // 매 1분마다 실행
+    //@Scheduled(fixedRate = 60000) // 매 1분마다 실행
     @Transactional
     public void sendScheduledNotifications() {
         List<NotificationHistory> pending = historyRepository.findAllByIsSentFalseAndScheduledAtBefore(LocalDateTime.now());

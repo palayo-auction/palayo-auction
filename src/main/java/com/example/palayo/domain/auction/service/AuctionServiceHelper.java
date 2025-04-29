@@ -3,6 +3,8 @@ package com.example.palayo.domain.auction.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.palayo.domain.notification.enums.NotificationType;
+import com.example.palayo.domain.notification.service.NotificationSchedulerService;
 import org.springframework.stereotype.Component;
 
 import com.example.palayo.common.dto.AuthUser;
@@ -29,6 +31,7 @@ public class AuctionServiceHelper {
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
 	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
+	private final NotificationSchedulerService notificationSchedulerService;
 
 	// 경매의 현재 시간에 따라 상태를 변경하는 메서드
 	// (READY, ACTIVE, SUCCESS, FAILED 등으로 변경)
@@ -201,7 +204,25 @@ public class AuctionServiceHelper {
 	// 낙찰 성공 알림 전송 메서드
 	private void sendBidSuccessNotification(Auction auction) {
 		RedisNotification winNotice = redisNotificationFactory.bidWin(auction.getWinningBidder(), auction);
-		notificationService.saveNotification(winNotice);
+
+		if (isInstantBuyoutSuccess(auction)) {
+			// 즉시구매가 도달 → 실시간 발송
+			notificationService.sendNotification(
+					auction.getWinningBidder(),
+					NotificationType.AUCTION_WON,
+					winNotice.getTitle(),
+					winNotice.getBody(),
+					winNotice.getData()
+			);
+		} else {
+			// 일반 낙찰 → 예약 발송
+			notificationService.saveNotification(winNotice);
+		}
+
+	}
+
+	private boolean isInstantBuyoutSuccess(Auction auction) {
+		return auction.getCurrentPrice() >= auction.getBuyoutPrice();
 	}
 
 	// 입찰 실패자에게 유찰 알림 전송 메서드

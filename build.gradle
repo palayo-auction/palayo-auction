@@ -80,6 +80,8 @@ dependencies {
 
     //quartz
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
+    implementation 'org.quartz-scheduler:quartz:2.3.2'
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
     //monitoring
     implementation("org.springframework.boot:spring-boot-starter-actuator:3.3.0")

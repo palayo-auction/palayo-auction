@@ -77,7 +77,8 @@ public enum ErrorCode {
     //Firebase 관련 에러 코드
     SERVICEACCOUNT_NOT_FOUND("Firebase 서비스 걔정 json파일을 찾을 수 없습니다.",HttpStatus.NOT_FOUND),
     FIREBASE_INIT_FAIL("Firebase 초기화 실패.",HttpStatus.INTERNAL_SERVER_ERROR),
-
+    //Quartz 관련 에러 코드
+    CREATE_JOB_FAILED("job 인스턴스 생성 실패",HttpStatus.BAD_REQUEST),
     //그 외 에러 코드
 
     TOO_MANY_FILES("최대 10개까지 업로드 가능합니다.", HttpStatus.BAD_REQUEST),

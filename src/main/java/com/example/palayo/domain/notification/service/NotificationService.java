@@ -14,6 +14,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
+import org.quartz.SchedulerException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationHistoryRepository historyRepository;
     private final RedisTemplate<String, RedisNotification> redisNotificationTemplate;
+    private final NotificationSchedulerService notificationSchedulerService;
 
 
     @Transactional
@@ -131,6 +133,13 @@ public class NotificationService {
         }
 
         redisNotificationTemplate.opsForValue().set(key, notification);
+
+        // ✅ 저장이 끝났으면 바로 Quartz 예약까지 자동으로
+        try {
+            notificationSchedulerService.scheduleNotification(notification);
+        } catch (SchedulerException e) {
+            throw new RuntimeException("알림 스케줄 예약 실패", e);
+        }
     }
 
     @Transactional

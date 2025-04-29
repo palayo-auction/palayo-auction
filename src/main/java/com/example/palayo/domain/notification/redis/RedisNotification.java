@@ -21,6 +21,8 @@ import java.util.Map;
 )
 public class RedisNotification implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private Long userId;
     private String type;
     private String title;

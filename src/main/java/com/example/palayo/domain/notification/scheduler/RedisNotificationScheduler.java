@@ -25,7 +25,7 @@ public class RedisNotificationScheduler {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 
-    @Scheduled(fixedRate = 60000)
+    //@Scheduled(fixedRate = 60000)
     public void sendScheduledRedisNotifications() {
         Set<String> keys = redisTemplate.keys("notification:*");
         if (keys == null || keys.isEmpty()) return;

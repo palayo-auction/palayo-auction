@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class PalayoApplication {
 
 	public static void main(String[] args) {
+		System.setProperty("spring.amqp.deserialization.trust.all", "true");
 		SpringApplication.run(PalayoApplication.class, args);
 	}
 
