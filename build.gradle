@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 group = 'com.example'
@@ -17,6 +18,10 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+}
+
+jacoco {
+    toolVersion = "0.8.11"
 }
 
 repositories {
@@ -79,11 +84,82 @@ dependencies {
     //quartz
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
 
+    //monitoring
+    implementation("org.springframework.boot:spring-boot-starter-actuator:3.3.0")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus:1.13.0")
+
     //mongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
     //CI 오류 해결용 테스트코드용 DB
     testImplementation 'com.h2database:h2'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+tasks.register('testCoverage', Test) {
+    group 'verification'
+    description 'Runs the unit tests with coverage'
+
+    dependsOn(':test',
+            ':jacocoTestReport',
+            ':jacocoTestCoverageVerification')
+
+    tasks['jacocoTestReport'].mustRunAfter(tasks['test'])
+    tasks['jacocoTestCoverageVerification'].mustRunAfter(tasks['jacocoTestReport'])
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = 'SOURCEFILE'
+
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.00
+            }
+            // 커버리지 체크를 제외할 클래스들
+            classDirectories.setFrom(
+                    files([
+                            fileTree(
+                                    dir: "$buildDir/classes/java/main",
+                                    includes: ["**/service/**"],
+                                    excludes: [
+                                    '**/config/**',
+                                    '**/dto/**',
+                                    '**/entity/**',
+                                    '**/exception/**',
+                                    '**/enums/**',
+                                    '**/constants/**',
+                                    '**/Application*',
+                                    '**/*Request*',
+                                    '**/*Response*',
+                                    '**/*Controller*',
+                                    '**/*Scheduler*',
+                                    '**/*Factory*',
+                                    '**/*Helper*',
+                                    '**/*Util*',
+                                    '**/*Validator*',
+                                    '**/*Document*',
+                                    '**/*Client*',
+                                    '**/*Uploader*'
+                            ])
+                    ])
+            )
+        }
+    }
 }
 
 tasks.named('test') {

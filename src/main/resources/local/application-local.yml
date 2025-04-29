@@ -1,6 +1,6 @@
 spring:
   config:
     import:
-      - classpath:/local/application-datasource.yml
-      - classpath:/local/application-jwt.yml
-      - classpath:/local/application-aws.yml
+      - optional:classpath:/local/application-datasource.yml
+      - optional:classpath:/local/application-jwt.yml
+      - optional:classpath:/local/application-aws.yml
