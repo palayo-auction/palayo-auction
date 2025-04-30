@@ -44,19 +44,15 @@ public class AuctionService {
 	private final NotificationService notificationService;
 	private final RedisNotificationFactory redisNotificationFactory;
 
-	// 사용자가 경매를 생성할 때 호출하는 메서드
-	// 상품이 존재하는지, 주인인지, 이미 경매중인지 확인한 후 경매를 새로 만든다
+	// 경매를 생성합니다.
 	@Transactional
 	public AuctionResponse saveAuction(AuthUser authUser, CreateAuctionRequest request) {
-
-		// 상품 존재, 소유자 일치 여부, 중복 경매 여부 검증
 		Item item = auctionValidator.validateAuctionCreation(request, authUser);
 
 		LocalDateTime startedAt;
 		LocalDateTime expiredAt;
 		AuctionStatus status;
 
-		// isInstantStart가 true일 경우, 즉시 시작 경매로 처리
 		if (Boolean.TRUE.equals(request.getIsInstantStart())) {
 			startedAt = LocalDateTime.now();
 			expiredAt = request.getExpiredAt();
@@ -67,7 +63,6 @@ public class AuctionService {
 			status = AuctionStatus.READY;
 		}
 
-		// 검증 통과 후 경매 객체 생성 + 초기값 설정 (상태는 READY 또는 ACTIVE, 현재 입찰가는 시작가로)
 		Auction auction = Auction.of(
 			item,
 			request.getStartingPrice(),
@@ -79,21 +74,18 @@ public class AuctionService {
 		auction.updateCurrentPrice(request.getStartingPrice());
 
 		if (status == AuctionStatus.ACTIVE) {
-			auction.markAsActive(); // 즉시 시작 경매
+			auction.markAsActive();
 		} else {
-			auction.markAsReady(); // 예약 경매
+			auction.markAsReady();
 		}
 
-		// DB에 경매 저장 후 저장된 경매를 응답으로 변환하여 반환
 		Auction savedAuction = auctionRepository.save(auction);
-
-		// 알림 예약 (경매 시작/종료 알림)
 		reserveMyAuctionNotification(savedAuction);
 
 		return AuctionResponse.of(savedAuction);
 	}
 
-	// 시간에 따라 경매 상태(READY -> ACTIVE -> SUCCESS/FAILED)를 갱신하는 메서드
+	// 경매 상태를 갱신합니다.
 	@Transactional
 	public boolean updateAuctionStatus(Auction auction) {
 		boolean actionStatus = auctionServiceHelper.updateStatus(auction);
@@ -106,47 +98,42 @@ public class AuctionService {
 		return actionStatus;
 	}
 
-	// 경매 종료 시 최고 입찰자를 낙찰자로 지정하는 메서드
+	// 최고 입찰자를 낙찰자로 지정합니다.
 	@Transactional
 	public boolean assignWinningBidder(Auction auction) {
 		return auctionServiceHelper.assignWinningBidder(auction);
 	}
 
-	// 현재 진행중인 경매(READY, ACTIVE 상태)를 페이지 단위로 조회하는 메서드
+	// 진행 중인 경매를 조회합니다.
 	@Transactional(readOnly = true)
 	public Page<AuctionListResponse> getAuctions(int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-		// READY나 ACTIVE 상태인 경매만 조회
 		Page<Auction> auctions = auctionRepository.findAllByStatusIn(
 			List.of(AuctionStatus.READY, AuctionStatus.ACTIVE),
 			pageable
 		);
 
 		LocalDateTime now = LocalDateTime.now();
-		// 각 경매에 대해 남은 시간 포맷팅해서 응답 변환
 		return auctions.map(
 			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
 		);
 	}
 
-	// 특정 경매 하나를 조회하는 메서드 (READY, ACTIVE 상태만 조회 가능)
+	// 특정 경매를 조회합니다.
 	@Transactional(readOnly = true)
 	public AuctionDetailResponse getAuction(Long auctionId) {
 		Auction auction = findAuctionByIdAndStatus(auctionId, List.of(AuctionStatus.READY, AuctionStatus.ACTIVE));
-
 		LocalDateTime now = LocalDateTime.now();
-		// 낙찰자 정보 없이 경매 상세 응답 반환
 		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null, null,
 			null);
 	}
 
-	// 내가 등록한 모든 경매를 조회하는 메서드 (삭제된 경매 포함)
+	// 내가 등록한 모든 경매를 조회합니다.
 	@Transactional(readOnly = true)
 	public Page<AuctionListResponse> getMyAuctions(AuthUser authUser, int page, int size) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-		// 나의 아이디로 등록된 모든 상태의 경매 조회
 		Page<Auction> auctions = auctionRepository.findAllByItemSellerIdAndStatusIn(
 			authUser.getUserId(),
 			List.of(
@@ -159,13 +146,12 @@ public class AuctionService {
 		);
 
 		LocalDateTime now = LocalDateTime.now();
-		// 각 경매의 남은 시간을 함께 응답
 		return auctions.map(
 			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
 		);
 	}
 
-	// 내가 등록한 특정 경매 하나를 상세 조회하는 메서드 (낙찰자 닉네임도 함께 반환)
+	// 내가 등록한 특정 경매를 상세 조회합니다.
 	@Transactional(readOnly = true)
 	public AuctionDetailResponse getMyAuction(AuthUser authUser, Long auctionId) {
 		Auction auction = findAuctionByIdAndStatus(
@@ -178,49 +164,37 @@ public class AuctionService {
 			)
 		);
 
-		// 요청자가 진짜 이 경매의 주인인지 확인
 		auctionServiceHelper.validateOwnership(authUser, auction);
-
-		// 낙찰자가 존재하는 경우 닉네임, 낙찰 시간 조회 (SUCCESS이거나, 과거에 SUCCESS였다가 DELETED된 경우)
 		AuctionServiceHelper.WinningInfo winningInfo = auctionServiceHelper.getWinningInfoIfPresent(auction);
-
 		LocalDateTime now = LocalDateTime.now();
 
-		// 낙찰 정보가 있으면 닉네임과 낙찰 시각을 가져오고, 없으면 null로 처리
 		String winningNickname = winningInfo != null ? winningInfo.nickname() : null;
 		LocalDateTime successAt = winningInfo != null ? winningInfo.successAt() : null;
 
-		// 낙찰자 정보까지 담아서 경매 상세 응답 반환
 		return AuctionDetailResponse.of(
 			auction, TimeFormatter.formatRemainingTime(now, auction), winningNickname, null, null, successAt
 		);
 	}
 
-	// 경매를 삭제하는 메서드 (소프트 딜리트: 실제 삭제가 아니라 상태만 변경)
+	// 경매를 삭제합니다.
 	@Transactional
 	public void deleteAuction(AuthUser authUser, Long auctionId) {
-		// 경매 ID로 경매 조회 (없으면 예외 발생)
 		Auction auction = auctionRepository.findById(auctionId)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
-		// 요청자가 경매 주인인지 확인
 		auctionServiceHelper.validateOwnership(authUser, auction);
-
-		// 현재 상태로 삭제가 가능한지 확인 (ACTIVE 상태는 삭제 불가)
 		auctionServiceHelper.validateDeletableAuction(auction);
 
-		// 경매 상태를 DELETED로 변경
 		auction.markAsDeleted();
 	}
 
-	// 특정 경매를 ID와 상태 리스트를 기준으로 조회하는 메서드
-	// 내부에서 검증이나 비즈니스 로직 전에 조회용으로 사용
+	// 상태 기준으로 경매를 조회합니다.
 	private Auction findAuctionByIdAndStatus(Long auctionId, List<AuctionStatus> statuses) {
 		return auctionRepository.findByIdAndStatusIn(auctionId, statuses)
 			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 	}
 
-	// 경매 시작/종료 알림 예약 메서드
+	// 경매 시작/종료 알림을 예약합니다.
 	private void reserveMyAuctionNotification(Auction auction) {
 		User seller = auction.getItem().getSeller();
 
@@ -230,5 +204,4 @@ public class AuctionService {
 		RedisNotification endNotification = redisNotificationFactory.myAuctionEnd(seller, auction);
 		notificationService.saveNotification(endNotification);
 	}
-
 }

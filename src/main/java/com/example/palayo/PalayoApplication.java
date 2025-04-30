@@ -16,5 +16,4 @@ public class PalayoApplication {
 		System.setProperty("spring.amqp.deserialization.trust.all", "true");
 		SpringApplication.run(PalayoApplication.class, args);
 	}
-
 }

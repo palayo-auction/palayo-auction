@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.palayo.domain.notification.enums.NotificationType;
-//import com.example.palayo.domain.notification.service.NotificationSchedulerService;
 import org.springframework.stereotype.Component;
 
 import com.example.palayo.common.dto.AuthUser;
@@ -15,11 +14,16 @@ import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.util.AuctionTimeUtils;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
-import com.example.palayo.domain.auctionhistory.service.AuctionHistoryServiceHelper;
+import com.example.palayo.domain.deposithistory.enums.DepositStatus;
+import com.example.palayo.domain.deposithistory.repository.DepositHistoryRepository;
+import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
 import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
+import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
+import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import com.example.palayo.domain.user.entity.User;
+import com.example.palayo.domain.user.enums.PointType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,92 +32,100 @@ import lombok.RequiredArgsConstructor;
 public class AuctionServiceHelper {
 
 	private final AuctionHistoryRepository auctionHistoryRepository;
-	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
+	private final DepositHistoryRepository depositHistoryRepository;
+	private final DepositHistoryService depositHistoryService;
+	private final PointHistoriesService pointHistoriesService;
+	private final PointHistoryService pointHistoryService;
 	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
-//	private final NotificationSchedulerService notificationSchedulerService;
 
-	// 경매의 현재 시간에 따라 상태를 변경하는 메서드
-	// (READY, ACTIVE, SUCCESS, FAILED 등으로 변경)
+	// ----- public 메서드 -----
+
+	// 경매 상태를 현재 시간 기준으로 업데이트합니다.
 	public boolean updateStatus(Auction auction) {
 		LocalDateTime now = LocalDateTime.now();
 
-		// 즉시구매가 도달했으면 바로 성공처리
 		if (isBuyoutPriceReached(auction)) {
 			updateToSuccess(auction);
 			return true;
 		}
-
-		// 아직 시작 전이라면 READY 상태로 설정
 		if (AuctionTimeUtils.isBeforeStart(now, auction)) {
 			auction.markAsReady();
 			return true;
 		}
-
-		// 진행 중이면 ACTIVE 상태로 설정
 		if (AuctionTimeUtils.isDuringAuction(now, auction)) {
 			auction.markAsActive();
 			return true;
 		}
-
-		// 경매 시간이 끝났으면 성공 또는 실패 처리
 		if (AuctionTimeUtils.isAfterEnd(now, auction)) {
 			updateAfterExpired(auction);
 			return true;
 		}
-
-		// 아무 상태도 변하지 않았다면 false 반환
 		return false;
 	}
 
-	// 경매 종료 시 낙찰자를 선정하는 메서드
+	// 경매 종료 시 낙찰자를 지정합니다.
 	public boolean assignWinningBidder(Auction auction) {
-		// 입찰 기록이 없다면 낙찰자 지정 불가
+		if (auction.getStatus() == AuctionStatus.SUCCESS) {
+			return false;
+		}
 		if (!hasBids(auction)) {
-
+			sendBidFailNotifications(auction);
 			return false;
 		}
 
 		// 아직 낙찰자가 지정되지 않았다면 최고 입찰자를 낙찰자로 설정
 		if (auction.getWinningBidder() == null) {
 			AuctionHistory topBid = auctionHistoryRepository.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(
-					auction.getId())
-				.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
-		}
+				auction.getId()).orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
 
-		// 즉시구매가 도달했으면 성공 처리
-		if (isBuyoutPriceReached(auction)) {
-			updateToSuccess(auction);
+			auction.setWinningBidder(topBid.getBidder());
 			sendBidSuccessNotification(auction);
+		}
+		if (isBuyoutPriceReached(auction) || AuctionTimeUtils.isAfterEnd(LocalDateTime.now(), auction)) {
+			updateToSuccess(auction);
 			return true;
 		}
-
-		// 경매 시간이 종료되었으면 성공/실패 처리
-		if (AuctionTimeUtils.isAfterEnd(LocalDateTime.now(), auction)) {
-			updateAfterExpired(auction);
-			return true;
-		}
-
-		// 입찰 실패자에게 유찰 알림 전송
-
+		sendBidFailNotifications(auction);
 		return false;
 	}
 
-	// 경매의 소유자(판매자)와 요청자가 일치하는지 검증하는 메서드
+	// 즉시 낙찰 조건을 만족하는 경우, 최고 입찰자를 낙찰자로 지정하고 후처리를 수행합니다.
+	public void checkAndHandleAuctionAfterBid(Auction auction) {
+		if (auction.getStatus() != AuctionStatus.ACTIVE)
+			return;
+		if (!isBuyoutPriceReached(auction))
+			return;
+
+		// 최고 입찰 내역 조회
+		AuctionHistory topBid = auctionHistoryRepository
+			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
+
+		// 최고 입찰자를 낙찰자로 설정
+		User winningBidder = topBid.getBidder();
+		int winningPrice = topBid.getBidPrice();
+
+		auction.setWinningBidder(winningBidder);
+		auction.markAsSuccess(winningBidder, LocalDateTime.now());
+
+		// 포인트 차감 및 환불 처리도 topBid 기준으로
+		handleAuctionSuccess(auction, winningBidder, winningPrice);
+		refundFailedBidders(auction);
+	}
+
+	// 요청한 사용자가 경매 소유자인지 검증합니다.
 	public void validateOwnership(AuthUser authUser, Auction auction) {
 		if (!auction.getItem().getSeller().getId().equals(authUser.getUserId())) {
 			throw new BaseException(ErrorCode.UNAUTHORIZED_ACCESS, "auctionId");
 		}
 	}
 
-	// 경매가 삭제 가능한 상태인지 검증하는 메서드
+	// 경매가 삭제 가능한 상태인지 검증합니다.
 	public void validateDeletableAuction(Auction auction) {
-		// 이미 삭제된 경매는 다시 삭제할 수 없음
 		if (auction.getStatus() == AuctionStatus.DELETED) {
 			throw new BaseException(ErrorCode.ALREADY_DELETED_AUCTION, "auctionId");
 		}
-
-		// READY, SUCCESS, FAILED 상태만 삭제 가능 (ACTIVE는 삭제 불가)
 		if (!(auction.getStatus() == AuctionStatus.READY
 			|| auction.getStatus() == AuctionStatus.SUCCESS
 			|| auction.getStatus() == AuctionStatus.FAILED)) {
@@ -121,31 +133,30 @@ public class AuctionServiceHelper {
 		}
 	}
 
-	// 낙찰자 정보(닉네임, 낙찰 시각)를 묶어서 반환
+	// 낙찰 정보(닉네임, 낙찰 시각)를 반환합니다.
 	public WinningInfo getWinningInfoIfPresent(Auction auction) {
 		if ((auction.getStatus() == AuctionStatus.SUCCESS || auction.getStatus() == AuctionStatus.DELETED)
 			&& auction.getWinningBidder() != null) {
-
-			// 낙찰자 닉네임과 낙찰 시점을 함께 묶어서 반환
 			return new WinningInfo(
 				auction.getWinningBidder().getNickname(),
 				auction.getSuccessAt()
 			);
 		}
-		// 낙찰 정보가 없으면 null 반환
 		return null;
 	}
 
-	// 낙찰자 닉네임과 낙찰 시점을 함께 담는 간단한 record 클래스
-	public record WinningInfo(String nickname, LocalDateTime successAt) {
+	// 낙찰자 정보 record
+	public static record WinningInfo(String nickname, LocalDateTime successAt) {
 	}
 
-	// 경매에 입찰 기록이 있는지 확인하는 메서드
+	// ----- private 메서드 -----
+
+	// 해당 경매에 입찰 기록이 있는지 확인합니다.
 	private boolean hasBids(Auction auction) {
 		return auctionHistoryRepository.existsByAuctionId(auction.getId());
 	}
 
-	// 현재 경매가 즉시구매가에 도달했는지 확인하는 메서드
+	// 현재 가격이 즉시구매가에 도달했는지 확인합니다.
 	private boolean isBuyoutPriceReached(Auction auction) {
 		if (!hasBids(auction)) {
 			return false;
@@ -153,55 +164,86 @@ public class AuctionServiceHelper {
 		return auction.getCurrentPrice() >= auction.getBuyoutPrice();
 	}
 
-	// 낙찰자가 있을 때 경매를 SUCCESS 상태로 변경하고 후처리하는 메서드
+	// 낙찰 처리를 수행하고 후처리를 진행합니다.
 	private void updateToSuccess(Auction auction) {
-		if (auction.getWinningBidder() == null) {
-			throw new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId");
+		if (auction.getStatus() == AuctionStatus.SUCCESS || auction.getSuccessAt() != null) {
+			return;
 		}
 
-		// 낙찰 시점 분기 처리
+		// 실제 최고 입찰자 기준으로 낙찰 처리
+		AuctionHistory topBid = auctionHistoryRepository
+			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
+
+		User winningBidder = topBid.getBidder();
+		int winningPrice = topBid.getBidPrice();
+
+		auction.setWinningBidder(winningBidder);
+
 		LocalDateTime successTime = isBuyoutPriceReached(auction)
-			? LocalDateTime.now()               // 즉시 낙찰 → 입찰 시점 기준
-			: auction.getExpiredAt();           // 일반 낙찰 → 경매 종료 시간 기준
+			? LocalDateTime.now()
+			: auction.getExpiredAt();
 
-		// 상태 변경 및 낙찰자 설정
-		auction.markAsSuccess(auction.getWinningBidder(), successTime);
+		auction.markAsSuccess(winningBidder, successTime);
 
-		// 낙찰자 포인트 차감 및 보증금 처리
-		auctionHistoryServiceHelper.handleAuctionSuccess(
-			auction,
-			auction.getWinningBidder(),
-			auction.getCurrentPrice()
-		);
-
-		// 낙찰 실패자 보증금 환불
-		auctionHistoryServiceHelper.refundFailedBidders(auction);
-
-		sendBidSuccessNotification(auction);
+		handleAuctionSuccess(auction, winningBidder, winningPrice);
+		refundFailedBidders(auction);
 	}
 
-	// 경매 종료 후 낙찰 성공/실패를 최종 처리하는 메서드
+	// 경매 종료 후 낙찰 또는 유찰 상태로 처리합니다.
 	private void updateAfterExpired(Auction auction) {
 		if (auction.getWinningBidder() != null) {
-			// 낙찰자가 있으면 SUCCESS 처리
 			updateToSuccess(auction);
-			auction.markAsSuccess(auction.getWinningBidder());
-
-			auctionHistoryServiceHelper.handleAuctionSuccess(
-				auction,
-				auction.getWinningBidder(),
-				auction.getCurrentPrice()
-			);
-
-			auctionHistoryServiceHelper.refundFailedBidders(auction);
 		} else {
-			// 낙찰자가 없으면 FAILED 처리
-			sendBidFailNotifications(auction);
 			auction.markAsFailed();
 		}
 	}
 
-	// 낙찰 성공 알림 전송 메서드
+	// 낙찰 처리: 보증금 사용, 포인트 정산
+	private void handleAuctionSuccess(Auction auction, User winner, int finalBidPrice) {
+		boolean isDepositAlreadyUsed = depositHistoryRepository
+			.findByAuctionAndUser(auction, winner)
+			.map(d -> d.getStatus() == DepositStatus.USED)
+			.orElse(false);
+
+		if (!isDepositAlreadyUsed) {
+			depositHistoryService.useDeposit(auction.getId(), winner.getId());
+		}
+
+		int depositAmount = (int)Math.ceil(auction.getStartingPrice() * 0.1);
+		int additionalCharge = finalBidPrice - depositAmount;
+
+		if (!isDepositAlreadyUsed && additionalCharge > 0) {
+			pointHistoriesService.updatePoints(winner.getId(), -additionalCharge, PointType.DECREASE);
+			pointHistoryService.updatePointHistory(winner.getId(), -additionalCharge, PointType.DECREASE);
+		}
+
+		User seller = auction.getItem().getSeller();
+		pointHistoriesService.updatePoints(seller.getId(), finalBidPrice, PointType.INCREASE);
+		pointHistoryService.updatePointHistory(seller.getId(), finalBidPrice, PointType.INCREASE);
+	}
+
+	// 낙찰 실패자 보증금/포인트 환불 처리
+	private void refundFailedBidders(Auction auction) {
+		List<AuctionHistory> bidHistories = auctionHistoryRepository.findByAuctionId(auction.getId());
+
+		List<User> failedBidders = bidHistories.stream()
+			.map(AuctionHistory::getBidder)
+			.filter(bidder -> !bidder.getId().equals(auction.getWinningBidder().getId()))
+			.distinct()
+			.toList();
+
+		for (User failedBidder : failedBidders) {
+			depositHistoryService.refundDeposit(auction.getId(), failedBidder.getId());
+			int depositAmount = (int)Math.ceil(auction.getStartingPrice() * 0.1);
+			pointHistoriesService.updatePoints(failedBidder.getId(), depositAmount, PointType.REFUNDED);
+			pointHistoryService.updatePointHistory(failedBidder.getId(), depositAmount, PointType.REFUNDED);
+		}
+	}
+
+	// ----- 알림 전송 관련 메서드 -----
+
+	// 낙찰 성공 알림을 전송합니다.
 	private void sendBidSuccessNotification(Auction auction) {
 		RedisNotification winNotice = redisNotificationFactory.bidWin(auction.getWinningBidder(), auction);
 
@@ -218,15 +260,9 @@ public class AuctionServiceHelper {
 			// 일반 낙찰 → 예약 발송
 			notificationService.saveNotification(winNotice);
 		}
-
 	}
-
-	private boolean isInstantBuyoutSuccess(Auction auction) {
-		return auction.getCurrentPrice() >= auction.getBuyoutPrice();
-	}
-
 	// 입찰 실패자에게 유찰 알림 전송 메서드
-	private void sendBidFailNotifications(Auction auction) {
+	private void sendBidFailNotifications (Auction auction){
 		List<User> participants = auctionHistoryRepository.findAllBiddersByAuctionId(auction.getId());
 		for (User user : participants) {
 			RedisNotification failNotice = redisNotificationFactory.bidFail(user, auction);

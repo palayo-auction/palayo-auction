@@ -8,6 +8,9 @@ import com.example.palayo.config.JwtUtil;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.redisson.api.RAtomicLong;
+import org.redisson.api.RedissonClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final RedissonClient redissonClient; // Redis 사용
 
     @Transactional
     public SignupUserResponse singUp(String email, String password, String nickname) {
@@ -38,6 +42,9 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(password);
         User user = User.of(email, encodedPassword, nickname);
         User savedUser = userRepository.save(user);
+
+        // // 회원가입 완료 후 Redis 포인트 초기화
+        // initializeUserPointInRedis(savedUser.getId());
 
         LoginUserResponse login = login(email, password);
         String bearerToken = login.getToken();
@@ -61,9 +68,21 @@ public class AuthService {
             throw new BaseException(ErrorCode.PASSWORD_MISMATCH, null);
         }
 
-        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail());
+        // // 로그인 성공 후 Redis 포인트 초기화
+        // initializeUserPointInRedis(user.getId());
+
+        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getNickname());
 
         return LoginUserResponse.of(
                 bearerToken);
     }
+
+    // private void initializeUserPointInRedis(Long userId) {
+    //     String redisKey = "user:point:" + userId;
+    //     RAtomicLong userPoint = redissonClient.getAtomicLong(redisKey);
+    //
+    //     if (!userPoint.isExists()) {
+    //         userPoint.set(0L); // 처음 생성될 때 0포인트로 초기화
+    //     }
+    // }
 }

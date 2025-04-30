@@ -21,7 +21,7 @@ public class AuctionDetailResponse {
 	private String sellerNickname;        // 판매자 닉네임
 	private String winningBidderNickname; // 낙찰자 닉네임 (nullable)
 
-	private String itemName;              // 상품명
+	private String itemName;              // 상품 이름
 	private String itemContent;           // 상품 설명
 	private List<String> itemImageUrls;   // 상품 이미지 URL 리스트 (imageIndex 오름차순 정렬)
 
@@ -29,12 +29,12 @@ public class AuctionDetailResponse {
 	private int startingPrice;            // 시작가
 	private int buyoutPrice;              // 즉시 낙찰가
 	private int currentPrice;             // 현재 최고 입찰가
-	private Integer myBidPrice;           // 내가 입찰한 최고 금액 (nullable) - 공용 DTO로 상황에 따라 값 숨김을 위해 Integer 사용
-	private Boolean isWinner;             // 낙찰자인지 여부 (nullable)
+	private Integer myBidPrice;           // 내 최고 입찰가 (nullable) - 공용 DTO로 상황에 따라 값 숨김을 위해 Integer 사용
+	private Boolean isWinner;             // 낙찰 여부 (nullable)
 
-	private LocalDateTime successAt; // 낙찰 시점 (nullable)
-	private LocalDateTime startedAt;      // 경매 시작 일시
-	private LocalDateTime expiredAt;      // 경매 종료 일시
+	private LocalDateTime successAt;      // 낙찰 시간 (nullable)
+	private LocalDateTime startedAt;      // 경매 시작 시간
+	private LocalDateTime expiredAt;      // 경매 종료 시간
 	private String remainingTime;         // 남은 시간
 
 	// N+1 최적화 예정 (Item, ItemImages, Seller 연관 조회)
@@ -61,7 +61,6 @@ public class AuctionDetailResponse {
 					.map(ItemImage::getImageUrl)
 					.toList()
 			)
-
 			.auctionStatus(auction.getStatus().name())
 			.startingPrice(auction.getStartingPrice())
 			.buyoutPrice(auction.getBuyoutPrice())

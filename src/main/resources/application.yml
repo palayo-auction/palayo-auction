@@ -13,6 +13,11 @@ spring:
     job-store-type: memory
   application:
     name: palayo
+    admin:
+      enabled: false
+  jmx:
+    enabled: false
+
   config:
     import: optional:classpath:/local/application-local.yml
   elasticsearch:
@@ -36,6 +41,9 @@ spring:
 #    root: DEBUG
 #    org.springframework: DEBUG
 #    org.springframework.boot: DEBUG
+  profiles:
+    active: dev
+
 
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"

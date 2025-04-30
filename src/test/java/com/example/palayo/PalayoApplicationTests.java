@@ -1,13 +1,26 @@
 package com.example.palayo;
 
+import com.example.palayo.domain.elasticsearch.repository.ItemElasticSearchRepository;
+import io.github.cdimascio.dotenv.Dotenv;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-// @SpringBootTest
+@SpringBootTest
 class PalayoApplicationTests {
+   @MockitoBean
+   private ItemElasticSearchRepository itemElasticSearchRepository;
 
-   // @Test
-   void contextLoads() {
+   @BeforeAll
+   static void loadEnv() {
+      Dotenv dotenv = Dotenv.load();  // .env 파일 로드
+      dotenv.entries().forEach(entry ->
+              System.setProperty(entry.getKey(), entry.getValue())
+      );
    }
 
+   @Test
+   void contextLoads() {
+   }
 }

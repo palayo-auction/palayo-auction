@@ -18,6 +18,9 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    configureEach {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
 }
 
 jacoco {
@@ -78,6 +81,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    // Redisson (Redis 기반 분산 락)
+    implementation 'org.redisson:redisson-spring-boot-starter:3.23.5'
+
     //quartz
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
     implementation 'org.quartz-scheduler:quartz:2.3.2'
@@ -90,8 +96,14 @@ dependencies {
     //mongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-    //CI 오류 해결용 테스트코드용 DB
-    testImplementation 'com.h2database:h2'
+    //websocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.webjars:sockjs-client:1.5.1'
+    implementation 'org.webjars:stomp-websocket:2.3.4'
+
+
+    //dotenv
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 }
 
 tasks.named('test') {
