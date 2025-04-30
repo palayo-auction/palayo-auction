@@ -23,7 +23,8 @@ spring:
   main:
     log-startup-info: true
     lazy-initialization: true
-
+  profiles:
+    active: dev
 #logging:
 #  level:
 #    root: DEBUG
