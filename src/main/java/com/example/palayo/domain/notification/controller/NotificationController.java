@@ -70,21 +70,21 @@ public class NotificationController {
         return Response.of(buildNotificationResponse("알림 전송 성공", "send"));
     }
 
-//    @PostMapping
-//    public ResponseEntity<Void> handleNotification(@RequestBody RedisNotification notification) {
-//        User user = userRepository.findById(notification.getUserId())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        notificationService.sendNotification(
-//                user,
-//                NotificationType.valueOf(notification.getType()), // 타입 Enum 변환
-//                notification.getTitle(),
-//                notification.getBody(),
-//                notification.getData()
-//        );
-//
-//        return ResponseEntity.ok().build();
-//    }
+    @PostMapping
+    public ResponseEntity<Void> handleNotification(@RequestBody RedisNotification notification) {
+        User user = userRepository.findById(notification.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        notificationService.sendNotification(
+                user,
+                NotificationType.valueOf(notification.getType()), // 타입 Enum 변환
+                notification.getTitle(),
+                notification.getBody(),
+                notification.getData()
+        );
+
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("v2/notification/test")
     public Response<NotificationResponse> testNotification(@AuthenticationPrincipal AuthUser authUser) {
