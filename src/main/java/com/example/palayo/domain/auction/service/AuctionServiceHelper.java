@@ -269,4 +269,8 @@ public class AuctionServiceHelper {
 			notificationService.saveNotification(failNotice);
 		}
 	}
+
+	private boolean isInstantBuyoutSuccess(Auction auction) {
+		return auction.getCurrentPrice() >= auction.getBuyoutPrice();
+	}
 }

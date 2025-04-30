@@ -20,9 +20,7 @@ import com.example.palayo.domain.auctionhistory.dto.response.BidResponse;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
-import com.example.palayo.domain.notification.enums.NotificationType;
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
-import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -63,7 +61,7 @@ public class AuctionHistoryService {
 		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
 
 		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
-			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
+				.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
 
 		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
 		auctionHistoryRepository.save(auctionHistory);
@@ -77,19 +75,6 @@ public class AuctionHistoryService {
 			User previousTopBidder = previousTopBidOpt.get().getBidder();
 			if (!previousTopBidder.getId().equals(bidder.getId())) {
 				auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
-			// 알림 보내기: 최고 입찰자가 변경된 경우
-			if (previousTopBidOpt.isPresent()) {
-				User previousTopBidder = previousTopBidOpt.get().getBidder();
-				if (!previousTopBidder.getId().equals(bidder.getId())) {
-					RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
-					notificationService.sendNotification(
-							previousTopBidder,
-							NotificationType.HIGHER_BID_PLACED,
-							notification.getTitle(),
-							notification.getBody(),
-							notification.getData()
-					);
-				}
 			}
 		}
 
@@ -168,9 +153,9 @@ public class AuctionHistoryService {
 		}
 
 		Page<Auction> auctions = auctionRepository.findAllByIdInAndStatusIn(
-			participatedAuctionIds,
-			List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED),
-			pageable
+				participatedAuctionIds,
+				List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED),
+				pageable
 		);
 
 		LocalDateTime now = LocalDateTime.now();
@@ -179,7 +164,7 @@ public class AuctionHistoryService {
 			Integer myBidPrice = auctionHistoryServiceHelper.getMyHighestBid(auction.getId(), userId);
 			Boolean isWinner = auctionHistoryServiceHelper.isWinner(auction, userId);
 			return AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), myBidPrice,
-				isWinner);
+					isWinner);
 		});
 	}
 
@@ -187,8 +172,8 @@ public class AuctionHistoryService {
 	@Transactional(readOnly = true)
 	public AuctionDetailResponse getParticipatedAuctionDetail(AuthUser authUser, Long auctionId) {
 		Auction auction = auctionRepository.findByIdAndStatusIn(
-			auctionId,
-			List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED)
+				auctionId,
+				List.of(AuctionStatus.ACTIVE, AuctionStatus.SUCCESS, AuctionStatus.DELETED)
 		).orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
 		Long userId = authUser.getUserId();
@@ -196,7 +181,7 @@ public class AuctionHistoryService {
 		auctionHistoryServiceHelper.validateParticipation(auctionId, userId);
 
 		AuctionHistoryServiceHelper.WinningInfo winningInfo = auctionHistoryServiceHelper.getWinningInfoIfPresent(
-			auction);
+				auction);
 		String winningBidderNickname = winningInfo != null ? winningInfo.nickname() : null;
 		LocalDateTime successAt = winningInfo != null ? winningInfo.successAt() : null;
 
@@ -206,15 +191,15 @@ public class AuctionHistoryService {
 		LocalDateTime now = LocalDateTime.now();
 
 		return AuctionDetailResponse.of(
-			auction, TimeFormatter.formatRemainingTime(now, auction), winningBidderNickname, myBidPrice, isWinner,
-			successAt
+				auction, TimeFormatter.formatRemainingTime(now, auction), winningBidderNickname, myBidPrice, isWinner,
+				successAt
 		);
 	}
 
 	// ID로 ACTIVE 상태의 경매를 조회합니다.
 	private Auction findActiveAuctionById(Long auctionId) {
 		Auction auction = auctionRepository.findById(auctionId)
-			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 		if (auction.getStatus() != AuctionStatus.ACTIVE) {
 			throw new BaseException(ErrorCode.INVALID_AUCTION_STATUS, "auctionId");
 		}
@@ -224,6 +209,6 @@ public class AuctionHistoryService {
 	// 사용자 ID로 사용자 정보를 조회합니다.
 	private User findUserById(Long userId) {
 		return userRepository.findById(userId)
-			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, "userId"));
 	}
 }
