@@ -46,7 +46,7 @@ public class AuctionValidator {
 		// 3. 시간 조건 검증
 		if (isInstant) {
 			// 즉시 시작 경매는 최소 30분 이후 종료여야 함
-			if (request.getExpiredAt() == null || !request.getExpiredAt().isAfter(now.plusMinutes(30))) {
+			if (request.getExpiredAt() == null || !request.getExpiredAt().isAfter(now.plusMinutes(1))) {
 				throw new BaseException(ErrorCode.INVALID_DURATION, "expiredAt");
 			}
 		} else {
@@ -55,7 +55,7 @@ public class AuctionValidator {
 				throw new BaseException(ErrorCode.INVALID_START_TIME, "startedAt");
 			}
 			if (request.getExpiredAt() == null || !request.getExpiredAt()
-				.isAfter(request.getStartedAt().plusMinutes(30))) {
+				.isAfter(request.getStartedAt().plusMinutes(1))) {
 				throw new BaseException(ErrorCode.INVALID_DURATION, "expiredAt");
 			}
 		}

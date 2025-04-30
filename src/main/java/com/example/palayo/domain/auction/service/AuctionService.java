@@ -73,12 +73,12 @@ public class AuctionService {
 		}
 
 		Auction auction = Auction.of(
-			item,
-			request.getStartingPrice(),
-			request.getBuyoutPrice(),
-			request.getBidIncrement(),
-			startedAt,
-			expiredAt
+				item,
+				request.getStartingPrice(),
+				request.getBuyoutPrice(),
+				request.getBidIncrement(),
+				startedAt,
+				expiredAt
 		);
 		auction.updateCurrentPrice(request.getStartingPrice());
 
@@ -134,7 +134,7 @@ public class AuctionService {
 			throw new BaseException(ErrorCode.QUARTZ_SCHEDULER_ERROR, "경매 시작 작업 예약에 실패했습니다.");
 		}
 	}
-	// 경매 상태를 갱신합니다.
+	//    경매 상태를 갱신합니다.
 	@Transactional
 	public boolean updateAuctionStatus(Auction auction) {
 		return auctionServiceHelper.updateStatus(auction);
@@ -152,13 +152,13 @@ public class AuctionService {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
 		Page<Auction> auctions = auctionRepository.findAllByStatusIn(
-			List.of(AuctionStatus.READY, AuctionStatus.ACTIVE),
-			pageable
+				List.of(AuctionStatus.READY, AuctionStatus.ACTIVE),
+				pageable
 		);
 
 		LocalDateTime now = LocalDateTime.now();
 		return auctions.map(
-			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
+				auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
 		);
 	}
 
@@ -168,7 +168,7 @@ public class AuctionService {
 		Auction auction = findAuctionByIdAndStatus(auctionId, List.of(AuctionStatus.READY, AuctionStatus.ACTIVE));
 		LocalDateTime now = LocalDateTime.now();
 		return AuctionDetailResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null, null,
-			null);
+				null);
 	}
 
 	// 내가 등록한 모든 경매를 조회합니다.
@@ -177,19 +177,19 @@ public class AuctionService {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
 		Page<Auction> auctions = auctionRepository.findAllByItemSellerIdAndStatusIn(
-			authUser.getUserId(),
-			List.of(
-				AuctionStatus.READY,
-				AuctionStatus.ACTIVE,
-				AuctionStatus.SUCCESS,
-				AuctionStatus.FAILED
-			),
-			pageable
+				authUser.getUserId(),
+				List.of(
+						AuctionStatus.READY,
+						AuctionStatus.ACTIVE,
+						AuctionStatus.SUCCESS,
+						AuctionStatus.FAILED
+				),
+				pageable
 		);
 
 		LocalDateTime now = LocalDateTime.now();
 		return auctions.map(
-			auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
+				auction -> AuctionListResponse.of(auction, TimeFormatter.formatRemainingTime(now, auction), null, null)
 		);
 	}
 
@@ -197,13 +197,13 @@ public class AuctionService {
 	@Transactional(readOnly = true)
 	public AuctionDetailResponse getMyAuction(AuthUser authUser, Long auctionId) {
 		Auction auction = findAuctionByIdAndStatus(
-			auctionId,
-			List.of(
-				AuctionStatus.READY,
-				AuctionStatus.ACTIVE,
-				AuctionStatus.SUCCESS,
-				AuctionStatus.FAILED
-			)
+				auctionId,
+				List.of(
+						AuctionStatus.READY,
+						AuctionStatus.ACTIVE,
+						AuctionStatus.SUCCESS,
+						AuctionStatus.FAILED
+				)
 		);
 
 		auctionServiceHelper.validateOwnership(authUser, auction);
@@ -214,7 +214,7 @@ public class AuctionService {
 		LocalDateTime successAt = winningInfo != null ? winningInfo.successAt() : null;
 
 		return AuctionDetailResponse.of(
-			auction, TimeFormatter.formatRemainingTime(now, auction), winningNickname, null, null, successAt
+				auction, TimeFormatter.formatRemainingTime(now, auction), winningNickname, null, null, successAt
 		);
 	}
 
@@ -222,7 +222,7 @@ public class AuctionService {
 	@Transactional
 	public void deleteAuction(AuthUser authUser, Long auctionId) {
 		Auction auction = auctionRepository.findById(auctionId)
-			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
 		auctionServiceHelper.validateOwnership(authUser, auction);
 		auctionServiceHelper.validateDeletableAuction(auction);
@@ -233,7 +233,7 @@ public class AuctionService {
 	// 상태 기준으로 경매를 조회합니다.
 	private Auction findAuctionByIdAndStatus(Long auctionId, List<AuctionStatus> statuses) {
 		return auctionRepository.findByIdAndStatusIn(auctionId, statuses)
-			.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
+				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 	}
 
 	// 경매 시작/종료 알림을 예약합니다.
@@ -246,7 +246,7 @@ public class AuctionService {
 		RedisNotification endNotification = redisNotificationFactory.myAuctionEnd(seller, auction);
 		notificationService.saveNotification(endNotification);
 	}
-    //쿼츠관련
+	//쿼츠관련
 	@Transactional
 	public void markAuctionAsActive(Long auctionId) {
 		// auctionId가 null인 경우 예외를 던짐
@@ -262,57 +262,67 @@ public class AuctionService {
 
 	@Transactional
 	public void finishAuction(Long auctionId) {
-		// 경매 조회
+		log.warn("✅ [finishAuction] 시작: auctionId = {}", auctionId);
+
 		Auction auction = auctionRepository.findById(auctionId)
 				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
-		// 경매가 이미 종료되었는지 확인 (이미 SUCCESS나 FAILED 상태라면 종료된 상태)
 		if (auction.getStatus() == AuctionStatus.SUCCESS || auction.getStatus() == AuctionStatus.FAILED) {
-			throw new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId");
+			log.warn("⚠️ [finishAuction] 이미 종료된 경매: auctionId = {}", auctionId);
+			return;
 		}
 
-		// 경매 종료 시간과 상태 설정
 		if (auction.getExpiredAt().isBefore(LocalDateTime.now())) {
-			// 낙찰자가 있을 경우 SUCCESS 처리, 없으면 FAILED 처리
-			if (auction.getWinningBidder() != null) {
-				auction.markAsSuccess(auction.getWinningBidder(), LocalDateTime.now()); // 낙찰 처리
-			} else {
-				auction.markAsFailed(); // 낙찰자가 없으면 실패 처리
-			}
+			// 최고 입찰자 조회
+			auctionHistoryRepository
+					.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId())
+					.ifPresentOrElse(topBid -> {
+						auction.markAsSuccess(topBid.getBidder(), LocalDateTime.now());
+
+						// 최고 입찰자 알림 전송
+						RedisNotification notification = redisNotificationFactory.bidEnd(topBid.getBidder(), auction);
+						notificationService.saveNotification(notification);
+
+						log.warn("✅ [finishAuction] SUCCESS 처리됨: auctionId = {}, 낙찰자 = {}", auctionId, topBid.getBidder().getId());
+					}, () -> {
+						auction.markAsFailed();
+						log.warn("✅ [finishAuction] FAILED 처리됨 (입찰자 없음): auctionId = {}", auctionId);
+					});
 		} else {
-			throw new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId");
+			log.warn("[finishAuction] 아직 만료되지 않음: auctionId = {}", auctionId);
+			return;
 		}
 
-		// 경매 상태 업데이트 후 저장
 		auctionRepository.save(auction);
+		log.warn("[finishAuction] 저장 완료: auctionId = {}", auctionId);
 	}
-    //쿼츠관련
-    private void scheduleAuctionEndJob(Auction auction) {
-        try {
-            // 경매 종료 시간을 Quartz의 Trigger에 설정
-            JobDataMap jobDataMap = new JobDataMap();
-            jobDataMap.put("auctionId", auction.getId());
+	//쿼츠관련
+	private void scheduleAuctionEndJob(Auction auction) {
+		try {
+			// 경매 종료 시간을 Quartz의 Trigger에 설정
+			JobDataMap jobDataMap = new JobDataMap();
+			jobDataMap.put("auctionId", auction.getId());
 
-            // AuctionEndJob 정의
-            JobDetail jobDetail = JobBuilder.newJob(AuctionEndJob.class)
-                    .withIdentity("auctionEndJob_" + auction.getId())
-                    .usingJobData(jobDataMap)
-                    .build();
+			// AuctionEndJob 정의
+			JobDetail jobDetail = JobBuilder.newJob(AuctionEndJob.class)
+					.withIdentity("auctionEndJob_" + auction.getId())
+					.usingJobData(jobDataMap)
+					.build();
 
-            // 종료 시간에 맞춰 Trigger 설정
-            Trigger endTrigger = TriggerBuilder.newTrigger()
-                    .withIdentity("auctionEndTrigger_" + auction.getId())
-                    .startAt(Date.from(auction.getExpiredAt().atZone(ZoneId.systemDefault()).toInstant())) // 경매 종료 시간에 맞춰 설정
-                    .build();
+			// 종료 시간에 맞춰 Trigger 설정
+			Trigger endTrigger = TriggerBuilder.newTrigger()
+					.withIdentity("auctionEndTrigger_" + auction.getId())
+					.startAt(Date.from(auction.getExpiredAt().atZone(ZoneId.systemDefault()).toInstant())) // 경매 종료 시간에 맞춰 설정
+					.build();
 
-//			 테스트용 로그 (필요 시 주석 해제)
-            System.out.println("[Quartz] AuctionEndJob 예약됨: auctionId = " + auction.getId());
+//          테스트용 로그 (필요 시 주석 해제)
+			System.out.println("[Quartz] AuctionEndJob 예약됨: auctionId = " + auction.getId());
 
-            // Job 예약
-            scheduler.scheduleJob(jobDetail, endTrigger);
-        } catch (SchedulerException e) {
-            // 예외 처리
-            throw new BaseException(ErrorCode.QUARTZ_SCHEDULER_ERROR, "경매 종료 작업 예약에 실패했습니다.");
-        }
-    }
+			// Job 예약
+			scheduler.scheduleJob(jobDetail, endTrigger);
+		} catch (SchedulerException e) {
+			// 예외 처리
+			throw new BaseException(ErrorCode.QUARTZ_SCHEDULER_ERROR, "경매 종료 작업 예약에 실패했습니다.");
+		}
+	}
 }
