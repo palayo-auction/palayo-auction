@@ -11,7 +11,7 @@ import com.example.palayo.domain.dib.entity.Dib;
 import com.example.palayo.domain.dib.repository.DibRepository;
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
 import com.example.palayo.domain.notification.redis.RedisNotification;
-import com.example.palayo.domain.notification.service.NotificationSchedulerService;
+//import com.example.palayo.domain.notification.service.NotificationSchedulerService;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -37,7 +37,7 @@ public class DibService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final RedisNotificationFactory redisNotificationFactory;
-    private final NotificationSchedulerService notificationSchedulerService;
+//    private final NotificationSchedulerService notificationSchedulerService;
 
     @Transactional
     public DibResponse dibAuction(AuthUser authUser, Long auctionId) {

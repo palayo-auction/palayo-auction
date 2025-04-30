@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.palayo.domain.notification.enums.NotificationType;
-import com.example.palayo.domain.notification.service.NotificationSchedulerService;
+//import com.example.palayo.domain.notification.service.NotificationSchedulerService;
 import org.springframework.stereotype.Component;
 
 import com.example.palayo.common.dto.AuthUser;
@@ -31,7 +31,7 @@ public class AuctionServiceHelper {
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
 	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
-	private final NotificationSchedulerService notificationSchedulerService;
+//	private final NotificationSchedulerService notificationSchedulerService;
 
 	// 경매의 현재 시간에 따라 상태를 변경하는 메서드
 	// (READY, ACTIVE, SUCCESS, FAILED 등으로 변경)

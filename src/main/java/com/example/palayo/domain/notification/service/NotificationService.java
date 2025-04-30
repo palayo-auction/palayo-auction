@@ -2,6 +2,7 @@ package com.example.palayo.domain.notification.service;
 
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
+//import com.example.palayo.domain.notification.client.NotificationBatchClient;
 import com.example.palayo.domain.notification.entity.Notification;
 import com.example.palayo.domain.notification.entity.NotificationHistory;
 import com.example.palayo.domain.notification.enums.NotificationType;
@@ -34,6 +35,7 @@ public class NotificationService {
     private final NotificationHistoryRepository historyRepository;
     private final RedisTemplate<String, RedisNotification> redisNotificationTemplate;
     private final NotificationSchedulerService notificationSchedulerService;
+//    private final NotificationBatchClient notificationBatchClient;
 
 
     @Transactional
@@ -141,6 +143,22 @@ public class NotificationService {
             throw new RuntimeException("알림 스케줄 예약 실패", e);
         }
     }
+
+//    @Transactional
+//    public void saveNotification(RedisNotification notification) {
+//        String auctionId = notification.getData().get("auctionId");
+//        String type = notification.getType();
+//        String key = "notification:" + notification.getUserId() + ":" + auctionId + ":" + type;
+//
+//        if (Boolean.TRUE.equals(redisNotificationTemplate.hasKey(key))) {
+//            redisNotificationTemplate.delete(key);
+//        }
+//
+//        redisNotificationTemplate.opsForValue().set(key, notification);
+//
+//        // ✅ 저장 끝나고, 이제는 배치 서버에 등록 요청만 보낸다
+//        notificationBatchClient.scheduleNotification(notification);
+//    }
 
     @Transactional
     public void saveNotifications(List<RedisNotification> notifications) {
