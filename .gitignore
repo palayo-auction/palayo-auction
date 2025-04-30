@@ -60,3 +60,5 @@ data/loki/
 logs/
 scripts/promtail-entrypoint.sh
 
+# qClass
+src/main/generated/**

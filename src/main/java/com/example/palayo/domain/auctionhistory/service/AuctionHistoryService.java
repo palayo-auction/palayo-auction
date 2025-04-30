@@ -78,7 +78,7 @@ public class AuctionHistoryService {
 			}
 		}
 
-		return BidResponse.of(auctionHistory);
+		return BidResponse.of(auctionHistory, authUser);
 	}
 
 	// // 입찰을 생성합니다. (Redisson Lock으로 동시성 제어)

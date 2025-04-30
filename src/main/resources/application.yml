@@ -1,6 +1,11 @@
 spring:
   application:
     name: palayo
+    admin:
+      enabled: false
+  jmx:
+    enabled: false
+
   config:
     import: optional:classpath:/local/application-local.yml
   elasticsearch:
@@ -18,7 +23,8 @@ spring:
   main:
     log-startup-info: true
     lazy-initialization: true
-
+  profiles:
+    active: dev
 #logging:
 #  level:
 #    root: DEBUG

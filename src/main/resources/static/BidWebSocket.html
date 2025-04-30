@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket Test</h1>
+
+<input type="number" id="auctionIdInput" placeholder="Auction ID"/>
+<input type="number" id="bidPriceInput" placeholder="Bid Price"/>
+<button id="connectButton">Connect</button>
+<button id="sendBidButton">Send Bid</button>
+
+<ul id="bidList"></ul>
+
+<script>
+    window.onload = function () {
+        let stompClient = null;
+        let currentAuctionId = null;
+        let currentPage = 0;  // 현재 페이지
+        const pageSize = 10;  // 한 페이지에 표시할 입찰 내역 수
+
+        function getTokenFromUrl() {    //토큰을 url에서 가져오는 메서드
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('token');
+        }
+
+        function loadPreviousBids() {   //auctionId 찾으며 토큰과 auctionId기반으로 auctionHistory 내역 가져옴
+            const auctionId = document.getElementById("auctionIdInput").value;
+            if (!auctionId) return;
+
+            const token = getTokenFromUrl();
+            // console.log("토큰!!!!!!!!!!!!!!!" + token);
+
+            if (!token) {
+                console.error("Token is missing.");
+                return;
+            }
+
+            // Bearer를 제거하는 코드 추가
+            const pureToken = token.startsWith("Bearer ") ? token.slice(7) : token;
+            // console.log("순수토큰!!!!!" + pureToken);
+
+            fetch(`http://localhost:8080/api/v1/auctions/${auctionId}/histories?page=${currentPage}&size=${pageSize}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${pureToken}`  // Bearer 토큰 추가
+                }
+            })
+                .then(response => { //응답이 성공적이라면, response.json()을 호출하여 응답 바디를 JSON으로 변환
+                    if (!response.ok) {
+                        throw new Error('HTTP error ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => { // 응답으로 받은 JSON 데이터에서 입찰 내역을 정렬하고, 화면에 표시
+                    if (data && data.data) {    //JSON 데이터 내부에 있는 data 필드를 확인
+                        // 날짜 기준으로 정렬 (최신순)
+                        const sortedBids = data.data.sort((a, b) => new Date(b.bidTime) - new Date(a.bidTime));
+                        sortedBids.reverse().forEach(bid => {   //정렬된 배열을 reverse()로 반대로 뒤집고, 가장 최신 입찰이 먼저 오도록 함
+                            displayBid(bid);
+                        });
+                        currentPage++;
+                    }
+                })
+                .catch(error => console.error("Failed to load previous bids:", error));
+        }
+
+        document.getElementById("connectButton").onclick = function () {    //연결 버튼 누르면 토큰 가져오고 옥션 아이디 가져오고 그걸 기반으로 연결해서 기존 입찰내역이랑 새로 입찰하는 내역 갱신해줌
+            const token = getTokenFromUrl();
+            const auctionId = document.getElementById("auctionIdInput").value;
+
+            if (!token) {
+                console.error('Token is missing in the URL.');
+                return;
+            }
+            if (!auctionId) {
+                alert("경매 ID를 입력하세요.");
+                return;
+            }
+
+            const socket = new SockJS('http://localhost:8080/ws-bid?token=' + token);
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+
+                // 에러 메시지 구독
+                stompClient.subscribe('/user/queue/errors', function (errorMessage) {
+                    const error = JSON.parse(errorMessage.body);
+                    console.error("입찰 실패:");
+                    console.error("코드:", error.errorCode);
+                    console.error("메시지:", error.message);
+                });
+
+                currentAuctionId = auctionId;
+                const topic = `/topic/bids.${currentAuctionId}`;
+
+                // 입찰 채널 구독
+                stompClient.subscribe(topic, function (messageOutput) {
+                    console.log("응답 도착");
+                    const bid = JSON.parse(messageOutput.body);
+                    displayBid(bid);  // 새로운 입찰 도착 시 <ul>에 추가
+                });
+
+                // 연결 성공 후 이전 입찰 내역 로드
+                loadPreviousBids();
+
+            }, function (error) {
+                console.error('STOMP error: ' + error);
+            });
+        };
+
+        document.getElementById("sendBidButton").onclick = function () {    //입찰 보내는 버튼
+            if (stompClient) {
+                const auctionId = document.getElementById("auctionIdInput").value;
+                const bidPrice = document.getElementById("bidPriceInput").value;
+
+                if (!auctionId || !bidPrice) {
+                    alert("경매 ID와 입찰 금액을 모두 입력해주세요.");
+                    return;
+                }
+
+                const bidMessage = {
+                    auctionId: parseInt(auctionId),
+                    bidPrice: parseInt(bidPrice)
+                };
+
+                stompClient.send("/app/bid.send", {}, JSON.stringify(bidMessage));
+                console.log("Sent bid:", bidMessage);
+            }
+        };
+
+        function displayBid(bid) {  //입찰내역 갱신하는 메서드
+            const bidList = document.getElementById('bidList');
+            const bidElement = document.createElement('li');
+            const formattedTime = new Date(bid.bidTime).toLocaleString('ko-KR');    //날짜 포맷
+            bidElement.textContent = `${bid.nickname}, Auction ID: ${bid.auctionId}, Bid Price: ${bid.bidPrice}, Time: ${formattedTime}`;   //데이터 가져와서 보여줌
+            bidList.insertBefore(bidElement, bidList.firstChild);   //최신이 위로 오게
+        }
+    };
+</script>
+</body>
+</html>
