@@ -12,17 +12,16 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final JwtUtil jwtUtil;
     private final AuthUserHandshakeHandler authUserHandshakeHandler;
-
+    private final JwtHandshakeInterceptor jwtHandshakeInterceptor;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-bid")
                 .setHandshakeHandler(authUserHandshakeHandler)
-                .addInterceptors(new JwtHandshakeInterceptor(jwtUtil))
+                .addInterceptors(jwtHandshakeInterceptor)
                 .setAllowedOriginPatterns("http://localhost:63342", "http://localhost:8080")
-                .withSockJS();
+                /*.withSockJS()*/;
     }
 
     @Override

@@ -20,6 +20,6 @@ public class AuthUserHandshakeHandler extends DefaultHandshakeHandler {
             log.warn("No AuthUser found in WebSocket session attributes.");
             return null;
         }
-        return (AuthUser) attributes.get("authUser"); // AuthUser는 Principal 구현체여야 함!
+        return (AuthUser) attributes.get("authUser"); // AuthUser는 Principal 구현체여야 함
     }
 }
