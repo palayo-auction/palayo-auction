@@ -36,6 +36,10 @@ public enum ErrorCode {
 	ALREADY_DELETED_AUCTION("이미 삭제된 경매입니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_DELETE_ACTIVE_AUCTION("진행 중인 경매는 삭제할 수 없습니다.", HttpStatus.BAD_REQUEST),
     QUARTZ_SCHEDULER_ERROR("경매 종료 작업 예약에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_AUCTION_ID("경매 ID가 null 또는 0입니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_FINISH_FAILED("경매 종료 처리 중 문제가 발생했습니다.", HttpStatus.BAD_REQUEST),
+    SCHEDULED_JOB_INVALID_INPUT("경매 ID가 null 또는 0입니다.", HttpStatus.BAD_REQUEST),
+    AUCTION_START_FAILED("경매 시작 처리 실패", HttpStatus.BAD_REQUEST),
 	//경매 이력 관련 에러 코드
 	BID_PRICE_TOO_LOW("입찰 금액은 현재 가격 + 입찰 단위 이상이어야 합니다.", HttpStatus.BAD_REQUEST),
 	CANNOT_BID_OWN_AUCTION("자신이 등록한 경매에는 입찰할 수 없습니다.", HttpStatus.BAD_REQUEST),

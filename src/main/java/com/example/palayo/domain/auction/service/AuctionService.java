@@ -95,7 +95,6 @@ public class AuctionService {
 
 		// 만약 auctionId가 null이면 예외를 던지거나 경고 로그 출력
 		if (auctionId == null) {
-			System.out.println("[ERROR] Auction ID is null after saving the auction!");
 			throw new BaseException(ErrorCode.QUARTZ_SCHEDULER_ERROR, "경매 ID가 null입니다.");
 		}
 		// 예약된 경매 시작 작업을 위해 스케줄링
@@ -112,7 +111,7 @@ public class AuctionService {
 		try {
 			Long auctionId = auction.getId();
 			if (auctionId == null) {
-				log.warn("[ERROR] auctionId is null before scheduling start job.");
+				log.info("[Quartz] auctionId is null before scheduling start job.");
 			}
 			JobDataMap jobDataMap = new JobDataMap();
 			jobDataMap.put("auctionId", auctionId);
@@ -127,7 +126,7 @@ public class AuctionService {
 					.startAt(Date.from(auction.getStartedAt().atZone(ZoneId.systemDefault()).toInstant()))
 					.build();
 
-			log.warn("[Quartz] AuctionStartJob 예약됨: auctionId = " + auctionId);
+			log.info("[Quartz] AuctionStartJob 예약됨: auctionId = " + auctionId);
 
 			scheduler.scheduleJob(jobDetail, startTrigger);
 		} catch (SchedulerException e) {
@@ -251,7 +250,7 @@ public class AuctionService {
 	public void markAuctionAsActive(Long auctionId) {
 		// auctionId가 null인 경우 예외를 던짐
 		if (auctionId == null) {
-			throw new BaseException(ErrorCode.USER_NOT_FOUND, "옥션 id가 널이야!");
+			throw new BaseException(ErrorCode.INVALID_AUCTION_ID, "옥션 id가 널이야!");
 		}
 
 		Auction auction = auctionRepository.findById(auctionId)
@@ -262,13 +261,13 @@ public class AuctionService {
 
 	@Transactional
 	public void finishAuction(Long auctionId) {
-		log.warn("✅ [finishAuction] 시작: auctionId = {}", auctionId);
+		log.info("[finishAuction] 시작: auctionId = {}", auctionId);
 
 		Auction auction = auctionRepository.findById(auctionId)
 				.orElseThrow(() -> new BaseException(ErrorCode.AUCTION_NOT_FOUND, "auctionId"));
 
 		if (auction.getStatus() == AuctionStatus.SUCCESS || auction.getStatus() == AuctionStatus.FAILED) {
-			log.warn("⚠️ [finishAuction] 이미 종료된 경매: auctionId = {}", auctionId);
+			log.info("[finishAuction] 이미 종료된 경매: auctionId = {}", auctionId);
 			return;
 		}
 
@@ -283,18 +282,18 @@ public class AuctionService {
 						RedisNotification notification = redisNotificationFactory.bidEnd(topBid.getBidder(), auction);
 						notificationService.saveNotification(notification);
 
-						log.warn("✅ [finishAuction] SUCCESS 처리됨: auctionId = {}, 낙찰자 = {}", auctionId, topBid.getBidder().getId());
+						log.info("[finishAuction] SUCCESS 처리됨: auctionId = {}, 낙찰자 = {}", auctionId, topBid.getBidder().getId());
 					}, () -> {
 						auction.markAsFailed();
-						log.warn("✅ [finishAuction] FAILED 처리됨 (입찰자 없음): auctionId = {}", auctionId);
+						log.info("[finishAuction] FAILED 처리됨 (입찰자 없음): auctionId = {}", auctionId);
 					});
 		} else {
-			log.warn("[finishAuction] 아직 만료되지 않음: auctionId = {}", auctionId);
+			log.info("[finishAuction] 아직 만료되지 않음: auctionId = {}", auctionId);
 			return;
 		}
 
 		auctionRepository.save(auction);
-		log.warn("[finishAuction] 저장 완료: auctionId = {}", auctionId);
+		log.info("[finishAuction] 저장 완료: auctionId = {}", auctionId);
 	}
 	//쿼츠관련
 	private void scheduleAuctionEndJob(Auction auction) {
@@ -314,10 +313,6 @@ public class AuctionService {
 					.withIdentity("auctionEndTrigger_" + auction.getId())
 					.startAt(Date.from(auction.getExpiredAt().atZone(ZoneId.systemDefault()).toInstant())) // 경매 종료 시간에 맞춰 설정
 					.build();
-
-//          테스트용 로그 (필요 시 주석 해제)
-			System.out.println("[Quartz] AuctionEndJob 예약됨: auctionId = " + auction.getId());
-
 			// Job 예약
 			scheduler.scheduleJob(jobDetail, endTrigger);
 		} catch (SchedulerException e) {
