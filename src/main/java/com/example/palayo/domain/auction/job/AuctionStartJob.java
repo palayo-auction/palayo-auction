@@ -38,7 +38,7 @@ public class AuctionStartJob implements Job {
             auctionService.markAuctionAsActive(auctionId);
             log.info("[AuctionStartJob] 경매 시작 처리 완료: auctionId = {}", auctionId);
         } catch (Exception e) {
-            log.error("[AuctionStartJob] 경매 시작 처리 중 예외 발생: auctionId = {}", auctionId, e);
+            log.info("[AuctionStartJob] 경매 시작 처리 중 예외 발생: auctionId = {}", auctionId, e);
             throw new BaseException(ErrorCode.AUCTION_START_FAILED, "경매 시작 처리 실패");
         }
     }
