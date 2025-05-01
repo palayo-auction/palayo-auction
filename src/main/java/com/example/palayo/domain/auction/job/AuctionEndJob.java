@@ -21,7 +21,7 @@ public class AuctionEndJob implements Job {
         Long auctionId = context.getMergedJobDataMap().getLong("auctionId");
 
         if (auctionId == null || auctionId == 0L) {
-            log.error("[AuctionEndJob] 경매 ID가 null이거나 0입니다.");
+            log.info("[AuctionEndJob] 경매 ID가 null이거나 0입니다.");
             // Quartz 스케줄러 실행 중 경매 ID가 없는 경우 예외 발생
             throw new BaseException(ErrorCode.INVALID_AUCTION_ID, "경매 ID가 null 또는 0입니다.");
         }
@@ -32,7 +32,7 @@ public class AuctionEndJob implements Job {
             auctionService.finishAuction(auctionId);
             log.info("[AuctionEndJob] 경매 종료 완료: auctionId = {}", auctionId);
         } catch (Exception e) {
-            log.error("[AuctionEndJob] 경매 종료 중 예외 발생: auctionId = {}", auctionId, e);
+            log.info("[AuctionEndJob] 경매 종료 중 예외 발생: auctionId = {}", auctionId, e);
             throw new BaseException(ErrorCode.AUCTION_FINISH_FAILED, "경매 종료 처리 중 문제가 발생했습니다.");
         }
     }

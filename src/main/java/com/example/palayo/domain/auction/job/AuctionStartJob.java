@@ -27,7 +27,7 @@ public class AuctionStartJob implements Job {
         Long auctionId = (Long) context.getJobDetail().getJobDataMap().get("auctionId");
 
         if (auctionId == null || auctionId == 0L) {
-            log.warn("[AuctionStartJob] 유효하지 않은 auctionId: {}", auctionId);
+            log.info("[AuctionStartJob] 유효하지 않은 auctionId: {}", auctionId);
             throw new BaseException(ErrorCode.SCHEDULED_JOB_INVALID_INPUT, "경매 ID가 null 또는 0입니다.");
         }
 
