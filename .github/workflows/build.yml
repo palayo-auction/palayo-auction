@@ -41,8 +41,6 @@ jobs:
           REDIS_PORT: ${{ secrets.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
-          SPRING_PROFILES_ACTIVE: ${{ secrets.SPRING_PROFILE }}
-
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
           PAYMENT_CLIENT_KEY: ${{ secrets.PAYMENT_CLIENT_KEY }}
