@@ -80,7 +80,7 @@ public class ItemSearchService {
                     .toList();
 
             long totalHits = response.hits().total() != null ? response.hits().total().value() : 0;
-
+            log.info("엘라스틱서치 쿼리문 {}", finalQuery);
             return new PageImpl<>(results, pageable, totalHits);
 
         } catch (IOException e) {
