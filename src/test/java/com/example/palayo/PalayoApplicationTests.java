@@ -1,5 +1,6 @@
 package com.example.palayo;
 
+import com.example.palayo.common.util.S3Uploader;
 import com.example.palayo.domain.elasticsearch.repository.ItemElasticSearchRepository;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,6 +12,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class PalayoApplicationTests {
    @MockitoBean
    private ItemElasticSearchRepository itemElasticSearchRepository;
+
+   @MockitoBean
+   private S3Uploader s3Uploader;
 
    @BeforeAll
    static void loadEnv() {
