@@ -14,7 +14,9 @@ class PalayoApplicationTests {
 
    @BeforeAll
    static void loadEnv() {
-      Dotenv dotenv = Dotenv.load();  // .env 파일 로드
+      Dotenv dotenv = Dotenv.configure()
+              .ignoreIfMissing()
+              .load();  // .env 파일 로드
       dotenv.entries().forEach(entry ->
               System.setProperty(entry.getKey(), entry.getValue())
       );

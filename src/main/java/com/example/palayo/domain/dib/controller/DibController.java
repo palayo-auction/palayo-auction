@@ -7,25 +7,28 @@ import com.example.palayo.domain.dib.dto.response.DibResponse;
 import com.example.palayo.domain.dib.service.DibService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("api/")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class DibController {
 
     private final DibService dibService;
 
-    @PostMapping("v1/dib")
-    public Response<DibResponse> dibAuction(@AuthenticationPrincipal AuthUser authUser, @RequestParam Long auctionId){
-        DibResponse dibResponse = dibService.dibAuction(authUser,auctionId);
-        return Response.of(dibResponse);
+    @PostMapping("/v1/dib")
+    public ResponseEntity<?> dibAuction(@AuthenticationPrincipal AuthUser authUser, @RequestParam Long auctionId){
+        DibResponse dibResponse = dibService.dibAuction(authUser, auctionId);
+        return dibResponse == null
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(Response.of(dibResponse));
     }
 
-    @GetMapping("v1/dib")
+    @GetMapping("/v1/dib")
     public Response<DibResponse> getMyDib(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam Long dibId
@@ -34,7 +37,7 @@ public class DibController {
         return Response.of(dib);
     }
 
-    @GetMapping("v1/dibs")
+    @GetMapping("/v1/dibs")
     public Response<List<DibListResponse>> getMyDibs(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "0") int page,
@@ -44,5 +47,30 @@ public class DibController {
         return Response.fromPage(dibs);
     }
 
+    @PostMapping("/v2/dib")
+    public ResponseEntity<?> toggleDib(@AuthenticationPrincipal AuthUser authUser, @RequestParam Long auctionId) {
+        DibResponse dibResponse = dibService.toggleDib(authUser, auctionId);
+        return dibResponse == null
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(Response.of(dibResponse));
+    }
 
+    @GetMapping("/v2/dibs")
+    public Response<List<DibListResponse>> redisGetMyDibs(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<DibListResponse> dibs = dibService.redisGetMyDibs(authUser, page, size);
+        return Response.fromPage(dibs);
+    }
+
+    @GetMapping("/v2/dib")
+    public Response<DibResponse> redisGetMyDib(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam Long dibId
+    ) {
+        DibResponse dib = dibService.redisGetMyDibById(authUser, dibId);
+        return Response.of(dib);
+    }
 }
