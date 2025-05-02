@@ -24,6 +24,26 @@ jobs:
 
       - name: Run tests with coverage and build
         run: ./gradlew clean testCoverage build
+        env:
+          MONGO_HOST: ${{ secrets.MONGO_HOST }}
+          MONGO_PORT: ${{ secrets.MONGO_PORT }}
+          MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
+          SPRING_PROFILES_ACTIVE: ${{ secrets.SPRING_PROFILE }}
+
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
+          PAYMENT_CLIENT_KEY: ${{ secrets.PAYMENT_CLIENT_KEY }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
