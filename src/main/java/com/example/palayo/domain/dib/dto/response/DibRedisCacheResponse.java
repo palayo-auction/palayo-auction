@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 @Getter
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode
 public class DibRedisCacheResponse implements Serializable {
