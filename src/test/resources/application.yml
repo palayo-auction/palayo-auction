@@ -37,6 +37,8 @@ spring:
         static: dummy
       s3:
         bucket: dummy-bucket
+  elasticsearch:
+    uris: http://localhost:9200
 custom:
   cloudfront:
     domain: dummy.cloudfront.net
