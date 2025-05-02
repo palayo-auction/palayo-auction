@@ -26,27 +26,25 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run tests with coverage and build
-        run: |
-          ./gradlew clean testCoverage build \
-            -DMONGO_HOST=${{ secrets.MONGO_HOST }} \
-            -DMONGO_PORT=${{ secrets.MONGO_PORT }} \
-            -DMONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
-            -DMONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
-            -DMYSQL_URL=${{ secrets.MYSQL_URL }} \
-            -DMYSQL_USERNAME=${{ secrets.MYSQL_USERNAME }} \
-            -DMYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-            -DREDIS_HOST=${{ secrets.REDIS_HOST }} \
-            -DREDIS_PORT=${{ secrets.REDIS_PORT }} \
-            -DREDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
-            -DJWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
-            -DPAYMENT_CLIENT_KEY=${{ secrets.PAYMENT_CLIENT_KEY }} \
-            -DPAYMENT_SECRET_KEY=${{ secrets.PAYMENT_SECRET_KEY }} \
-            -DAWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }} \
-            -DAWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }} \
-            -DAWS_REGION=${{ secrets.AWS_REGION }} \
-            -DAWS_BUCKET=${{ secrets.AWS_BUCKET }} \
-            -DAWS_CLOUDFRONT_DOMAIN=${{ secrets.AWS_CLOUDFRONT_DOMAIN }} \
-            -DELASTICSEARCH_URIS=${{ secrets.ELASTICSEARCH_URIS }}
+        run: ./gradlew clean testCoverage build
+        env:
+          MONGO_HOST: ${{ secrets.MONGO_HOST }}
+          MONGO_PORT: ${{ secrets.MONGO_PORT }}
+          MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MYSQL_USERNAME: ${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
+          PAYMENT_CLIENT_KEY: ${{ secrets.PAYMENT_CLIENT_KEY }}
+          PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
 
       - name: Upload failed test report
         if: failure()
