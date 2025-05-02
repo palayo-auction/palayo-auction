@@ -46,6 +46,12 @@ jobs:
           PAYMENT_CLIENT_KEY: ${{ secrets.PAYMENT_CLIENT_KEY }}
           PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
 
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
+          AWS_CLOUDFRONT_DOMAIN: ${{ secrets.AWS_CLOUDFRONT_DOMAIN }}
+
       - name: Upload failed test report
         if: failure()
         uses: actions/upload-artifact@v4
