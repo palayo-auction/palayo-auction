@@ -1,5 +1,6 @@
 package com.example.palayo.config;
 
+import com.example.palayo.domain.dib.dto.response.DibRedisCacheResponse;
 import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -66,4 +67,14 @@ public class RedisConfig {
         template.afterPropertiesSet();
         return template;
     }
+
+    @Bean
+    public RedisTemplate<String, DibRedisCacheResponse> dibCacheRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, DibRedisCacheResponse> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return template;
+    }
+
 }

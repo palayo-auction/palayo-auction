@@ -5,6 +5,7 @@ import com.example.palayo.common.response.Response;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
 import com.example.palayo.domain.dib.dto.response.DibListResponse;
+import com.example.palayo.domain.dib.dto.response.DibRedisCacheResponse;
 import com.example.palayo.domain.dib.dto.response.DibResponse;
 import com.example.palayo.domain.dib.entity.Dib;
 import com.example.palayo.domain.dib.repository.DibRepository;
@@ -25,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -50,6 +52,9 @@ class DibServiceTest {
 
     @Mock
     private RedisNotificationFactory redisNotificationFactory;
+
+    @Mock
+    private RedisTemplate<String, DibRedisCacheResponse> dibCacheRedisTemplate;
 
     @Mock
     private NotificationService notificationService;
@@ -103,9 +108,6 @@ class DibServiceTest {
             ReflectionTestUtils.setField(dib, "id", 1L);
             return dib;
         });
-        given(dibRepository.findAllByAuction(any())).willReturn(List.of(Dib.of(user, auction)));
-        given(redisNotificationFactory.dibAuctionStart(anyList(), eq(auction))).willReturn(List.of());
-        given(redisNotificationFactory.dibAuctionEnd(anyList(), eq(auction))).willReturn(List.of());
 
         // when
         DibResponse result = dibService.dibAuction(authUser, 1L);
