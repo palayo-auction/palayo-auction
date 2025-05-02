@@ -7,7 +7,7 @@ import java.io.Serializable;
 @Getter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode
 public class DibRedisCacheResponse implements Serializable {
     private Long dibId;

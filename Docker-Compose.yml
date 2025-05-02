@@ -42,7 +42,9 @@ services:
       - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    environment:
+      - REDIS_PASSWORD="${REDIS_PASSWORD}"
 
   mongo:
     image: mongo:8.0.8

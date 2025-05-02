@@ -50,7 +50,6 @@ public class DibService {
             return null;
         } else {
             Dib savedDib = dibRepository.save(Dib.of(user, auction));
-            reserveDibAuctionNotifications(auction);
             return DibResponse.of(savedDib);
         }
     }
@@ -75,21 +74,6 @@ public class DibService {
         }
 
         return DibResponse.of(dib);
-    }
-
-    private void reserveDibAuctionNotifications(Auction auction) {
-        List<User> users = dibRepository.findAllByAuction(auction)
-                .stream()
-                .map(Dib::getUser)
-                .toList();
-
-        notificationService.saveNotifications(
-                redisNotificationFactory.dibAuctionStart(users, auction)
-        );
-
-        notificationService.saveNotifications(
-                redisNotificationFactory.dibAuctionEnd(users, auction)
-        );
     }
 //---------------------------------Redis----------------------------------------------------------------
 
