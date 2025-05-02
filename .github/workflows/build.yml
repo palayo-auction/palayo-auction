@@ -45,6 +45,20 @@ jobs:
           PAYMENT_CLIENT_KEY: ${{ secrets.PAYMENT_CLIENT_KEY }}
           PAYMENT_SECRET_KEY: ${{ secrets.PAYMENT_SECRET_KEY }}
 
+      - name: Upload failed test report
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: build/reports/tests/test/
+
+      - name: Upload placeholder resolution error
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: placeholder-errors
+          path: build/reports/problems/
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
