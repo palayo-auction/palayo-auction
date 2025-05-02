@@ -28,6 +28,19 @@ spring:
         format_sql: true
         use_sql_comments: true
 
+  cloud:
+    aws:
+      credentials:
+        access-key: dummy
+        secret-key: dummy
+      region:
+        static: dummy
+      s3:
+        bucket: dummy-bucket
+custom:
+  cloudfront:
+    domain: dummy.cloudfront.net
+
 jwt:
   secret:
     key: eE9KQnBvcGRZbE1lcEFJV0t5U2FLVWxQWmZzR2Q3R2xjRGJpZ2prV3FRT2hyZXlLSFJwZ2RpUHZPYg==
