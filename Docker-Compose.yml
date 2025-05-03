@@ -42,7 +42,9 @@ services:
       - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    environment:
+      - REDIS_PASSWORD="${REDIS_PASSWORD}"
 
   mongo:
     image: mongo:8.0.8
@@ -63,7 +65,7 @@ services:
     restart: always
     volumes:
       - ./grafana_monitoring_stack_docker/conf/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./data/prometheus:/prometheus
+      - prometheus-data:/prometheus
     command: [ "--config.file=/etc/prometheus/prometheus.yml" ]
     ports:
       - "${PROMETHEUS_PORT}:${PROMETHEUS_PORT}"
@@ -75,7 +77,7 @@ services:
     ports:
       - "${GRAFANA_PORT}:${GRAFANA_PORT}"
     volumes:
-      - ./data/grafana:/var/lib/grafana
+      - grafana-data:/var/lib/grafana
     depends_on:
       - prometheus
 
@@ -88,14 +90,14 @@ services:
     command: [ "--config.file=/etc/loki/loki-config.yaml" ]
     volumes:
       - ./grafana_monitoring_stack_docker/conf/loki-config.yaml:/etc/loki/loki-config.yaml
-      - ./data/loki:/loki
+      - loki-data:/loki
 
   promtail:
     container_name: promtail
     image: grafana/promtail:latest
     restart: always
     volumes:
-      - ./logs:/logs
+      - logs-data:/logs
       - ./grafana_monitoring_stack_docker/conf/promtail-config.yml:/etc/promtail/config.yml
       - ./scripts/promtail-entrypoint.sh:/entrypoint.sh
     entrypoint: [ "sh", "/entrypoint.sh" ]
@@ -108,4 +110,12 @@ volumes:
   redis-data:
     driver: local
   mongo-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  loki-data:
+    driver: local
+  logs-data:
     driver: local
