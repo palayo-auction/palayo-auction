@@ -63,8 +63,8 @@
 <p>
   <img src="https://img.shields.io/badge/WEBSOCKET-00C7E6?style=for-the-badge&logo=socketdotio&logoColor=white">
   <img src="https://img.shields.io/badge/RABBITMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white">
-  <img src="https://img.shields.io/badge/LUA-000080?style=for-the-badge&logo=lua&logoColor=white">
   <img src="https://img.shields.io/badge/QUARTZ-6E4C9F?style=for-the-badge&logo=clockify&logoColor=white">
+  <img src="https://img.shields.io/badge/LUA-000080?style=for-the-badge&logo=lua&logoColor=white">
 </p>
 
 ### 테스트 및 모니터링  
