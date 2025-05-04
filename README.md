@@ -135,12 +135,6 @@
 
 ## 5. 아키텍처
 
-#### v1.0 단일 서버 
-![Image](https://github.com/user-attachments/assets/5da180d4-e06a-41f8-9a71-b4683b7f61cb)
-
-<br>
-
-#### v1.1 오토 스케일링 
 ![Image](https://github.com/user-attachments/assets/f8784f58-890c-444a-b1d0-660d0c8051f2)
 
 <br>
