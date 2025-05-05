@@ -58,7 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/notification/register").permitAll()//프론트에서 jwt토큰 받도록 변경시 제거 예정
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/ws-bid/**", "/ws-bid", "/sockjs/**").permitAll()
-                        .requestMatchers("/BidWebSocket.html").permitAll()
+                        .requestMatchers("/BidWebSocket.html","PayTest.html").permitAll()
                         .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )
