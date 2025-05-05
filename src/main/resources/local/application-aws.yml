@@ -15,4 +15,4 @@ spring:
         bucket: "${AWS_IMAGE_BUCKET}"
 custom:
   cloudfront:
-    domain: "${AWS_CLOUDFRONT_DOMAIN}"
+    domain: "${AWS_IMAGE_CLOUDFRONT_DOMAIN}"
