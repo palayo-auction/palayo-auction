@@ -10,9 +10,9 @@ spring:
         access-key: "${AWS_ACCESS_KEY}"
         secret-key: "${AWS_SECRET_KEY}"
       region:
-        static: "${AWS_REGION}"
+        static: "${AWS_IMAGE_REGION}"
       s3:
-        bucket: "${AWS_BUCKET}"
+        bucket: "${AWS_IMAGE_BUCKET}"
 custom:
   cloudfront:
-    domain: "${AWS_CLOUDFRONT_DOMAIN}"
+    domain: "${AWS_IMAGE_CLOUDFRONT_DOMAIN}"
