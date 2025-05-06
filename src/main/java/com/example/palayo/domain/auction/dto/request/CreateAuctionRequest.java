@@ -1,13 +1,13 @@
 package com.example.palayo.domain.auction.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@NoArgsConstructor
 @Getter
+@Builder
 public class CreateAuctionRequest {
 
 	@NotNull(message = "상품 ID는 필수입니다.")

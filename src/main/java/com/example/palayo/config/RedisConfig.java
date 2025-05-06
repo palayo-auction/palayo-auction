@@ -1,11 +1,12 @@
 package com.example.palayo.config;
 
-import com.example.palayo.domain.dib.dto.response.DibRedisCacheResponse;
 import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.redisson.Redisson;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -46,14 +47,13 @@ public class RedisConfig {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
         objectMapper.activateDefaultTypingAsProperty(
-                BasicPolymorphicTypeValidator.builder()
-                        .allowIfSubType("com.example.palayo.domain.notification.redis")
-                        .allowIfSubType("java.util")
-                        .build(),
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                "@Class"
+            BasicPolymorphicTypeValidator.builder()
+                .allowIfSubType("com.example.palayo.domain.notification.redis")
+                .allowIfSubType("java.util")
+                .build(),
+            ObjectMapper.DefaultTyping.NON_FINAL,
+            "@Class"
         );
 
 
@@ -66,6 +66,14 @@ public class RedisConfig {
 
         template.afterPropertiesSet();
         return template;
+    }
+
+    @Bean
+    public RedissonClient redissonClient() {
+        Config config = new Config();
+        config.useSingleServer()
+            .setAddress("redis://127.0.0.1:6379");
+        return Redisson.create(config);
     }
 
     @Bean

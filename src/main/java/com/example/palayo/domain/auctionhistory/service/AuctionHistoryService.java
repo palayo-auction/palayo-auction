@@ -3,6 +3,7 @@ package com.example.palayo.domain.auctionhistory.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import com.example.palayo.common.dto.AuthUser;
 import com.example.palayo.common.exception.BaseException;
@@ -27,7 +28,9 @@ import com.example.palayo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,89 +52,62 @@ public class AuctionHistoryService {
 	private final NotificationService notificationService;
 	private final RedissonClient redissonClient; // Redis Test
 
-	// 입찰을 생성합니다.
+	// 입찰을 생성합니다. (Redisson Lock으로 동시성 제어)
 	@Transactional
 	public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
-		Auction auction = findActiveAuctionById(auctionId);
-		User bidder = findUserById(authUser.getUserId());
+		RLock lock = redissonClient.getLock("auction:bid:" + auctionId);
+		boolean locked = false;
 
-		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
-		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
-		auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
-		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
+		try {
+			locked = lock.tryLock(500, 2000, TimeUnit.MILLISECONDS); // 0.5초 대기, 2초 락 유지
 
-		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
-			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
+			if (!locked) {
+				throw new BaseException(ErrorCode.BID_CONFLICT, "다른 입찰 처리 중입니다. 잠시 후 시도해주세요.");
+			}
 
-		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
-		auctionHistoryRepository.save(auctionHistory);
+			Auction auction = findActiveAuctionById(auctionId);
+			User bidder = findUserById(authUser.getUserId());
 
-		auction.updateCurrentPrice(request.getBidPrice());
-		auctionRepository.save(auction);
+			auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
+			auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
+			auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
+			auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
 
-		auctionServiceHelper.checkAndHandleAuctionAfterBid(auction);
+			Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
+				.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
 
-		if (previousTopBidOpt.isPresent()) {
-			User previousTopBidder = previousTopBidOpt.get().getBidder();
-			if (!previousTopBidder.getId().equals(bidder.getId())) {
-				auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
+			AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
+
+			try {
+				auctionHistoryRepository.save(auctionHistory);
+			} catch (DataIntegrityViolationException e) {
+				// DB 제약조건 위반 시 중복 입찰로 판단
+				throw new BaseException(ErrorCode.BID_CONFLICT, "이미 동일 가격으로 입찰된 상태입니다");
+			}
+
+			auction.updateCurrentPrice(request.getBidPrice());
+			auctionRepository.save(auction);
+
+			auctionServiceHelper.checkAndHandleAuctionAfterBid(auction);
+
+			if (previousTopBidOpt.isPresent()) {
+				User previousTopBidder = previousTopBidOpt.get().getBidder();
+				if (!previousTopBidder.getId().equals(bidder.getId())) {
+					auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
+				}
+			}
+
+			return BidResponse.of(auctionHistory);
+
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new BaseException(ErrorCode.BID_LOCK_FAILED, "락 획득 실패");
+		} finally {
+			if (locked && lock.isHeldByCurrentThread()) {
+				lock.unlock();
 			}
 		}
-
-		return BidResponse.of(auctionHistory, authUser);
 	}
-
-	// // 입찰을 생성합니다. (Redisson Lock으로 동시성 제어)
-	// @Transactional
-	// public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
-	// 	RLock lock = redissonClient.getLock("auction:bid:" + auctionId);
-	// 	boolean locked = false;
-	//
-	// 	try {
-	// 		locked = lock.tryLock(3, 5, TimeUnit.SECONDS); // 3초 안에 락 획득 시도, 5초 유지
-	//
-	// 		if (!locked) {
-	// 			throw new BaseException(ErrorCode.BID_CONFLICT, "동시 입찰 충돌");
-	// 		}
-	//
-	// 		Auction auction = findActiveAuctionById(auctionId);
-	// 		User bidder = findUserById(authUser.getUserId());
-	//
-	// 		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
-	// 		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
-	// 		auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
-	// 		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
-	//
-	// 		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
-	// 			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
-	//
-	// 		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
-	// 		auctionHistoryRepository.save(auctionHistory);
-	//
-	// 		auction.updateCurrentPrice(request.getBidPrice());
-	// 		auctionRepository.save(auction);
-	//
-	// 		// bidder, bidPrice를 넘기지 않고 auction만 넘긴다
-	// 		auctionServiceHelper.checkAndHandleAuctionAfterBid(auction);
-	//
-	// 		if (previousTopBidOpt.isPresent()) {
-	// 			User previousTopBidder = previousTopBidOpt.get().getBidder();
-	// 			if (!previousTopBidder.getId().equals(bidder.getId())) {
-	// 				auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
-	// 			}
-	// 		}
-	//
-	// 		return BidResponse.of(auctionHistory);
-	//
-	// 	} catch (InterruptedException e) {
-	// 		Thread.currentThread().interrupt();
-	// 		throw new BaseException(ErrorCode.BID_LOCK_FAILED, "락 획득 실패");
-	// 	} finally {
-	// 		if (locked && lock.isHeldByCurrentThread()) {
-	// 			lock.unlock();
-	// 		}
-	// 	}
-	// }
 
 	// 특정 경매의 입찰 내역을 조회합니다.
 	@Transactional(readOnly = true)

@@ -49,8 +49,7 @@ public class PaymentService {
 
             paymentRepository.save(payment);
             pointHistoriesService.updatePoints(userId, payment.getAmount(), PointType.RECHARGE);
-            //몽고디비
-            pointHistoryService.updatePointHistory(userId, payment.getAmount(), PointType.RECHARGE);
+            pointHistoryService.updatePointHistory(userId, payment.getAmount(), PointType.RECHARGE); //몽고디비
 
             return "결제 완료 \n금액: " + payment.getAmount() + "원";
     }

@@ -16,9 +16,12 @@ import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.enums.PointType;
+import com.example.palayo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.redisson.api.RAtomicLong;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -29,12 +32,14 @@ public class AuctionHistoryServiceHelper {
 
 	private final AuctionHistoryRepository auctionHistoryRepository;
 	private final DepositHistoryRepository depositHistoryRepository;
+	private final UserRepository userRepository;
 	private final DepositHistoryService depositHistoryService;
 	private final PointHistoriesService pointHistoriesService;
 	private final PointHistoryService pointHistoryService;
 	private final AuctionRepository auctionRepository;
 	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
+	private final RedissonClient redissonClient;
 
 	// 본인 경매 입찰 불가
 	public void validateNotOwner(Auction auction, User bidder) {
@@ -51,9 +56,27 @@ public class AuctionHistoryServiceHelper {
 		}
 	}
 
+	// Redis 포인트 조회 및 초기화
+	private long getUserPointFromRedis(Long userId) {
+		String redisKey = "user:point:" + userId;
+		RAtomicLong redisPoint = redissonClient.getAtomicLong(redisKey);
+
+		if (!redisPoint.isExists()) {
+			Long dbPoint = userRepository.findById(userId)
+				.map(User::getPointAmount)
+				.map(i -> (long) i)  // 메서드 참조 대신 람다로 명시적 캐스팅
+				.orElse(0L);
+
+			redisPoint.set(dbPoint);
+			return dbPoint;
+		}
+
+		return redisPoint.get();
+	}
+
 	// 포인트 한도 초과 여부 검증
 	public void checkPointLimit(User bidder, Auction auction, int newBidPrice) {
-		int userPointAmount = bidder.getPointAmount();
+		long userPointAmount = getUserPointFromRedis(bidder.getId()); // DB 대신 Redis 기준으로
 		int deposit = (int)Math.ceil(auction.getStartingPrice() * 0.1);
 
 		// 즉시 낙찰가 이상일 경우: 보증금 제외한 금액만 비교
@@ -81,8 +104,8 @@ public class AuctionHistoryServiceHelper {
 			int depositAmount = (int)Math.ceil(auction.getStartingPrice() * 0.1);
 
 			depositHistoryService.createDepositHistory(bidder.getId(), auction.getId(), depositAmount);
-			pointHistoriesService.updatePoints(bidder.getId(), -depositAmount, PointType.DECREASE);
-			pointHistoryService.updatePointHistory(bidder.getId(), -depositAmount, PointType.DECREASE);
+			pointHistoriesService.updatePoints(bidder.getId(), depositAmount, PointType.DECREASE);
+			pointHistoryService.updatePointHistory(bidder.getId(), depositAmount, PointType.DECREASE);
 		}
 	}
 

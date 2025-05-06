@@ -211,8 +211,8 @@ public class AuctionServiceHelper {
 		int additionalCharge = finalBidPrice - depositAmount;
 
 		if (!isDepositAlreadyUsed && additionalCharge > 0) {
-			pointHistoriesService.updatePoints(winner.getId(), -additionalCharge, PointType.DECREASE);
-			pointHistoryService.updatePointHistory(winner.getId(), -additionalCharge, PointType.DECREASE);
+			pointHistoriesService.updatePoints(winner.getId(), additionalCharge, PointType.DECREASE);
+			pointHistoryService.updatePointHistory(winner.getId(), additionalCharge, PointType.DECREASE);
 		}
 
 		User seller = auction.getItem().getSeller();
