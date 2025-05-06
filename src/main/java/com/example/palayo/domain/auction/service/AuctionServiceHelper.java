@@ -17,8 +17,6 @@ import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryReposit
 import com.example.palayo.domain.deposithistory.enums.DepositStatus;
 import com.example.palayo.domain.deposithistory.repository.DepositHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
-import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
-import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
@@ -36,7 +34,6 @@ public class AuctionServiceHelper {
 	private final DepositHistoryService depositHistoryService;
 	private final PointHistoriesService pointHistoriesService;
 	private final PointHistoryService pointHistoryService;
-	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
 
 	// ----- public 메서드 -----
@@ -70,7 +67,6 @@ public class AuctionServiceHelper {
 			return false;
 		}
 		if (!hasBids(auction)) {
-			sendBidFailNotifications(auction);
 			return false;
 		}
 
@@ -80,13 +76,11 @@ public class AuctionServiceHelper {
 				auction.getId()).orElseThrow(() -> new BaseException(ErrorCode.NO_WINNING_BIDDER, "auctionId"));
 
 			auction.setWinningBidder(topBid.getBidder());
-			sendBidSuccessNotification(auction);
 		}
 		if (isBuyoutPriceReached(auction) || AuctionTimeUtils.isAfterEnd(LocalDateTime.now(), auction)) {
 			updateToSuccess(auction);
 			return true;
 		}
-		sendBidFailNotifications(auction);
 		return false;
 	}
 
@@ -238,35 +232,6 @@ public class AuctionServiceHelper {
 			int depositAmount = (int)Math.ceil(auction.getStartingPrice() * 0.1);
 			pointHistoriesService.updatePoints(failedBidder.getId(), depositAmount, PointType.REFUNDED);
 			pointHistoryService.updatePointHistory(failedBidder.getId(), depositAmount, PointType.REFUNDED);
-		}
-	}
-
-	// ----- 알림 전송 관련 메서드 -----
-
-	// 낙찰 성공 알림을 전송합니다.
-	private void sendBidSuccessNotification(Auction auction) {
-		RedisNotification winNotice = redisNotificationFactory.bidWin(auction.getWinningBidder(), auction);
-
-		if (isInstantBuyoutSuccess(auction)) {
-			// 즉시구매가 도달 → 실시간 발송
-			notificationService.sendNotification(
-					auction.getWinningBidder(),
-					NotificationType.AUCTION_WON,
-					winNotice.getTitle(),
-					winNotice.getBody(),
-					winNotice.getData()
-			);
-		} else {
-			// 일반 낙찰 → 예약 발송
-			notificationService.saveNotification(winNotice);
-		}
-	}
-	// 입찰 실패자에게 유찰 알림 전송 메서드
-	private void sendBidFailNotifications (Auction auction){
-		List<User> participants = auctionHistoryRepository.findAllBiddersByAuctionId(auction.getId());
-		for (User user : participants) {
-			RedisNotification failNotice = redisNotificationFactory.bidFail(user, auction);
-			notificationService.saveNotification(failNotice);
 		}
 	}
 

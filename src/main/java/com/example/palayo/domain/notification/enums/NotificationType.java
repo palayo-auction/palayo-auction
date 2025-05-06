@@ -10,5 +10,6 @@ public enum NotificationType {
     HIGHER_BID_PLACED,
     TEST,
     FAIL,         // 추가
-    SYSTEM        // 추가
+    SYSTEM,
+    // 추가
 }

@@ -9,14 +9,10 @@ import com.example.palayo.domain.dib.dto.response.DibListResponse;
 import com.example.palayo.domain.dib.dto.response.DibResponse;
 import com.example.palayo.domain.dib.entity.Dib;
 import com.example.palayo.domain.dib.repository.DibRepository;
-import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
-import com.example.palayo.domain.notification.redis.RedisNotification;
-//import com.example.palayo.domain.notification.service.NotificationSchedulerService;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +21,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -35,9 +30,6 @@ public class DibService {
     private final DibRepository dibRepository;
     private final AuctionRepository auctionRepository;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
-    private final RedisNotificationFactory redisNotificationFactory;
-//    private final NotificationSchedulerService notificationSchedulerService;
 
     @Transactional
     public DibResponse dibAuction(AuthUser authUser, Long auctionId) {
@@ -54,7 +46,6 @@ public class DibService {
             return null;
         } else {
             Dib savedDib = dibRepository.save(Dib.of(user, auction));
-            reserveDibAuctionNotifications(auction);
             return DibResponse.of(savedDib);
         }
     }
@@ -82,20 +73,4 @@ public class DibService {
         return DibResponse.of(dib);
         //ci test
     }
-
-    @SneakyThrows
-    private void reserveDibAuctionNotifications(Auction auction) {
-        List<User> users = dibRepository.findAllByAuction(auction)
-                .stream()
-                .map(Dib::getUser)
-                .toList();
-
-        List<RedisNotification> startNotis = redisNotificationFactory.dibAuctionStart(users, auction);
-        List<RedisNotification> endNotis = redisNotificationFactory.dibAuctionEnd(users, auction);
-
-        // Redis 저장 + Quartz 예약 자동
-        notificationService.saveNotifications(startNotis);
-        notificationService.saveNotifications(endNotis);
-    }
-
 }

@@ -2,6 +2,7 @@ package com.example.palayo.domain.auctionhistory.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.example.palayo.common.dto.AuthUser;
@@ -20,7 +21,7 @@ import com.example.palayo.domain.auctionhistory.dto.response.BidResponse;
 import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
-import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
+import com.example.palayo.domain.notification.enums.NotificationType;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -45,7 +46,7 @@ public class AuctionHistoryService {
 	private final DepositHistoryService depositHistoryService;
 	private final AuctionHistoryServiceHelper auctionHistoryServiceHelper;
 	private final AuctionServiceHelper auctionServiceHelper;
-	private final RedisNotificationFactory redisNotificationFactory;
+//	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
 	private final RedissonClient redissonClient; // Redis Test
 
@@ -74,64 +75,19 @@ public class AuctionHistoryService {
 		if (previousTopBidOpt.isPresent()) {
 			User previousTopBidder = previousTopBidOpt.get().getBidder();
 			if (!previousTopBidder.getId().equals(bidder.getId())) {
-				auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
+				notificationService.sendNotification(
+						previousTopBidder,
+						NotificationType.HIGHER_BID_PLACED,
+						"다른 사람이 더 높은 금액으로 입찰했어요!",
+						String.format("[%s] 경매에서 다른 사용자가 더 높은 금액을 입찰했어요.", auction.getItem().getName()),
+						Map.of("auctionId", auction.getId().toString())
+				);
 			}
 		}
 
+
 		return BidResponse.of(auctionHistory, authUser);
 	}
-
-	// // 입찰을 생성합니다. (Redisson Lock으로 동시성 제어)
-	// @Transactional
-	// public BidResponse createBid(AuthUser authUser, Long auctionId, CreateBidRequest request) {
-	// 	RLock lock = redissonClient.getLock("auction:bid:" + auctionId);
-	// 	boolean locked = false;
-	//
-	// 	try {
-	// 		locked = lock.tryLock(3, 5, TimeUnit.SECONDS); // 3초 안에 락 획득 시도, 5초 유지
-	//
-	// 		if (!locked) {
-	// 			throw new BaseException(ErrorCode.BID_CONFLICT, "동시 입찰 충돌");
-	// 		}
-	//
-	// 		Auction auction = findActiveAuctionById(auctionId);
-	// 		User bidder = findUserById(authUser.getUserId());
-	//
-	// 		auctionHistoryServiceHelper.validateNotOwner(auction, bidder);
-	// 		auctionHistoryServiceHelper.validateBidPrice(auction, request.getBidPrice());
-	// 		auctionHistoryServiceHelper.checkPointLimit(bidder, auction, request.getBidPrice());
-	// 		auctionHistoryServiceHelper.createDepositIfNotExists(auction, bidder);
-	//
-	// 		Optional<AuctionHistory> previousTopBidOpt = auctionHistoryRepository
-	// 			.findTopByAuctionIdOrderByBidPriceDescCreatedAtAsc(auction.getId());
-	//
-	// 		AuctionHistory auctionHistory = AuctionHistory.of(auction, bidder, request.getBidPrice());
-	// 		auctionHistoryRepository.save(auctionHistory);
-	//
-	// 		auction.updateCurrentPrice(request.getBidPrice());
-	// 		auctionRepository.save(auction);
-	//
-	// 		// bidder, bidPrice를 넘기지 않고 auction만 넘긴다
-	// 		auctionServiceHelper.checkAndHandleAuctionAfterBid(auction);
-	//
-	// 		if (previousTopBidOpt.isPresent()) {
-	// 			User previousTopBidder = previousTopBidOpt.get().getBidder();
-	// 			if (!previousTopBidder.getId().equals(bidder.getId())) {
-	// 				auctionHistoryServiceHelper.sendOutbidNotification(previousTopBidder, auction);
-	// 			}
-	// 		}
-	//
-	// 		return BidResponse.of(auctionHistory);
-	//
-	// 	} catch (InterruptedException e) {
-	// 		Thread.currentThread().interrupt();
-	// 		throw new BaseException(ErrorCode.BID_LOCK_FAILED, "락 획득 실패");
-	// 	} finally {
-	// 		if (locked && lock.isHeldByCurrentThread()) {
-	// 			lock.unlock();
-	// 		}
-	// 	}
-	// }
 
 	// 특정 경매의 입찰 내역을 조회합니다.
 	@Transactional(readOnly = true)

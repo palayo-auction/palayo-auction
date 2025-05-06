@@ -9,7 +9,7 @@ import com.example.palayo.domain.notification.dto.request.NotificationRequest;
 import com.example.palayo.domain.notification.dto.response.NotificationResponse;
 import com.example.palayo.domain.notification.dto.response.TokenResponse;
 import com.example.palayo.domain.notification.enums.NotificationType;
-import com.example.palayo.domain.notification.redis.RedisNotification;
+//import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.user.entity.User;
 import com.example.palayo.domain.user.repository.UserRepository;
@@ -68,22 +68,6 @@ public class NotificationController {
         );
 
         return Response.of(buildNotificationResponse("알림 전송 성공", "send"));
-    }
-
-    @PostMapping
-    public ResponseEntity<Void> handleNotification(@RequestBody RedisNotification notification) {
-        User user = userRepository.findById(notification.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        notificationService.sendNotification(
-                user,
-                NotificationType.valueOf(notification.getType()), // 타입 Enum 변환
-                notification.getTitle(),
-                notification.getBody(),
-                notification.getData()
-        );
-
-        return ResponseEntity.ok().build();
     }
 
     @PostMapping("v2/notification/test")

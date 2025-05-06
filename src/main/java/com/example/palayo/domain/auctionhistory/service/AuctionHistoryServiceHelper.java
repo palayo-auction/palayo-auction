@@ -9,8 +9,6 @@ import com.example.palayo.domain.auctionhistory.entity.AuctionHistory;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.deposithistory.repository.DepositHistoryRepository;
 import com.example.palayo.domain.deposithistory.service.DepositHistoryService;
-import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
-import com.example.palayo.domain.notification.redis.RedisNotification;
 import com.example.palayo.domain.notification.service.NotificationService;
 import com.example.palayo.domain.pointhistory.mongo.service.PointHistoryService;
 import com.example.palayo.domain.pointhistory.service.PointHistoriesService;
@@ -33,7 +31,6 @@ public class AuctionHistoryServiceHelper {
 	private final PointHistoriesService pointHistoriesService;
 	private final PointHistoryService pointHistoryService;
 	private final AuctionRepository auctionRepository;
-	private final RedisNotificationFactory redisNotificationFactory;
 	private final NotificationService notificationService;
 
 	// 본인 경매 입찰 불가
@@ -132,9 +129,4 @@ public class AuctionHistoryServiceHelper {
 			auction.getWinningBidder().getId().equals(userId);
 	}
 
-	// 이전 입찰자에게 입찰 실패 알림 전송
-	public void sendOutbidNotification(User previousTopBidder, Auction auction) {
-		RedisNotification notification = redisNotificationFactory.bidOutbid(previousTopBidder, auction);
-		notificationService.saveNotification(notification);
-	}
 }
