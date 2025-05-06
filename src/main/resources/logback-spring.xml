@@ -90,6 +90,13 @@
             </rollingPolicy>
         </appender>
 
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <pattern>[ls] [%23d{yyyy_MM_dd_'T'_HH_mm_ss_SSS_z}] [%highlight(%-5level)] [%msg] [le]%n
+                </pattern>
+            </layout>
+        </appender>
+
         <!--        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
         <!--            &lt;!&ndash; 로그 스태시 주소 &ndash;&gt;-->
         <!--            <destination>localhost:5000</destination>-->
@@ -111,6 +118,7 @@
         -->
         <root level="INFO">
             <appender-ref ref="FILE"/>
+            <appender-ref ref="CONSOLE"/>
             <!--            <appender-ref ref="LOGSTASH"/>-->
         </root>
     </springProfile>
@@ -141,7 +149,12 @@
                 <maxHistory>30</maxHistory>
             </rollingPolicy>
         </appender>
-
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <pattern>[ls] [%23d{yyyy_MM_dd_'T'_HH_mm_ss_SSS_z}] [%highlight(%-5level)] [%msg] [le]%n
+                </pattern>
+            </layout>
+        </appender>
         <!--        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
         <!--            &lt;!&ndash; 로그 스태시 주소 &ndash;&gt;-->
         <!--            <destination>localhost:5000</destination>-->
@@ -161,10 +174,40 @@
 
             예를들어 info 로 설정시, INFO 보다 위에 있는 DEBUG 와 TRACE 는 표시하지 않는다.
         -->
-        <root level="INFO">
+        <root level="WARN">
             <appender-ref ref="FILE"/>
+            <appender-ref ref="CONSOLE"/>
             <!--            <appender-ref ref="LOGSTASH"/>-->
         </root>
     </springProfile>
+
+    <!-- 기본 설정 (spring.profiles.active가 없을 때) -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <fileNamePattern>${LOGS_PATH}/default_%d{yyyy_MM_dd}(%i).log</fileNamePattern>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <pattern>[ls] [%d{yyyy_MM_dd'T'HH_mm_ss_SSS_z}] [%-5level] [%msg] [le]%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS_PATH}/default_%d{yyyy_MM_dd}(%i).log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>[ls] [%23d{yyyy_MM_dd_'T'_HH_mm_ss_SSS_z}] [%highlight(%-5level)] [%msg] [le]%n
+            </pattern>
+        </layout>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
 
 </configuration>

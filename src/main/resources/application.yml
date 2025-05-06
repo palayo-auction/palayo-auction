@@ -1,6 +1,11 @@
 spring:
   application:
     name: palayo
+    admin:
+      enabled: false
+  jmx:
+    enabled: false
+
   config:
     import: optional:classpath:/local/application-local.yml
   elasticsearch:
@@ -15,15 +20,15 @@ spring:
     redis:
       host: "${REDIS_HOST}"
       port: "${REDIS_PORT}"
+      password: "${REDIS_PASSWORD}"
   main:
     log-startup-info: true
     lazy-initialization: true
-
-logging:
-  level:
-    root: DEBUG
-    org.springframework: DEBUG
-    org.springframework.boot: DEBUG
+#logging:
+#  level:
+#    root: DEBUG
+#    org.springframework: DEBUG
+#    org.springframework.boot: DEBUG
 
 payment:
   client-key: "${PAYMENT_CLIENT_KEY}"

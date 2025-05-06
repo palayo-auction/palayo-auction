@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: palayo
+    admin:
+      enabled: false
+
+  jmx:
+    enabled: false
+
+  main:
+    log-startup-info: true
+    lazy-initialization: true
+
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+
+  cloud:
+    aws:
+      credentials:
+        access-key: dummy
+        secret-key: dummy
+      region:
+        static: dummy
+      s3:
+        bucket: dummy-bucket
+  elasticsearch:
+    uris: http://localhost:9200
+custom:
+  cloudfront:
+    domain: dummy.cloudfront.net
+
+jwt:
+  secret:
+    key: eE9KQnBvcGRZbE1lcEFJV0t5U2FLVWxQWmZzR2Q3R2xjRGJpZ2prV3FRT2hyZXlLSFJwZ2RpUHZPYg==
+

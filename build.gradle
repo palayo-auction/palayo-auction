@@ -18,6 +18,9 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    configureEach {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
 }
 
 jacoco {
@@ -31,7 +34,7 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
+    runtimeOnly 'com.h2database:h2'
     //validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
@@ -91,8 +94,14 @@ dependencies {
     //mongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-    //CI 오류 해결용 테스트코드용 DB
-    testImplementation 'com.h2database:h2'
+    //websocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.webjars:sockjs-client:1.5.1'
+    implementation 'org.webjars:stomp-websocket:2.3.4'
+
+
+    //dotenv
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 }
 
 tasks.named('test') {
