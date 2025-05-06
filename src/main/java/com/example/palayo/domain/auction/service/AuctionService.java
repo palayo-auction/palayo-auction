@@ -54,12 +54,12 @@ public class AuctionService {
 		AuctionStatus status;
 
 		if (Boolean.TRUE.equals(request.getIsInstantStart())) {
-			startedAt = LocalDateTime.now();
-			expiredAt = request.getExpiredAt();
+			startedAt = LocalDateTime.now().withSecond(0).withNano(0);
+			expiredAt = request.getExpiredAt().withSecond(0).withNano(0);
 			status = AuctionStatus.ACTIVE;
 		} else {
-			startedAt = request.getStartedAt();
-			expiredAt = request.getExpiredAt();
+			startedAt = request.getStartedAt().withSecond(0).withNano(0);
+			expiredAt = request.getExpiredAt().withSecond(0).withNano(0);
 			status = AuctionStatus.READY;
 		}
 

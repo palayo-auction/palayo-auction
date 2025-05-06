@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(request -> request.getRequestURI().startsWith("/api/v1/auth")).permitAll()
                         .requestMatchers("/payment/**").permitAll()
                         .requestMatchers("/open").permitAll()
-                        .requestMatchers("/api/v1/notification/register").permitAll()//프론트에서 jwt토큰 받도록 변경시 제거 예정
+                        .requestMatchers("/api/v1/notification/register").permitAll() // 프론트에서 jwt토큰 받도록 변경시 제거 예정
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()

@@ -2,6 +2,7 @@ package com.example.palayo.domain.auction.scheduler;
 
 import java.util.List;
 
+import com.example.palayo.domain.auction.service.AuctionService;
 import com.example.palayo.domain.auction.util.AuctionTimeUtils;
 import com.example.palayo.domain.auctionhistory.repository.AuctionHistoryRepository;
 import com.example.palayo.domain.notification.factory.RedisNotificationFactory;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.palayo.domain.auction.entity.Auction;
 import com.example.palayo.domain.auction.enums.AuctionStatus;
 import com.example.palayo.domain.auction.repository.AuctionRepository;
-import com.example.palayo.domain.auction.service.AuctionService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +30,7 @@ public class AuctionScheduler {
 	private final NotificationService notificationService;
 
 	// 1초마다 경매 상태 및 낙찰자 갱신 (변경된 경우에만 save) - 최적화 예정
-	// @Scheduled(fixedRate = 1000)
+	@Scheduled(fixedRate = 1000)
 	@Transactional
 	public void updateAuctionStatuses() {
 

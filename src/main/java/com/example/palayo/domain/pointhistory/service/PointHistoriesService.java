@@ -1,5 +1,7 @@
 package com.example.palayo.domain.pointhistory.service;
 
+import java.util.Collections;
+
 import com.example.palayo.common.exception.BaseException;
 import com.example.palayo.common.exception.ErrorCode;
 import com.example.palayo.domain.pointhistory.dto.PointHistoriesResponse;
@@ -11,6 +13,7 @@ import com.example.palayo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -24,84 +27,92 @@ public class PointHistoriesService {
 	private final PointHistoriesRepository pointHistoriesRepository;
 	private final RedissonClient redissonClient; // Redisson 주입
 
-	// 포인트 변경(충전, 차감, 환불) 및 변경 이력 저장
+	// Lua 리턴 코드 상수 정의
+	private static final long LUA_RESULT_POINT_NOT_FOUND = -1;
+	private static final long LUA_RESULT_INSUFFICIENT_POINT = -2;
+	private static final long LUA_RESULT_PARSE_ERROR = -3;
+
+	private static final String DECREASE_LUA_SCRIPT = """
+        local current = redis.call('GET', KEYS[1])
+        if not current or current == false then
+            return -1
+        end
+
+        local currentNum = tonumber(current)
+        local deduct = tonumber(ARGV[1])
+
+        if not currentNum or not deduct then
+            return -3
+        end
+
+        if currentNum < deduct then
+            return -2
+        end
+
+        redis.call('DECRBY', KEYS[1], deduct)
+        return 1
+    """;
+
 	@Transactional
 	public void updatePoints(Long userId, int amount, PointType pointType) {
+		String redisKey = "user:point:" + userId;
 		User user = findUserById(userId);
+		boolean redisUpdated = false;
 
-		if (pointType == PointType.DECREASE && user.getPointAmount() < amount) {
-			throw new BaseException(ErrorCode.INSUFFICIENT_POINT, "포인트 부족");
+		try {
+			if (pointType == PointType.DECREASE) {
+				Long result = redissonClient.getScript().eval(
+					RScript.Mode.READ_WRITE,
+					DECREASE_LUA_SCRIPT,
+					RScript.ReturnType.INTEGER,
+					Collections.singletonList(redisKey),
+					amount
+				);
+				if (result == -1) throw new BaseException(ErrorCode.USER_POINT_NOT_FOUND, "Redis에 포인트 없음");
+				if (result == -2) throw new BaseException(ErrorCode.INSUFFICIENT_POINT, "포인트 부족");
+			} else {
+				redissonClient.getAtomicLong(redisKey).addAndGet(amount);
+			}
+
+			redisUpdated = true;
+
+			int signedAmount = switch (pointType) {
+				case DECREASE -> -amount;
+				case RECHARGE, REFUNDED, INCREASE -> amount;
+			};
+			user.updatePointAmount(signedAmount);
+
+			pointHistoriesRepository.save(PointHistories.builder()
+				.user(user)
+				.amount(amount)
+				.pointType(pointType)
+				.build()
+			);
+
+		} catch (Exception e) {
+			// Redis 롤백
+			if (redisUpdated) {
+				int rollbackAmount = (pointType == PointType.DECREASE) ? amount : -amount;
+				redissonClient.getAtomicLong(redisKey).addAndGet(rollbackAmount);
+			}
+			throw e;
 		}
-
-		user.updatePointAmount(amount);
-
-		PointHistories history = PointHistories.builder()
-			.user(user)
-			.amount(amount)
-			.pointType(pointType)
-			.build();
-
-		pointHistoriesRepository.save(history);
 	}
 
-	// 포인트 변경(충전, 차감, 환불) 및 변경 이력 저장 (Lua Script)
-	// private static final String DECREASE_LUA_SCRIPT = """
+	// 정합성 검증: Redis와 DB 포인트 비교
+	public void validatePointSync(Long userId) {
+		String redisKey = "user:point:" + userId;
+		long redisPoint = redissonClient.getAtomicLong(redisKey).get();
 
-	// 	    local current = redis.call('GET', KEYS[1])
-	// 	    if (not current) then
-	// 	        return -1
-	// 	    end
-	// 	    if (tonumber(current) < tonumber(ARGV[1])) then
-	// 	        return -2
-	// 	    end
-	// 	    redis.call('DECRBY', KEYS[1], ARGV[1])
-	// 	    return 1
-	// 	""";
-	//
-	// @Transactional
-	// public void updatePoints(Long userId, int amount, PointType pointType) {
-	//
-	// 	// if (amount <= 0) {
-	// 	// 	throw new BaseException(ErrorCode.INVALID_POINT_AMOUNT, "포인트 금액은 0보다 커야 합니다.");
-	// 	// }
-	//
-	// 	User user = findUserById(userId);
-	//
-	// 	String redisKey = "user:point:" + userId;
-	//
-	// 	if (pointType == PointType.DECREASE) {
-	// 		// Lua를 통한 포인트 차감
-	// 		Long result = redissonClient.getScript().eval(
-	// 			RScript.Mode.READ_WRITE,
-	// 			DECREASE_LUA_SCRIPT,
-	// 			RScript.ReturnType.INTEGER,
-	// 			Collections.singletonList(redisKey),
-	// 			amount
-	// 		);
-	//
-	// 		if (result == -1) {
-	// 			throw new BaseException(ErrorCode.USER_POINT_NOT_FOUND, "사용자의 포인트 정보가 존재하지 않습니다.");
-	// 		} else if (result == -2) {
-	// 			throw new BaseException(ErrorCode.INSUFFICIENT_POINT, "포인트가 부족하여 차감할 수 없습니다.");
-	// 		}
-	// 		// DB 포인트도 차감
-	// 		user.updatePointAmount(-amount);
-	// 	} else if (pointType == PointType.INCREASE || pointType == PointType.REFUNDED) {
-	// 		// Redis 포인트 증가
-	// 		redissonClient.getAtomicLong(redisKey).addAndGet(amount);
-	// 		// DB 포인트도 증가
-	// 		user.updatePointAmount(amount);
-	// 	}
-	//
-	// 	// 포인트 이력은 DB에도 항상 남긴다
-	// 	PointHistories history = PointHistories.builder()
-	// 		.user(user)
-	// 		.amount(amount)
-	// 		.pointType(pointType)
-	// 		.build();
-	//
-	// 	pointHistoriesRepository.save(history);
-	// }
+		long dbPoint = userRepository.findById(userId)
+			.map(User::getPointAmount)
+			.orElse(0);
+
+		if (redisPoint != dbPoint) {
+			System.out.printf("포인트 불일치: userId=%d, redis=%d, db=%d%n", userId, redisPoint, dbPoint);
+			// 또는 log.warn(...) 사용 가능
+		}
+	}
 
 	// 사용자 포인트 이력 최신순 조회
 	@Transactional(readOnly = true)
@@ -117,4 +128,3 @@ public class PointHistoriesService {
 			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND, userId.toString()));
 	}
 }
-

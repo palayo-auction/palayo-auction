@@ -54,9 +54,7 @@ grafana/plugins/**/public/build/
 grafana-monitoring-stack-docker/conf/*.json
 grafana-monitoring-stack-docker/data/
 grafana-monitoring-stack-docker/logs/
-data/grafana/
-data/prometheus/
-data/loki/
+data/
 logs/
 scripts/promtail-entrypoint.sh
 

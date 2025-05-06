@@ -41,6 +41,9 @@ public interface AuctionHistoryRepository extends JpaRepository<AuctionHistory, 
 	Optional<AuctionHistory> findTopByAuctionIdAndBidderIdOrderByBidPriceDescCreatedAtDesc(Long auctionId,
 		Long bidderId);
 
+	// 경매 ID와 입찰 금액으로 이미 입찰된 기록이 있는지 확인
+	boolean existsByAuctionIdAndBidPrice(Long auctionId, Integer bidPrice);
+
 	// ACTIVE 상태 경매 중 각 경매에서 사용자의 최고 입찰가만 합산
 	@Query("SELECT COALESCE(SUM(ah.bidPrice), 0) " +
 		"FROM AuctionHistory ah " +
